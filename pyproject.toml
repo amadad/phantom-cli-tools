@@ -1,0 +1,23 @@
+[project]
+name = "agent-social"
+version = "0.1.0"
+description = "AI-powered social media content generation and publishing system"
+readme = "README.md"
+requires-python = ">=3.11.6"
+dependencies = [
+    "openai>=1.69.0",
+    "openai-agents>=0.0.7",
+    "composio>=0.1.1",
+    "composio-agno>=0.7.11",
+    "python-dotenv>=1.0.0",
+    "requests>=2.31.0",
+    "rich>=13.9.4",
+    "tavily-python>=0.5.1",
+    "duckduckgo-search>=7.5.4",
+    "google-genai>=1.8.0",
+    "pillow>=11.1.0",
+    "pytest>=8.3.5",
+    "composio-openai-agents>=0.7.12",
+    "asyncio>=3.4.3",
+    "agno>=1.2.4",
+]
