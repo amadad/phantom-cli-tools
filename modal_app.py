@@ -1,4 +1,5 @@
-import modal, yaml, pathlib, json
+import modal, pathlib, json
+import yaml
 from workflows.social_pipeline import SocialPipeline
 
 app = modal.App("agno-social-mvp")
