@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 """
 Agent Social - GiveCare Brand
-Agno-native social media content pipeline with approval workflow.
 
-A single-file implementation that consolidates:
+Social media content pipeline with approval workflow:
 - Social media pipeline workflow
 - Slack approval service
 - Social media posting
 - Configuration management
 - All Pydantic models
-
-Built with Agno - The AI Agent Framework
 """
 
 import asyncio
@@ -20,14 +17,16 @@ import uuid
 import yaml
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional, Dict, Any, List, AsyncGenerator, Callable
+from typing import Optional, Dict, Any, List, Iterator, AsyncGenerator, Callable
 
 # Core dependencies
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
-from agno import Workflow, Agent, RunResponse
+from agno.workflow import Workflow, RunResponse, RunEvent
+from agno.agent import Agent
+from agno.storage.sqlite import SqliteWorkflowStorage
 from agno.models.azure import AzureOpenAI
-from agno.tools.serper import SerperApiTools
+from agno.tools.serpapi import SerpApiTools
 from composio_agno import ComposioToolSet
 from slack_sdk.web.async_client import AsyncWebClient
 from slack_sdk.errors import SlackApiError
@@ -393,8 +392,18 @@ class SocialPipeline(Workflow):
     
     description: str = "Automated social media content pipeline with approval workflow"
     
-    def __init__(self, brand_config_path: Optional[str] = None):
-        super().__init__()
+    def __init__(self, 
+                 brand_config_path: Optional[str] = None,
+                 session_id: Optional[str] = None,
+                 storage: Optional[SqliteWorkflowStorage] = None):
+        # Initialize with session management and storage
+        super().__init__(
+            session_id=session_id or f"social-pipeline-{datetime.now().strftime('%Y%m%d')}",
+            storage=storage or SqliteWorkflowStorage(
+                table_name="social_pipeline_workflows",
+                db_file="tmp/social_pipeline.db"
+            )
+        )
         
         # Load brand configuration
         if brand_config_path:
@@ -434,7 +443,7 @@ class SocialPipeline(Workflow):
         self.story_hunter = Agent(
             name="Story Hunter",
             model=self.azure_model,
-            tools=[SerperApiTools()],
+            tools=[SerpApiTools()],
             description="Expert at finding relevant news stories",
             instructions=[
                 "Search for recent, relevant news stories about the given topic",
@@ -488,6 +497,13 @@ class SocialPipeline(Workflow):
         if platforms is None:
             platforms = ["twitter", "linkedin"]
         
+        # Yield workflow started event
+        yield RunResponse(
+            run_id=self.run_id,
+            content={"step": "workflow_started", "topic": topic, "platforms": platforms},
+            event=RunEvent.workflow_started
+        )
+        
         try:
             # Step 1: Find relevant stories
             logger.info("🔍 Searching for stories...")
@@ -496,7 +512,19 @@ class SocialPipeline(Workflow):
                 content={"step": "searching", "message": f"Searching for stories about: {topic}"}
             )
             
-            stories_response = self.story_hunter.run(f"Find 3 relevant news stories about: {topic}")
+            # Check cache first
+            cached_stories = self.session_state.get("stories", {}).get(topic)
+            if cached_stories:
+                logger.info(f"📚 Found cached stories for topic: {topic}")
+                stories_response = type('Response', (), {'content': cached_stories})()
+            else:
+                stories_response = self.story_hunter.run(f"Find 3 relevant news stories about: {topic}")
+                # Cache the results
+                if stories_response and stories_response.content:
+                    self.session_state.setdefault("stories", {})
+                    self.session_state["stories"][topic] = stories_response.content
+                    # Save to storage immediately for persistence
+                    self.write_to_storage()
             
             if not stories_response or not stories_response.content:
                 end_time = datetime.now(timezone.utc)
@@ -526,9 +554,22 @@ class SocialPipeline(Workflow):
                 content={"step": "creating_content", "message": "Generating social media post"}
             )
             
-            post_response = self.content_creator.run(
-                f"Create a social media post about this story: {story.title}\n\nSummary: {story.summary}\n\nTarget platforms: {', '.join(platforms)}"
-            )
+            # Check cache for posts
+            post_cache_key = f"{topic}_{story.title}_{'-'.join(platforms)}"
+            cached_post = self.session_state.get("posts", {}).get(post_cache_key)
+            if cached_post:
+                logger.info(f"📚 Found cached post for story: {story.title}")
+                post_response = type('Response', (), {'content': cached_post})()
+            else:
+                post_response = self.content_creator.run(
+                    f"Create a social media post about this story: {story.title}\n\nSummary: {story.summary}\n\nTarget platforms: {', '.join(platforms)}"
+                )
+                # Cache the post
+                if post_response and post_response.content:
+                    self.session_state.setdefault("posts", {})
+                    self.session_state["posts"][post_cache_key] = post_response.content
+                    # Save to storage immediately for persistence
+                    self.write_to_storage()
             
             if not post_response or not post_response.content:
                 raise ValueError("Failed to generate social media content")
@@ -610,6 +651,11 @@ class SocialPipeline(Workflow):
                         message="Content was rejected during approval process"
                     )
                     yield RunResponse(run_id=self.run_id, content=result.model_dump())
+                    yield RunResponse(
+                        run_id=self.run_id,
+                        content={"step": "workflow_completed", "status": "rejected"},
+                        event=RunEvent.workflow_completed
+                    )
                     return
                 else:  # timeout
                     logger.warning("⏰ Approval request timed out")
@@ -627,6 +673,11 @@ class SocialPipeline(Workflow):
                         message=f"Approval request timed out after {timeout_hours} hours"
                     )
                     yield RunResponse(run_id=self.run_id, content=result.model_dump())
+                    yield RunResponse(
+                        run_id=self.run_id,
+                        content={"step": "workflow_completed", "status": "timeout"},
+                        event=RunEvent.workflow_completed
+                    )
                     return
             
             # Step 5: Post to social media platforms
@@ -664,6 +715,13 @@ class SocialPipeline(Workflow):
             logger.info(f"🎉 Pipeline completed in {duration:.1f}s")
             yield RunResponse(run_id=self.run_id, content=result.model_dump())
             
+            # Yield workflow completed event
+            yield RunResponse(
+                run_id=self.run_id,
+                content={"step": "workflow_completed", "status": result.status, "duration": duration},
+                event=RunEvent.workflow_completed
+            )
+            
         except Exception as e:
             logger.error(f"❌ Pipeline error: {e}")
             end_time = datetime.now(timezone.utc)
@@ -678,11 +736,23 @@ class SocialPipeline(Workflow):
                 message=f"Pipeline failed: {str(e)}"
             )
             yield RunResponse(run_id=self.run_id, content=result.model_dump())
+            yield RunResponse(
+                run_id=self.run_id,
+                content={"step": "workflow_completed", "status": "error", "error": str(e)},
+                event=RunEvent.workflow_completed
+            )
 
     @classmethod
-    def create_for_brand(cls, brand_config_path: str) -> "SocialPipeline":
+    def create_for_brand(cls, 
+                        brand_config_path: str,
+                        session_id: Optional[str] = None,
+                        storage: Optional[SqliteWorkflowStorage] = None) -> "SocialPipeline":
         """Factory method to create pipeline for specific brand."""
-        return cls(brand_config_path=brand_config_path)
+        return cls(
+            brand_config_path=brand_config_path,
+            session_id=session_id,
+            storage=storage
+        )
 
 # =============================================================================
 # MAIN EXECUTION
@@ -690,9 +760,17 @@ class SocialPipeline(Workflow):
 
 async def main():
     """Main execution function for testing."""
-    pipeline = SocialPipeline()
+    # Create pipeline with session management
+    pipeline = SocialPipeline(
+        session_id="demo-session",
+        storage=SqliteWorkflowStorage(
+            table_name="social_pipeline_workflows",
+            db_file="tmp/social_pipeline.db"
+        )
+    )
     
     print("🚀 Starting Social Media Pipeline...")
+    print(f"📊 Session ID: {pipeline.session_id}")
     
     async for response in pipeline.run(
         topic="caregiver support resources",

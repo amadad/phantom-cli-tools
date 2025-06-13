@@ -7,6 +7,7 @@ Simple testing interface for the consolidated pipeline.
 import asyncio
 import argparse
 import logging
+from datetime import datetime
 from pathlib import Path
 
 # Import from consolidated pipeline
@@ -23,7 +24,15 @@ async def test_pipeline(topic: str = "caregiver burnout", auto_post: bool = Fals
     """Test the main pipeline functionality."""
     logger.info(f"🧪 Testing pipeline with topic: {topic}")
     
-    pipeline = SocialPipeline()
+    # Create pipeline with session management for testing
+    from social_pipeline import SqliteWorkflowStorage
+    pipeline = SocialPipeline(
+        session_id=f"test-{topic.replace(' ', '-')}-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+        storage=SqliteWorkflowStorage(
+            table_name="test_social_pipeline_workflows",
+            db_file="tmp/test_social_pipeline.db"
+        )
+    )
     
     print(f"🚀 Starting pipeline for: {topic}")
     print("=" * 50)
