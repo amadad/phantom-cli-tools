@@ -26,7 +26,7 @@ image = (
 )
 
 # Mount the source code
-mount = modal.Mount.from_local_dir(
+mount = modal.mount.from_local_dir(
     ".",
     remote_path="/root",
     condition=lambda pth: not any(
@@ -36,11 +36,11 @@ mount = modal.Mount.from_local_dir(
 
 # Define secrets - you'll need to create these in Modal
 secrets = [
-    modal.Secret.from_name("azure-openai"),  # Azure OpenAI credentials
-    modal.Secret.from_name("composio"),      # Composio API key
-    modal.Secret.from_name("slack"),         # Slack bot token and signing secret
-    modal.Secret.from_name("search-apis"),   # SERP, EXA, TAVILY, FIRECRAWL keys
-    modal.Secret.from_name("replicate"),     # Replicate API token
+    modal.secret.from_name("azure-openai"),  # Azure OpenAI credentials
+    modal.secret.from_name("composio"),      # Composio API key
+    modal.secret.from_name("slack"),         # Slack bot token and signing secret
+    modal.secret.from_name("search-apis"),   # SERP, EXA, TAVILY, FIRECRAWL keys
+    modal.secret.from_name("replicate"),     # Replicate API token
 ]
 
 def get_pipeline_state():
@@ -51,7 +51,7 @@ def get_pipeline_state():
     except FileNotFoundError:
         return 'active'
 
-@app.function(image=image, secrets=secrets, schedule=modal.Period(hours=6), timeout=900)
+@app.function(image=image, secrets=secrets, schedule=modal.schedule.Period(hours=6), timeout=900)
 async def scheduled():
     """Scheduled pipeline run - respects pause state."""
     if get_pipeline_state() == 'paused':
@@ -86,10 +86,10 @@ def slack_app_serve():
     image=image,
     mounts=[mount],
     secrets=[
-        modal.Secret.from_name("azure-openai-secrets"),
-        modal.Secret.from_name("serper-api-key"),
-        modal.Secret.from_name("slack-secrets"),
-        modal.Secret.from_name("composio-secrets"),
+        modal.secret.from_name("azure-openai-secrets"),
+        modal.secret.from_name("serper-api-key"),
+        modal.secret.from_name("slack-secrets"),
+        modal.secret.from_name("composio-secrets"),
     ],
     timeout=1800,  # 30 minutes
     memory=2048,   # 2GB RAM
@@ -182,9 +182,9 @@ async def run_social_pipeline(
     image=image,
     mounts=[mount],
     secrets=[
-        modal.Secret.from_name("slack-secrets"),
+        modal.secret.from_name("slack-secrets"),
     ],
-    schedule=modal.Cron("0 9 * * 1-5"),  # Run weekdays at 9 AM
+    schedule=modal.schedule.Cron("0 9 * * 1-5"),  # Run weekdays at 9 AM
 )
 async def scheduled_pipeline():
     """
