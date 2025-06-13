@@ -60,7 +60,7 @@ async def scheduled():
     return await pipeline.run()
 
 @app.function(image=image, secrets=secrets)
-@modal.web_endpoint(method="POST")
+@modal.fastapi_endpoint(method="POST")
 async def trigger(data: dict):
     """Manual trigger - always runs regardless of pause state."""
     topic = data.get("topic", "caregiver burnout")
@@ -210,7 +210,6 @@ async def scheduled_pipeline():
 
 @app.function(
     image=image,
-    mounts=[mount],
 )
 def health_check():
     """Health check endpoint for monitoring."""
