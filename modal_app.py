@@ -34,11 +34,11 @@ image = (
 
 # Define secrets - you'll need to create these in Modal
 secrets = [
-    modal.secret.from_name("azure-openai"),  # Azure OpenAI credentials
-    modal.secret.from_name("composio"),      # Composio API key
-    modal.secret.from_name("slack"),         # Slack bot token and signing secret
-    modal.secret.from_name("search-apis"),   # SERP, EXA, TAVILY, FIRECRAWL keys
-    modal.secret.from_name("replicate"),     # Replicate API token
+    modal.secret.Secret.from_name("azure-openai"),  # Azure OpenAI credentials
+    modal.secret.Secret.from_name("composio"),      # Composio API key
+    modal.secret.Secret.from_name("slack"),         # Slack bot token and signing secret
+    modal.secret.Secret.from_name("search-apis"),   # SERP, EXA, TAVILY, FIRECRAWL keys
+    modal.secret.Secret.from_name("replicate"),     # Replicate API token
 ]
 
 def get_pipeline_state():
@@ -83,10 +83,10 @@ def slack_app_serve():
 @app.function(
     image=image,
     secrets=[
-        modal.secret.from_name("azure-openai-secrets"),
-        modal.secret.from_name("serper-api-key"),
-        modal.secret.from_name("slack-secrets"),
-        modal.secret.from_name("composio-secrets"),
+        modal.secret.Secret.from_name("azure-openai-secrets"),
+        modal.secret.Secret.from_name("serper-api-key"),
+        modal.secret.Secret.from_name("slack-secrets"),
+        modal.secret.Secret.from_name("composio-secrets"),
     ],
     timeout=1800,  # 30 minutes
     memory=2048,   # 2GB RAM
@@ -178,7 +178,7 @@ async def run_social_pipeline(
 @app.function(
     image=image,
     secrets=[
-        modal.secret.from_name("slack-secrets"),
+        modal.secret.Secret.from_name("slack-secrets"),
     ],
     schedule=modal.Cron("0 9 * * 1-5"),  # Run weekdays at 9 AM
 )
