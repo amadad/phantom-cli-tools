@@ -16,7 +16,9 @@ app = modal.App("agno-social-mvp")
 # Define the image with all dependencies
 image = (
     modal.Image.debian_slim(python_version="3.10")
+    .apt_install("git", "curl")  # Add system dependencies
     .pip_install_from_requirements("requirements.txt")
+    .pip_install("PyYAML>=6.0.2")  # Ensure PyYAML is installed
     .env({
         "PYTHONPATH": "/root",
         "PYTHONUNBUFFERED": "1"

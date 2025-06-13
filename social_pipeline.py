@@ -14,8 +14,18 @@ import asyncio
 import json
 import logging
 import uuid
-import yaml
 from datetime import datetime, timezone
+
+# Try different YAML libraries
+try:
+    import yaml
+except ImportError:
+    try:
+        from ruamel.yaml import YAML
+        yaml = YAML()
+        yaml.preserve_quotes = True
+    except ImportError:
+        raise ImportError("Neither PyYAML nor ruamel.yaml is available. Please install one of them.")
 from pathlib import Path
 from typing import Optional, Dict, Any, List, Iterator, AsyncGenerator, Callable
 
