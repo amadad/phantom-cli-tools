@@ -45,31 +45,45 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
         extra = "ignore"  # Ignore extra fields in .env file
 
-# Initialize settings and ensure paths exist
-try:
-    settings = Settings()
-    settings.ensure_paths_exist()
-    
-    # Validate required environment variables are set
-    required_vars = [
-        "AZURE_OPENAI_BASE_URL",
-        "AZURE_OPENAI_GPT45_DEPLOYMENT", 
-        "AZURE_OPENAI_API_KEY",
-        "SERPER_API_KEY",
-        "REPLICATE_API_TOKEN",
-        "SLACK_BOT_TOKEN",
-        "SLACK_VERIFICATION_TOKEN", 
-        "SLACK_SIGNING_SECRET"
-    ]
-    
-    missing_vars = [var for var in required_vars if not getattr(settings, var, None)]
-    if missing_vars:
-        raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
+# Lazy settings initialization - only load when accessed
+_settings = None
+
+def get_settings():
+    """Get settings instance, initializing if needed."""
+    global _settings
+    if _settings is None:
+        _settings = Settings()
+        _settings.ensure_paths_exist()
         
-    logger = logging.getLogger(__name__)
-    logger.info("Configuration loaded successfully")
+        # Validate required environment variables are set
+        required_vars = [
+            "AZURE_OPENAI_BASE_URL",
+            "AZURE_OPENAI_GPT45_DEPLOYMENT", 
+            "AZURE_OPENAI_API_KEY",
+            "SERPER_API_KEY",
+            "REPLICATE_API_TOKEN",
+            "SLACK_BOT_TOKEN",
+            "SLACK_VERIFICATION_TOKEN", 
+            "SLACK_SIGNING_SECRET"
+        ]
+        
+        missing_vars = [var for var in required_vars if not getattr(_settings, var, None)]
+        if missing_vars:
+            raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
+            
+        logger = logging.getLogger(__name__)
+        logger.info("Configuration loaded successfully")
     
-except Exception as e:
-    logger = logging.getLogger(__name__)
-    logger.error(f"Failed to load configuration: {e}")
-    raise
+    return _settings
+
+# For backward compatibility
+@property
+def settings():
+    return get_settings()
+
+# Create a settings proxy that loads lazily
+class SettingsProxy:
+    def __getattr__(self, name):
+        return getattr(get_settings(), name)
+
+settings = SettingsProxy()
