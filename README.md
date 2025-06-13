@@ -17,7 +17,7 @@ Automated social content pipeline for GiveCare, generating and approving branded
  Usage:
   - python slack_app.py
   - python -m workflows.social_pipeline 
-  - modal deploy modal_app.py 
+  - Push to main branch (auto-deploys via CI/CD) 
 
 ```
 agent-social/
@@ -158,7 +158,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 3. Install dependencies:
    ```bash
    pip install -r requirements.txt
-   cd api && pip install -r requirements.txt
    ```
 
 4. Configure environment variables:
@@ -183,15 +182,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    - Request URL: `https://your-domain.com/slack/commands`
    - Description: `Start a new social media content pipeline`
 
-### Running the API
+### Running the App
 
 ```bash
-# Start the API server
-cd api
-uvicorn main:app --reload --port 8000
+# Start the Slack app locally
+python slack_app.py
 ```
-
-For production, use a production ASGI server like Uvicorn with Gunicorn or deploy on a platform like Heroku, AWS, or Google Cloud Run.
 
 ### Running the Pipeline
 
@@ -224,11 +220,22 @@ modal run modal_app.py::trigger --data '{"topic":"caregiver burnout"}'
 
 ## 🚀 Deployment
 
-Deploy to Modal:
+### CI/CD Pipeline (Recommended)
+Push to main branch to auto-deploy:
+```bash
+git add .
+git commit -m "Your changes"
+git push origin main
+```
 
+### Manual Deployment
 ```bash
 modal deploy modal_app.py
 ```
+
+Setup requires GitHub secrets:
+- `MODAL_TOKEN_ID`: From ~/.modal.toml
+- `MODAL_TOKEN_SECRET`: From ~/.modal.toml
 
 ## 🔧 Configuration
 

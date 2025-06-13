@@ -1,8 +1,31 @@
+# Virtual environment
 .venv
-_archive
+venv/
+
+# Environment files
 .env
-.windsurf*
+
+# System files
 .DS_Store
+.windsurfrules
+.windsurf*
+
+# IDE files
+.claude
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log
+social_pipeline.log
+
+# Archive
+_archive
+
+# Keep output structure, ignore contents (user requested to keep files)
 output/articles/*
 output/images/*
-*.pyc
