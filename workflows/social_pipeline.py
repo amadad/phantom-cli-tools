@@ -3,7 +3,7 @@ import asyncio
 import re
 import sys
 import importlib
-import backoff
+# import backoff - lazy import at runtime
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any
@@ -45,10 +45,15 @@ class SocialPipeline(Workflow):
         
         logger.info("Initialized SocialPipeline")
 
-    @backoff.on_exception(backoff.expo, Exception, max_tries=3)
     async def _run_with_retry(self, func, *args, **kwargs):
         """Helper method to retry failed operations."""
-        return await func(*args, **kwargs)
+        import backoff
+        
+        @backoff.on_exception(backoff.expo, Exception, max_tries=3)
+        async def _retry_wrapper():
+            return await func(*args, **kwargs)
+        
+        return await _retry_wrapper()
 
     async def _save_outputs(
         self,
