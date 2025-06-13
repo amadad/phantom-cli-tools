@@ -2,7 +2,7 @@
 import asyncio
 import re
 import sys
-import yaml
+import importlib
 import backoff
 from datetime import datetime, timezone
 from pathlib import Path
@@ -30,6 +30,9 @@ class SocialPipeline(Workflow):
     
     def __init__(self):
         super().__init__()
+        # PyYAML is only needed inside Modal runtime. Import lazily in __init__ to avoid requiring it during CLI deploy.
+        yaml = importlib.import_module("yaml")
+        
         # Load brand configuration
         brand_path = Path(__file__).parent.parent / "brand" / "givecare.yml"
         self.brand_cfg = yaml.safe_load(brand_path.read_text())
