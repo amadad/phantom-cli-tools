@@ -22,8 +22,8 @@ image = (
     .add_local_dir(
         ".",
         remote_path="/root",
-        condition=lambda pth: not any(
-            part in pth for part in [".git", "__pycache__", ".venv", "node_modules", ".DS_Store"]
+        ignore=lambda pth: any(
+            part in str(pth) for part in [".git", "__pycache__", ".venv", "node_modules", ".DS_Store"]
         )
     )
     .env({
