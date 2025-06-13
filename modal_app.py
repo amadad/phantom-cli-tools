@@ -1,5 +1,4 @@
 import modal, pathlib, json
-import yaml
 from workflows.social_pipeline import SocialPipeline
 
 app = modal.App("agno-social-mvp")
@@ -45,55 +44,10 @@ async def trigger(data: dict):
     
     return await pipeline.run(topic)
 
-# Add Slack app endpoint - fast challenge response, lazy agent loading
+# Mount the slack_app FastAPI app
 @app.function(image=image, secrets=secrets)
-@modal.fastapi_endpoint()
-async def slack_events():
-    """Slack events webhook endpoint with fast challenge response."""
-    from fastapi import FastAPI, Request
-    import json
-    
-    slack_app = FastAPI()
-    
-    @slack_app.post("/slack/events")
-    async def handle_slack_events(request: Request):
-        """Handle Slack events with immediate challenge response."""
-        try:
-            body = await request.body()
-            data = json.loads(body)
-            
-            # Handle URL verification challenge IMMEDIATELY
-            if data.get("type") == "url_verification":
-                challenge = data.get("challenge")
-                print(f"Slack challenge received: {challenge}")
-                return {"challenge": challenge}
-            
-            # For actual events, import heavy dependencies only when needed
-            if data.get("type") == "event_callback":
-                print("Processing Slack event...")
-                # Lazy import to avoid slowing down challenge response
-                from slack_app import social_agent
-                
-                event = data.get("event", {})
-                if event.get("type") in ["app_mention", "message"]:
-                    user_message = event.get("text", "").strip()
-                    
-                    # Remove bot mention
-                    if user_message.startswith("<@"):
-                        user_message = " ".join(user_message.split(" ")[1:])
-                    
-                    # Process with agent
-                    try:
-                        response = social_agent.run(user_message)
-                        return {"response_type": "in_channel", "text": response.content}
-                    except Exception as e:
-                        print(f"Agent error: {e}")
-                        return {"text": "Sorry, I encountered an error processing your request."}
-                
-            return {"status": "ok"}
-            
-        except Exception as e:
-            print(f"Slack webhook error: {e}")
-            return {"status": "error", "message": str(e)}
-    
-    return slack_app
+@modal.asgi_app()
+def slack_app_serve():
+    """Serve the existing slack_app with Agno SlackAPI."""
+    from slack_app import app as slack_fastapi_app
+    return slack_fastapi_app
