@@ -18,9 +18,23 @@ class ContentCreator:
     """Simple content creator using Azure OpenAI API directly."""
     
     def __init__(self, brand_cfg: dict):
-        self.brand = brand_cfg["brand"]
+        # Support both new flattened structure and legacy nested structure
+        if "brand" in brand_cfg:
+            self.brand = brand_cfg["brand"]  # Legacy structure
+        else:
+            # New flattened structure - create compatible brand object
+            self.brand = {
+                "name": brand_cfg.get("name", ""),
+                "voice": {
+                    "tone": brand_cfg.get("voice_tone", ""),
+                    "style": brand_cfg.get("voice_style", "")
+                },
+                "positioning": brand_cfg.get("positioning", "").split(" | ") if brand_cfg.get("positioning") else []
+            }
+        
         self.style_guide = brand_cfg.get("style_guide", {})
-        logger.info(f"Initialized ContentCreator for brand: {self.brand['name']}")
+        brand_name = self.brand.get('name', 'unknown brand')
+        logger.info(f"Initialized ContentCreator for brand: {brand_name}")
 
     async def craft(self, story: Dict, platform: str = "twitter") -> SocialMediaPost:
         """Create a social media post from a story using Azure OpenAI."""

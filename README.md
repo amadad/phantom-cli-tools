@@ -15,9 +15,9 @@ Automated social content pipeline for GiveCare, generating and approving branded
 ## 🏗 Project Structure
 
  Usage:
-  - python slack_app.py (Slack integration)
-  - python -m workflows.social_pipeline (Direct pipeline)
-  - modal deploy modal_app.py (Cloud deployment)
+  - python slack_app.py
+  - python -m workflows.social_pipeline 
+  - modal deploy modal_app.py 
 
 ```
 agent-social/
