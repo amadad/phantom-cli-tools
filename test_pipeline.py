@@ -25,12 +25,13 @@ async def test_pipeline(topic: str = "caregiver burnout", auto_post: bool = Fals
     logger.info(f"🧪 Testing pipeline with topic: {topic}")
     
     # Create pipeline with session management for testing
-    from social_pipeline import SqliteWorkflowStorage
+    from social_pipeline import SqliteStorage
     pipeline = SocialPipeline(
         session_id=f"test-{topic.replace(' ', '-')}-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
-        storage=SqliteWorkflowStorage(
+        storage=SqliteStorage(
             table_name="test_social_pipeline_workflows",
-            db_file="tmp/test_social_pipeline.db"
+            db_file="tmp/test_social_pipeline.db",
+            mode="workflow"
         )
     )
     

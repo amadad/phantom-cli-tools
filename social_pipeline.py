@@ -34,7 +34,7 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 from agno.workflow import Workflow, RunResponse, RunEvent
 from agno.agent import Agent
-from agno.storage.sqlite import SqliteWorkflowStorage
+from agno.storage.sqlite import SqliteStorage
 from agno.models.azure import AzureOpenAI
 from agno.tools.serpapi import SerpApiTools
 from composio_agno import ComposioToolSet
@@ -405,13 +405,14 @@ class SocialPipeline(Workflow):
     def __init__(self, 
                  brand_config_path: Optional[str] = None,
                  session_id: Optional[str] = None,
-                 storage: Optional[SqliteWorkflowStorage] = None):
+                 storage: Optional[SqliteStorage] = None):
         # Initialize with session management and storage
         super().__init__(
             session_id=session_id or f"social-pipeline-{datetime.now().strftime('%Y%m%d')}",
-            storage=storage or SqliteWorkflowStorage(
+            storage=storage or SqliteStorage(
                 table_name="social_pipeline_workflows",
-                db_file="tmp/social_pipeline.db"
+                db_file="tmp/social_pipeline.db",
+                mode="workflow"
             )
         )
         
@@ -756,7 +757,7 @@ class SocialPipeline(Workflow):
     def create_for_brand(cls, 
                         brand_config_path: str,
                         session_id: Optional[str] = None,
-                        storage: Optional[SqliteWorkflowStorage] = None) -> "SocialPipeline":
+                        storage: Optional[SqliteStorage] = None) -> "SocialPipeline":
         """Factory method to create pipeline for specific brand."""
         return cls(
             brand_config_path=brand_config_path,
@@ -773,9 +774,10 @@ async def main():
     # Create pipeline with session management
     pipeline = SocialPipeline(
         session_id="demo-session",
-        storage=SqliteWorkflowStorage(
+        storage=SqliteStorage(
             table_name="social_pipeline_workflows",
-            db_file="tmp/social_pipeline.db"
+            db_file="tmp/social_pipeline.db",
+            mode="workflow"
         )
     )
     

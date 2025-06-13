@@ -112,7 +112,7 @@ async def run_social_pipeline(
     import sys
     sys.path.append("/root")
     
-    from social_pipeline import SocialPipeline, SqliteWorkflowStorage
+    from social_pipeline import SocialPipeline, SqliteStorage
     import asyncio
     import json
     from datetime import datetime
@@ -128,9 +128,10 @@ async def run_social_pipeline(
     pipeline = SocialPipeline(
         brand_config_path=brand_config,
         session_id=f"modal-{topic.replace(' ', '-')}-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
-        storage=SqliteWorkflowStorage(
+        storage=SqliteStorage(
             table_name="modal_social_pipeline_workflows",
-            db_file="/tmp/modal_social_pipeline.db"
+            db_file="/tmp/modal_social_pipeline.db",
+            mode="workflow"
         )
     )
     
