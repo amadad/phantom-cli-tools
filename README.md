@@ -1,254 +1,226 @@
-# Agent Social Pipeline
+# Agent Social - GiveCare Brand
 
-Automated social content pipeline for GiveCare, generating and approving branded posts using AI agents.
+A clean, consolidated social media content pipeline built with Agno. Single-file architecture for automated story discovery, content creation, and multi-platform posting with approval workflows.
 
-## 🌟 Features
-
-- **Story Hunting**: Finds trending caregiving topics using web search
-- **Content Creation**: Writes platform-specific posts in brand voice
-- **Media Generation**: Creates images via Replicate (with Azure OpenAI video support)
-- **Human-in-the-Loop**: Rich Slack-based approval workflow with interactive components
-- **Multi-Platform**: Ready for LinkedIn, Twitter, Instagram, etc.
-- **Serverless**: Deploy on Modal with scheduled runs
-- **Secure**: Request verification and signature validation for all Slack events
-
-## 🏗 Project Structure
-
- Usage:
-  - python slack_app.py
-  - python -m workflows.social_pipeline 
-  - Push to main branch (auto-deploys via CI/CD) 
-
-```
-agent-social/
-├── agents/                    # AI agent implementations
-│   ├── __init__.py
-│   ├── story_hunter.py        # Finds and scores relevant stories
-│   ├── content_creator.py     # Crafts social posts
-│   ├── media_generator.py     # Handles image/video generation
-│   └── replicate_image.py     # Replicate image generation agent
-│
-├── services/                 # External service integrations
-│   ├── __init__.py
-│   └── slack_service.py       # Slack notifications and approvals
-│
-├── workflows/                # Business logic flows
-│   ├── __init__.py
-│   └── social_pipeline.py     # Main content generation workflow
-│
-├── output/                   # Generated content
-│   ├── images/               # Generated images
-│   └── articles/             # Post content as markdown
-│
-├── brand/
-│   └── givecare.yml         # Brand configuration
-│
-├── modal_app.py             # Modal deployment config
-├── requirements.txt          # Python dependencies
-└── .env.example             ## 📝 Environment Variables
-
-Create a `.env` file in the root directory with the following variables:
-
-```
-# Azure OpenAI
-AZURE_OPENAI_BASE_URL=
-AZURE_OPENAI_GPT45_DEPLOYMENT=
-AZURE_OPENAI_API_KEY=
-
-# SerpAPI for web search
-SERP_API_KEY=
-
-# Slack Configuration
-SLACK_BOT_TOKEN=
-SLACK_SIGNING_SECRET=
-SLACK_VERIFICATION_TOKEN=
-SLACK_APPROVAL_CHANNEL=#general
-
-# Output Directories
-OUTPUT_BASE=output
-IMAGES_DIR=output/images
-ARTICLES_DIR=output/articles
-```
-
-## 🔍 API Reference
-
-### Endpoints
-
-- `POST /slack/events` - Handle Slack events and URL verification
-- `POST /slack/commands` - Handle Slack slash commands
-- `POST /slack/actions` - Handle Slack interactive components
-- `GET /health` - Health check endpoint
-
-### Interactive Components
-
-The Slack integration includes the following interactive components:
-
-1. **Approval Buttons**
-   - Approve: Approves the content for posting
-   - Reject: Rejects the content with optional feedback
-
-2. **Slash Commands**
-   - `/social-pipeline [topic]` - Start a new content pipeline for the given topic
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [Agno](https://github.com/agno-ai/agno) for the agent framework
-- [Slack Bolt](https://slack.dev/bolt-python/concepts) for the Slack integration
-- [Azure OpenAI](https://azure.microsoft.com/en-us/services/cognitive-services/openai-service/) for language models
-- [Replicate](https://replicate.com/) for image generation
-
-## 🔄 Workflow
-
-1. **Story Discovery**
-   - Searches for trending caregiving topics
-   - Scores relevance to GiveCare's mission
-   - Selects top stories for content creation
-   - Posts content approval requests to Slack with rich formatting
-   - Handles user approval/rejection through interactive buttons
-
-2. **Content Generation**
-   - Writes platform-optimized posts
-   - Generates matching images using Replicate
-   - Applies brand voice and styling
-
-3. **Approval**
-   - Posts drafts to Slack for review
-   - Awaits human approval/rejection
-   - Tracks status in `output/`
-
-4. **Publishing**
-   - Ready for integration with social platforms
-   - Archive published content
-
-## 🚀 Setup
-
-### Prerequisites
-
-1. **Python 3.8+**
-2. **Slack Workspace** with admin access
-3. **Azure OpenAI** API access
-4. **SerpAPI** key for web searches
-
-### Installation
-
-1. Clone the repository
-   ```bash
-   git clone https://github.com/your-org/agent-social.git
-   cd agent-social
-   ```
-
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. Configure environment variables:
-   ```bash
-   cp .env.example .env
-   ```
-   Edit `.env` with your credentials.
-
-### Slack App Setup
-
-1. Create a new Slack App at [api.slack.com/apps](https://api.slack.com/apps)
-2. Add the following OAuth scopes:
-   - `chat:write`
-   - `commands`
-   - `incoming-webhook`
-   - `app_mentions:read`
-   - `channels:history`
-
-3. Enable Events and set the Request URL to your server's `/slack/events` endpoint
-4. Add a Slash Command:
-   - Command: `/social-pipeline`
-   - Request URL: `https://your-domain.com/slack/commands`
-   - Description: `Start a new social media content pipeline`
-
-### Running the App
+## 🚀 Quick Start
 
 ```bash
-# Start the Slack app locally
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your API keys
+
+# Run the pipeline
+python test_pipeline.py --topic "caregiver burnout"
+
+# Start Slack approval app (optional)
 python slack_app.py
 ```
 
-### Running the Pipeline
+## 📁 Clean Project Structure
 
-```bash
-# Run the social pipeline
-python -m workflows.social_pipeline --topic "caregiver support"
+```
+agent-social/
+├── social_pipeline.py      # 🎯 Main pipeline (everything in one file)
+├── slack_app.py           # 💬 Slack integration & approval workflow
+├── config.py              # ⚙️  Configuration management
+├── test_pipeline.py       # 🧪 Testing interface
+├── requirements.txt       # 📦 Dependencies
+├── README.md             # 📖 Documentation
+├── brand/                # 🏢 Brand configurations
+│   └── givecare.yml      #     GiveCare brand settings
+└── .env.example          # 🔐 Environment template
 ```
 
-## 🔒 Security
+## 🏗️ Architecture
 
-- All Slack requests are verified using the signing secret
-- Environment variables are used for sensitive configuration
-- Rate limiting and request validation are implemented
-- HTTPS is required for all Slack API endpoints
+**Single-File Design** - Everything consolidated into `social_pipeline.py`:
+- **SocialPipeline**: Main workflow class with embedded agents
+- **Story Hunter**: Finds relevant news using Serper API
+- **Content Creator**: Generates brand-aligned social posts
+- **Media Generator**: Creates visual content prompts
+- **Social Poster**: Multi-platform posting via Composio
+- **Slack Service**: Approval workflow management
+- **All Models**: Pydantic models for type safety
 
-3. Required services:
-   - Replicate API key (for image generation)
-   - Slack app with bot token (for approvals)
-   - Azure OpenAI (for video generation, optional)
+## ✨ Key Features
 
-## 🏃 Running Locally
-
-```bash
-# Run the pipeline
-python -m workflows.social_pipeline
-
-# Or via Modal (if deployed)
-modal run modal_app.py::trigger --data '{"topic":"caregiver burnout"}'
-```
-
-## 🚀 Deployment
-
-### CI/CD Pipeline (Recommended)
-Push to main branch to auto-deploy:
-```bash
-git add .
-git commit -m "Your changes"
-git push origin main
-```
-
-### Manual Deployment
-```bash
-modal deploy modal_app.py
-```
-
-Setup requires GitHub secrets:
-- `MODAL_TOKEN_ID`: From ~/.modal.toml
-- `MODAL_TOKEN_SECRET`: From ~/.modal.toml
+- **🎯 Single File Architecture**: Everything in one clean, maintainable file
+- **🤖 Agno-Native**: Built with latest Agno patterns and structured outputs
+- **📱 Multi-Platform**: Twitter, LinkedIn, Facebook posting via Composio
+- **✅ Approval Workflow**: Slack-based content approval with interactive buttons
+- **🏢 Brand Framework**: YAML-based brand configuration system
+- **🔍 Smart Search**: Serper API integration for relevant story discovery
+- **📊 Type Safety**: Full Pydantic model validation
+- **🧪 Easy Testing**: Simple test interface with multiple modes
 
 ## 🔧 Configuration
 
-Edit `brand/givecare.yml` to customize:
-- Brand voice and styling
-- Content themes and topics
-- Agent behavior (models, temperature)
+### Environment Variables (.env)
+```bash
+# Azure OpenAI (Required)
+AZURE_OPENAI_API_KEY=your_key
+AZURE_OPENAI_BASE_URL=https://your-resource.openai.azure.com/
+AZURE_OPENAI_GPT45_DEPLOYMENT=gpt-4-turbo
+
+# Serper API (Required)
+SERPER_API_KEY=your_key
+
+# Slack (Optional - for approval workflow)
+SLACK_BOT_TOKEN=xoxb-your-token
+SLACK_APP_TOKEN=xapp-your-token
+
+# Composio (Optional - for posting)
+COMPOSIO_API_KEY=your_key
+```
+
+### Brand Configuration (brand/givecare.yml)
+```yaml
+name: "GiveCare"
+voice_tone: "Compassionate and supportive"
+target_audience: "Family caregivers and healthcare professionals"
+
+approval:
+  required: true
+  channel: "#content-approval"
+  timeout_hours: 24
+
+content_themes:
+  - name: "Caregiver Support"
+    keywords: ["caregiver burnout", "respite care", "support groups"]
+```
+
+## 🚀 Usage
+
+### Basic Pipeline Execution
+```python
+from social_pipeline import SocialPipeline
+
+# Initialize pipeline
+pipeline = SocialPipeline()
+
+# Run with approval workflow
+async for response in pipeline.run(
+    topic="caregiver burnout",
+    platforms=["twitter", "linkedin"],
+    auto_post=False  # Requires approval
+):
+    print(f"Step: {response.content.get('step')}")
+```
+
+### Testing Interface
+```bash
+# Test main pipeline
+python test_pipeline.py --topic "elderly care"
+
+# Test with auto-posting (skip approval)
+python test_pipeline.py --topic "respite care" --auto-post
+
+# Test brand configuration
+python test_pipeline.py --test-brand
+
+# Test approval workflow
+python test_pipeline.py --test-approval
+```
+
+### Slack Integration
+```bash
+# Start Slack app for approval workflow
+python slack_app.py
+
+# Use slash commands in Slack:
+/pipeline status          # Check pipeline status
+/pipeline run <topic>     # Run pipeline for topic
+/pipeline pause          # Pause pipeline
+/pipeline resume         # Resume pipeline
+```
+
+## 📊 Approval Workflow
+
+1. **Content Generation**: Pipeline creates story, post, and media
+2. **Slack Notification**: Sends interactive approval message
+3. **User Decision**: Approve/reject via Slack buttons
+4. **Automated Posting**: Posts to selected platforms on approval
+5. **Status Tracking**: Full audit trail of decisions
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+python test_pipeline.py
+
+# Test specific components
+python test_pipeline.py --test-brand      # Brand config
+python test_pipeline.py --test-approval   # Approval workflow
+
+# Test with custom topic
+python test_pipeline.py --topic "mental health awareness"
+```
+
+## 📦 Dependencies
+
+Core dependencies (see `requirements.txt`):
+- `agno` - AI Agent framework
+- `pydantic` - Data validation
+- `composio-agno` - Social media posting
+- `slack-sdk` - Slack integration
+- `slack-bolt` - Slack app framework
+- `pyyaml` - Configuration management
+
+## 🔄 Workflow Steps
+
+1. **🔍 Story Discovery**: Search for relevant news using Serper API
+2. **✍️ Content Creation**: Generate brand-aligned social media posts
+3. **🎨 Media Generation**: Create visual content prompts
+4. **📋 Approval Request**: Send to Slack for human approval (optional)
+5. **📱 Multi-Platform Posting**: Post to Twitter, LinkedIn, Facebook via Composio
+6. **📊 Results Tracking**: Comprehensive success/failure reporting
+
+## 🏢 Brand Framework
+
+The pipeline supports multiple brands through YAML configuration:
+
+```python
+# Load specific brand
+pipeline = SocialPipeline("brand/custom-brand.yml")
+
+# Use factory method
+pipeline = SocialPipeline.create_for_brand("brand/givecare.yml")
+```
+
+Each brand configuration includes:
+- Voice and tone guidelines
+- Target audience definition
+- Content themes and keywords
 - Approval workflow settings
+- Social media handles
+- Visual identity guidelines
 
-## 📝 License
+## 🚨 Error Handling
 
-MIT
+- **Graceful Degradation**: Pipeline continues even if optional services fail
+- **Detailed Logging**: Comprehensive logging for debugging
+- **Status Tracking**: Clear success/failure indicators
+- **Timeout Management**: Configurable timeouts for approval workflow
+- **Platform-Specific Errors**: Individual platform posting error handling
+
+## 🔐 Security
+
+- **Environment Variables**: All sensitive data in .env file
+- **API Key Management**: Secure credential handling
+- **Approval Gates**: Human oversight for content publishing
+- **Audit Trail**: Complete logging of all actions
+
+## 📈 Scalability
+
+- **Single File**: Easy to maintain and deploy
+- **Async Architecture**: Non-blocking operations
+- **Modular Design**: Easy to extend with new platforms
+- **Brand Agnostic**: Support for multiple brands/clients
+- **Cloud Ready**: Works with Modal, AWS Lambda, etc.
 
 ---
 
-Built with ❤️ for GiveCare
+**Built with ❤️ using Agno - The AI Agent Framework**
