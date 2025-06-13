@@ -19,19 +19,17 @@ image = (
     .apt_install("git", "curl")  # Add system dependencies
     .pip_install_from_requirements("requirements.txt")
     .pip_install("PyYAML>=6.0.2")  # Ensure PyYAML is installed
+    .add_local_dir(
+        ".",
+        remote_path="/root",
+        condition=lambda pth: not any(
+            part in pth for part in [".git", "__pycache__", ".venv", "node_modules", ".DS_Store"]
+        )
+    )
     .env({
         "PYTHONPATH": "/root",
         "PYTHONUNBUFFERED": "1"
     })
-)
-
-# Mount the source code
-mount = modal.mount.from_local_dir(
-    ".",
-    remote_path="/root",
-    condition=lambda pth: not any(
-        part in pth for part in [".git", "__pycache__", ".venv", "node_modules", ".DS_Store"]
-    )
 )
 
 # Define secrets - you'll need to create these in Modal
@@ -51,7 +49,7 @@ def get_pipeline_state():
     except FileNotFoundError:
         return 'active'
 
-@app.function(image=image, secrets=secrets, schedule=modal.schedule.Period(hours=6), timeout=900)
+@app.function(image=image, secrets=secrets, schedule=modal.Period(hours=6), timeout=900)
 async def scheduled():
     """Scheduled pipeline run - respects pause state."""
     if get_pipeline_state() == 'paused':
@@ -84,7 +82,6 @@ def slack_app_serve():
 
 @app.function(
     image=image,
-    mounts=[mount],
     secrets=[
         modal.secret.from_name("azure-openai-secrets"),
         modal.secret.from_name("serper-api-key"),
@@ -180,11 +177,10 @@ async def run_social_pipeline(
 
 @app.function(
     image=image,
-    mounts=[mount],
     secrets=[
         modal.secret.from_name("slack-secrets"),
     ],
-    schedule=modal.schedule.Cron("0 9 * * 1-5"),  # Run weekdays at 9 AM
+    schedule=modal.Cron("0 9 * * 1-5"),  # Run weekdays at 9 AM
 )
 async def scheduled_pipeline():
     """
