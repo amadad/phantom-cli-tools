@@ -1,32 +1,55 @@
-"""StoryHunter agent: finds and scores relevant news stories."""
-from typing import List
+# agents/story_hunter.py
+from typing import List, Dict, Any
 from pydantic import BaseModel, Field
-from agno.agent import Agent
-from agno.models.openai import OpenAIChat
-from agno.tools.duckduckgo import DuckDuckGoTools
+from agno.tools.serperapi import SerperApiTools
+import logging
+import json
+
+logger = logging.getLogger(__name__)
 
 class Story(BaseModel):
+    """Represents a news story with relevance scoring."""
     title: str
     url: str
     source: str = "web"
     summary: str = ""
     relevance_score: float = Field(..., ge=0, le=1)
 
-class StoryHunter(Agent):
-    """Agent that hunts for news stories with DuckDuckGo, then ranks them."""
-
-    def __init__(self, brand_cfg: dict):
-        super().__init__(
-            model=OpenAIChat(id="gpt-4o-mini"),
-            tools=[DuckDuckGoTools()],
-            description="Finds top stories and scores for brand alignment"
-        )
-        self.brand = brand_cfg["brand"]["name"]
+class StoryHunter:
+    """Simple story finder using built-in agno SerperAPI."""
+    
+    def __init__(self, brand_config: Dict[str, Any]):
+        self.serper = SerperApiTools()
+        self.brand = brand_config.get("name", "the brand")
+        logger.info(f"Initialized StoryHunter for brand: {self.brand}")
 
     async def find(self, topic: str, n: int = 3) -> List[Story]:
-        prompt = (
-            f"Search web for {topic}. Return a JSON list of {n} items with keys: title, url, summary, relevance_score (0-1 for {self.brand})."
-        )
-        resp = await self.run(prompt)
-        data = resp.content if isinstance(resp.content, list) else []
-        return [Story(**item) for item in data]
+        """Find relevant news stories using agno's built-in SerperAPI."""
+        search_query = f"{topic} elderly care technology news"
+        logger.info(f"Searching for: {search_query}")
+        
+        try:
+            # Use agno's built-in serper tool (regular search)
+            result_str = self.serper.search_google(search_query)
+            results = json.loads(result_str)
+            
+            # Get organic results since agno tool doesn't do news search
+            organic_results = results.get("organic", [])
+            
+            stories = []
+            for result in organic_results[:n]:
+                story = Story(
+                    title=result.get('title', ''),
+                    url=result.get('link', ''),
+                    source=result.get('displayLink', 'web'),
+                    summary=result.get('snippet', ''),
+                    relevance_score=0.7
+                )
+                stories.append(story)
+            
+            logger.info(f"Found {len(stories)} stories")
+            return stories
+            
+        except Exception as e:
+            logger.error(f"Error finding stories: {e}")
+            return []

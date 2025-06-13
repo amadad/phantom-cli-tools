@@ -7,11 +7,17 @@ Automated social content pipeline for GiveCare, generating and approving branded
 - **Story Hunting**: Finds trending caregiving topics using web search
 - **Content Creation**: Writes platform-specific posts in brand voice
 - **Media Generation**: Creates images via Replicate (with Azure OpenAI video support)
-- **Human-in-the-Loop**: Slack-based approval workflow
+- **Human-in-the-Loop**: Rich Slack-based approval workflow with interactive components
 - **Multi-Platform**: Ready for LinkedIn, Twitter, Instagram, etc.
 - **Serverless**: Deploy on Modal with scheduled runs
+- **Secure**: Request verification and signature validation for all Slack events
 
 ## 🏗 Project Structure
+
+ Usage:
+  - python slack_app.py (Slack integration)
+  - python -m workflows.social_pipeline (Direct pipeline)
+  - modal deploy modal_app.py (Cloud deployment)
 
 ```
 agent-social/
@@ -39,8 +45,69 @@ agent-social/
 │
 ├── modal_app.py             # Modal deployment config
 ├── requirements.txt          # Python dependencies
-└── .env.example             # Environment template
+└── .env.example             ## 📝 Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
 ```
+# Azure OpenAI
+AZURE_OPENAI_BASE_URL=
+AZURE_OPENAI_GPT45_DEPLOYMENT=
+AZURE_OPENAI_API_KEY=
+
+# SerpAPI for web search
+SERP_API_KEY=
+
+# Slack Configuration
+SLACK_BOT_TOKEN=
+SLACK_SIGNING_SECRET=
+SLACK_VERIFICATION_TOKEN=
+SLACK_APPROVAL_CHANNEL=#general
+
+# Output Directories
+OUTPUT_BASE=output
+IMAGES_DIR=output/images
+ARTICLES_DIR=output/articles
+```
+
+## 🔍 API Reference
+
+### Endpoints
+
+- `POST /slack/events` - Handle Slack events and URL verification
+- `POST /slack/commands` - Handle Slack slash commands
+- `POST /slack/actions` - Handle Slack interactive components
+- `GET /health` - Health check endpoint
+
+### Interactive Components
+
+The Slack integration includes the following interactive components:
+
+1. **Approval Buttons**
+   - Approve: Approves the content for posting
+   - Reject: Rejects the content with optional feedback
+
+2. **Slash Commands**
+   - `/social-pipeline [topic]` - Start a new content pipeline for the given topic
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Agno](https://github.com/agno-ai/agno) for the agent framework
+- [Slack Bolt](https://slack.dev/bolt-python/concepts) for the Slack integration
+- [Azure OpenAI](https://azure.microsoft.com/en-us/services/cognitive-services/openai-service/) for language models
+- [Replicate](https://replicate.com/) for image generation
 
 ## 🔄 Workflow
 
@@ -48,6 +115,8 @@ agent-social/
    - Searches for trending caregiving topics
    - Scores relevance to GiveCare's mission
    - Selects top stories for content creation
+   - Posts content approval requests to Slack with rich formatting
+   - Handles user approval/rejection through interactive buttons
 
 2. **Content Generation**
    - Writes platform-optimized posts
@@ -65,16 +134,78 @@ agent-social/
 
 ## 🚀 Setup
 
-1. Install dependencies:
+### Prerequisites
+
+1. **Python 3.8+**
+2. **Slack Workspace** with admin access
+3. **Azure OpenAI** API access
+4. **SerpAPI** key for web searches
+
+### Installation
+
+1. Clone the repository
    ```bash
-   pip install -r requirements.txt
+   git clone https://github.com/your-org/agent-social.git
+   cd agent-social
    ```
 
-2. Copy `.env.example` to `.env` and fill in your API keys:
+2. Create and activate a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   cd api && pip install -r requirements.txt
+   ```
+
+4. Configure environment variables:
    ```bash
    cp .env.example .env
-   # Edit .env with your tokens
    ```
+   Edit `.env` with your credentials.
+
+### Slack App Setup
+
+1. Create a new Slack App at [api.slack.com/apps](https://api.slack.com/apps)
+2. Add the following OAuth scopes:
+   - `chat:write`
+   - `commands`
+   - `incoming-webhook`
+   - `app_mentions:read`
+   - `channels:history`
+
+3. Enable Events and set the Request URL to your server's `/slack/events` endpoint
+4. Add a Slash Command:
+   - Command: `/social-pipeline`
+   - Request URL: `https://your-domain.com/slack/commands`
+   - Description: `Start a new social media content pipeline`
+
+### Running the API
+
+```bash
+# Start the API server
+cd api
+uvicorn main:app --reload --port 8000
+```
+
+For production, use a production ASGI server like Uvicorn with Gunicorn or deploy on a platform like Heroku, AWS, or Google Cloud Run.
+
+### Running the Pipeline
+
+```bash
+# Run the social pipeline
+python -m workflows.social_pipeline --topic "caregiver support"
+```
+
+## 🔒 Security
+
+- All Slack requests are verified using the signing secret
+- Environment variables are used for sensitive configuration
+- Rate limiting and request validation are implemented
+- HTTPS is required for all Slack API endpoints
 
 3. Required services:
    - Replicate API key (for image generation)

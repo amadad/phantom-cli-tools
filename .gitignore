@@ -2,3 +2,6 @@
 _archive
 .env
 .windsurf*
+.DS_Store
+output/articles/*
+output/images/*
