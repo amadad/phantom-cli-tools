@@ -60,7 +60,12 @@ async def scheduled():
         return {"status": "skipped", "reason": "pipeline_paused"}
     
     pipeline = SocialPipeline()
-    return await pipeline.run()
+    results = []
+    async for response in pipeline.run():
+        results.append(response.model_dump())
+        print(f"Pipeline step: {response.content}")
+    
+    return {"status": "completed", "results": results}
 
 @app.function(image=image, secrets=secrets)
 @modal.fastapi_endpoint(method="POST")
@@ -73,7 +78,12 @@ async def trigger(data: dict):
         return {"status": "paused", "message": "Pipeline is paused. Use force=true to override."}
     
     pipeline = SocialPipeline()
-    return await pipeline.run(topic)
+    results = []
+    async for response in pipeline.run(topic=topic):
+        results.append(response.model_dump())
+        print(f"Pipeline step: {response.content}")
+    
+    return {"status": "completed", "topic": topic, "results": results}
 
 # Slack API endpoints - proper ASGI app for full Slack integration
 @app.function(image=image, secrets=secrets)
@@ -143,7 +153,12 @@ async def run_pipeline(
         platforms = ["twitter", "linkedin"]
     
     pipeline = SocialPipeline()
-    return await pipeline.run(topic=topic, platforms=platforms, auto_post=auto_post)
+    results = []
+    async for response in pipeline.run(topic=topic, platforms=platforms, auto_post=auto_post):
+        results.append(response.model_dump())
+        print(f"Pipeline step: {response.content}")
+    
+    return {"status": "completed", "topic": topic, "platforms": platforms, "results": results}
 
 @app.function(
     image=image,
