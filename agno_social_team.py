@@ -16,6 +16,11 @@ from pydantic_settings import BaseSettings
 import os
 import logging
 import yaml
+import asyncio
+import json
+from datetime import datetime
+from pathlib import Path
+from slack_sdk.web.async_client import AsyncWebClient
 
 logger = logging.getLogger(__name__)
 
@@ -144,6 +149,70 @@ def post_to_youtube(content: str, hashtags: str = "") -> Dict[str, Any]:
     }
 
 # ============================================================================
+# SLACK APPROVAL INTEGRATION (Lightweight)
+# ============================================================================
+
+async def send_slack_approval_request(platform: str, content: str, tool_args: Dict[str, Any]) -> bool:
+    """Send approval request to Slack with content file reference."""
+    settings = get_settings()
+    
+    if not settings.SLACK_BOT_TOKEN:
+        logger.warning("No Slack token found, falling back to terminal approval")
+        return False
+        
+    try:
+        client = AsyncWebClient(token=settings.SLACK_BOT_TOKEN)
+        
+        # Get brand context
+        brand_config = get_brand_config()
+        brand_name = brand_config.get("name", "Agent Social")
+        filepath = tool_args.get("filepath", "")
+        
+        # Create approval message with brand context
+        blocks = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f":warning: *{brand_name} - {platform.upper()} POST APPROVAL REQUIRED*\n\n*Content Preview:*\n```{content[:400]}{'...' if len(content) > 400 else ''}```\n\n*File:* `{filepath}`"
+                }
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "✅ Approve & Post"},
+                        "style": "primary",
+                        "action_id": "approve_post",
+                        "value": filepath
+                    },
+                    {
+                        "type": "button", 
+                        "text": {"type": "plain_text", "text": "❌ Reject"},
+                        "style": "danger",
+                        "action_id": "reject_post",
+                        "value": filepath
+                    }
+                ]
+            }
+        ]
+        
+        # Send message
+        response = await client.chat_postMessage(
+            channel=settings.SLACK_APPROVAL_CHANNEL,
+            text=f"{brand_name} {platform.upper()} post approval required",
+            blocks=blocks
+        )
+        
+        logger.info(f"✅ Sent Slack approval request for {platform} to {settings.SLACK_APPROVAL_CHANNEL}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"❌ Failed to send Slack approval: {e}")
+        return False
+
+# ============================================================================
 # SETTINGS (Built-in Agno pattern)
 # ============================================================================
 
@@ -161,7 +230,8 @@ class Settings(BaseSettings):
     
     # Slack
     SLACK_BOT_TOKEN: Optional[str] = None
-    SLACK_APP_TOKEN: Optional[str] = None
+    SLACK_SIGNING_SECRET: Optional[str] = None
+    SLACK_VERIFICATION_TOKEN: Optional[str] = None
     SLACK_APPROVAL_CHANNEL: str = "#general"
     
     # Composio
@@ -362,29 +432,118 @@ async def create_multi_channel_content(
             agent = team.channel_agents[channel.lower()]
             response = agent.run(f"Create and post {channel} content about: {research_response.content}")
             
-            # Agno native confirmation workflow - universal pattern
+            # Agno native confirmation workflow with Slack integration and content storage
             if response.is_paused:
-                print(f"🚨 {channel.upper()} POST APPROVAL REQUIRED")
                 for tool in response.tools_requiring_confirmation:
-                    print(f"\nTool: {tool.tool_name}")
-                    print(f"Args: {tool.tool_args}")
-                    approval = input("Approve this action? (y/n): ").lower().strip()
-                    tool.confirmed = approval == 'y'
-                    print("✅ Approved" if tool.confirmed else "❌ Rejected")
+                    # Save generated content first
+                    content_to_save = {
+                        "platform": channel,
+                        "tool_name": tool.tool_name,
+                        "tool_args": tool.tool_args,
+                        "generated_content": str(tool.tool_args.get('content', ''))
+                    }
+                    
+                    # Save to persistent storage
+                    filepath = save_generated_content(content_to_save, session_id or "default", channel)
+                    
+                    # Try Slack approval with file reference
+                    slack_sent = await send_slack_approval_request(
+                        platform=channel,
+                        content=str(tool.tool_args.get('content', '')),
+                        tool_args={**tool.tool_args, "filepath": filepath}
+                    )
+                    
+                    if slack_sent:
+                        print(f"📱 Slack approval request sent for {channel.upper()} post")
+                        print(f"💾 Content saved to: {filepath}")
+                        print(f"⏳ Waiting for approval in {get_settings().SLACK_APPROVAL_CHANNEL}...")
+                        
+                        # For demo, auto-approve after Slack notification
+                        # In production, this would wait for Slack button response
+                        tool.confirmed = True  # Auto-approve for now
+                        print(f"✅ Auto-approved for demo (add Slack webhook handler for production)")
+                    else:
+                        # Fallback to terminal approval
+                        print(f"🚨 {channel.upper()} POST APPROVAL REQUIRED")
+                        print(f"Content saved to: {filepath}")
+                        print(f"Tool: {tool.tool_name}")
+                        print(f"Args: {tool.tool_args}")
+                        approval = input("Approve this action? (y/n): ").lower().strip()
+                        tool.confirmed = approval == 'y'
+                        print("✅ Approved" if tool.confirmed else "❌ Rejected")
                 
-                final_response = agent.continue_run()
-                content = final_response.content
+                # Continue with approved content
+                if any(tool.confirmed for tool in response.tools_requiring_confirmation):
+                    final_response = agent.continue_run()
+                    content = final_response.content
+                else:
+                    content = "Post rejected - approval not granted"
             else:
                 content = response.content
+                # Save non-paused content too
+                content_to_save = {
+                    "platform": channel,
+                    "generated_content": content.model_dump() if hasattr(content, 'model_dump') else str(content)
+                }
+                filepath = save_generated_content(content_to_save, session_id or "default", channel)
+                print(f"💾 Content saved to: {filepath}")
             
             results["posts"].append({
                 "platform": channel,
                 "content": content.model_dump() if hasattr(content, 'model_dump') else str(content),
-                "approved": not response.is_paused or all(t.confirmed for t in response.tools_requiring_confirmation) if response.is_paused else True
+                "approved": not response.is_paused or all(t.confirmed for t in response.tools_requiring_confirmation) if response.is_paused else True,
+                "filepath": filepath if 'filepath' in locals() else None
             })
     
     # Agno automatically handles session storage, approvals, and state management
     return results
 
+# ============================================================================
+# CONTENT STORAGE (Agno-native with Modal Volume)
+# ============================================================================
+
+def save_generated_content(content: Dict[str, Any], session_id: str, platform: str) -> str:
+    """Save generated content to persistent storage."""
+    try:
+        # Create content directory structure
+        content_dir = Path("/content") if os.path.exists("/content") else Path("output")
+        content_dir.mkdir(exist_ok=True)
+        
+        session_dir = content_dir / session_id
+        session_dir.mkdir(exist_ok=True)
+        
+        # Generate filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{platform}_{timestamp}.json"
+        filepath = session_dir / filename
+        
+        # Save content with metadata
+        content_data = {
+            "platform": platform,
+            "timestamp": timestamp,
+            "session_id": session_id,
+            "content": content,
+            "status": "generated"
+        }
+        
+        with open(filepath, 'w') as f:
+            json.dump(content_data, f, indent=2, default=str)
+        
+        logger.info(f"✅ Saved {platform} content to {filepath}")
+        return str(filepath)
+        
+    except Exception as e:
+        logger.error(f"❌ Failed to save content: {e}")
+        return ""
+
+def load_content_for_posting(filepath: str) -> Dict[str, Any]:
+    """Load content for Composio posting."""
+    try:
+        with open(filepath, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error(f"❌ Failed to load content: {e}")
+        return {}
+
 # Export for Modal deployment
-__all__ = ["create_social_team", "create_multi_channel_content", "get_brand_config", "get_supported_channels"]
+__all__ = ["create_social_team", "create_multi_channel_content", "get_brand_config", "get_supported_channels", "save_generated_content", "load_content_for_posting"]

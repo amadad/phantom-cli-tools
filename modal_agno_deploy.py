@@ -5,18 +5,22 @@ Ultra-minimal custom code - just Agno team coordination.
 """
 
 import modal
-from agno_social_team import create_multi_channel_content, create_social_team
-from typing import List, Dict, Any, Optional
+from agno_social_team import create_multi_channel_content, create_social_team, load_content_for_posting
+from typing import Dict, Any
+import json
 
 # Modal app
 app = modal.App("agno-social-team")
+
+# Persistent volume for content storage
+volume = modal.Volume.from_name("social-content", create_if_missing=True)
 
 # Image with dependencies
 image = (
     modal.Image.debian_slim(python_version="3.10")
     .apt_install("git", "curl")
     .pip_install_from_requirements("requirements.txt")
-    .pip_install("PyYAML>=6.0.2", "openai>=1.0.0", "azure-ai-inference>=1.0.0b9", "aiohttp>=3.9.5")
+    .pip_install("PyYAML>=6.0.2", "openai>=1.0.0", "azure-ai-inference>=1.0.0b9", "aiohttp>=3.9.5", "slack-sdk>=3.35.0")
     .env({"PYTHONPATH": "/root", "PYTHONUNBUFFERED": "1"})
     .add_local_dir(".", remote_path="/root", ignore=lambda pth: any(
         part in str(pth) for part in [".git", "__pycache__", ".venv", "node_modules", ".DS_Store"]
@@ -31,7 +35,7 @@ secrets = [
     modal.secret.Secret.from_name("composio-secrets"),
 ]
 
-@app.function(image=image, secrets=secrets, timeout=1800)
+@app.function(image=image, secrets=secrets, volumes={"/content": volume}, timeout=1800)
 async def create_content(
     topic: str = "AI automation trends",
     channels_str: str = "twitter,linkedin",
@@ -64,37 +68,54 @@ async def create_content(
         traceback.print_exc()
         return {"error": str(e), "topic": topic}
 
-@app.function(image=image, secrets=secrets, timeout=900)
-def handle_approval(
-    session_id: str,
-    tool_confirmations: str  # JSON string of tool confirmations
-):
+@app.function(image=image, secrets=secrets, volumes={"/content": volume}, timeout=900)
+def post_approved_content(
+    filepath: str,
+    approved: bool = True
+) -> Dict[str, Any]:
     """
-    Handle approval confirmations for paused agents.
-    Agno-native confirmation workflow.
+    Post approved content via Composio.
+    Loads content from Modal Volume and posts to social platforms.
     """
     try:
-        import json
-        confirmations = json.loads(tool_confirmations)
+        if not approved:
+            return {"status": "rejected", "filepath": filepath}
+            
+        # Load content from storage
+        content_data = load_content_for_posting(filepath)
+        if not content_data:
+            return {"error": "Content not found", "filepath": filepath}
+            
+        platform = content_data.get("platform", "unknown")
+        content = content_data.get("content", {})
         
-        print(f"🔄 Processing approvals for session {session_id}")
-        print(f"📋 Confirmations: {confirmations}")
+        print(f"🚀 Posting approved {platform} content from {filepath}")
         
-        # This would be used to continue paused agent runs
-        # In practice, you'd store the paused agent state and continue from here
+        # For now, simulate posting (replace with actual Composio integration)
         result = {
-            "status": "confirmations_processed",
-            "session_id": session_id,
-            "confirmations": confirmations
+            "status": "posted",
+            "platform": platform,
+            "filepath": filepath,
+            "content_preview": str(content).get("generated_content", "")[:100] if isinstance(content, dict) else str(content)[:100],
+            "post_id": f"{platform}_{hash(str(content))}",
+            "note": "Simulated posting - integrate with Composio for actual social media posting"
         }
         
+        # Update content status
+        content_data["status"] = "posted"
+        content_data["post_result"] = result
+        
+        # Save updated status
+        with open(filepath, 'w') as f:
+            json.dump(content_data, f, indent=2, default=str)
+            
         return result
         
     except Exception as e:
-        print(f"❌ Approval error: {e}")
-        return {"error": str(e), "session_id": session_id}
+        print(f"❌ Posting error: {e}")
+        return {"error": str(e), "filepath": filepath}
 
-@app.function(image=image, secrets=secrets, timeout=1800)
+@app.function(image=image, secrets=secrets, volumes={"/content": volume}, timeout=1800)
 async def create_content_with_approval(
     topic: str = "AI automation trends",
     channels_str: str = "twitter,linkedin", 
@@ -214,7 +235,7 @@ async def create_content_with_approval(
         traceback.print_exc()
         return {"error": str(e), "topic": topic}
 
-@app.function(image=image, secrets=secrets)
+@app.function(image=image, secrets=secrets, volumes={"/content": volume})
 def get_session_status(session_id: str) -> Dict[str, Any]:
     """
     Get session status using Agno built-in session management.

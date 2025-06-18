@@ -41,7 +41,8 @@ if [ -f .env ]; then
     if [ ! -z "$SLACK_BOT_TOKEN" ]; then
         modal secret create slack-secrets --force \
             SLACK_BOT_TOKEN="${SLACK_BOT_TOKEN}" \
-            SLACK_APP_TOKEN="${SLACK_APP_TOKEN:-}" \
+            SLACK_SIGNING_SECRET="${SLACK_SIGNING_SECRET:-}" \
+            SLACK_VERIFICATION_TOKEN="${SLACK_VERIFICATION_TOKEN:-}" \
             SLACK_APPROVAL_CHANNEL="${SLACK_APPROVAL_CHANNEL:-#general}"
     fi
     
