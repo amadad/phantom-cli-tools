@@ -73,7 +73,15 @@ class Settings(BaseSettings):
         env_file = ".env"
         extra = "allow"  # Allow extra fields from environment
 
-settings = Settings()
+# Lazy load settings to avoid validation errors during import in CI/CD
+_settings_cache = None
+
+def get_settings() -> Settings:
+    """Get settings instance with lazy loading and caching."""
+    global _settings_cache
+    if _settings_cache is None:
+        _settings_cache = Settings()
+    return _settings_cache
 
 # =============================================================================
 # PYDANTIC MODELS
@@ -184,14 +192,14 @@ class SlackService:
     """Slack approval workflow service."""
     
     def __init__(self):
-        if not settings.SLACK_BOT_TOKEN:
+        if not get_settings().SLACK_BOT_TOKEN:
             logger.warning("SLACK_BOT_TOKEN not configured - approval workflow disabled")
             self.client = None
             self.approval_state = None
             return
             
-        self.client = AsyncWebClient(token=settings.SLACK_BOT_TOKEN)
-        self.approval_channel = settings.SLACK_APPROVAL_CHANNEL
+        self.client = AsyncWebClient(token=get_settings().SLACK_BOT_TOKEN)
+        self.approval_channel = get_settings().SLACK_APPROVAL_CHANNEL
         self.approval_state = ApprovalState()
         self.approval_callbacks: Dict[str, Callable] = {}
         logger.info("Initialized SlackService with approval workflow")
@@ -327,7 +335,7 @@ class SocialPoster:
     """Multi-platform social media posting service using Composio."""
     
     def __init__(self):
-        if not settings.COMPOSIO_API_KEY:
+        if not get_settings().COMPOSIO_API_KEY:
             logger.warning("COMPOSIO_API_KEY not configured - posting disabled")
             self.composio = None
             return
@@ -436,11 +444,11 @@ class SocialPipeline(Workflow):
         
         # Configure Azure OpenAI model
         self.azure_model = AzureOpenAI(
-            id=settings.AZURE_OPENAI_GPT45_DEPLOYMENT,
-            api_key=settings.AZURE_OPENAI_API_KEY,
-            azure_endpoint=settings.AZURE_OPENAI_BASE_URL,
-            azure_deployment=settings.AZURE_OPENAI_GPT45_DEPLOYMENT,
-            api_version=settings.AZURE_OPENAI_API_VERSION
+            id=get_settings().AZURE_OPENAI_GPT45_DEPLOYMENT,
+            api_key=get_settings().AZURE_OPENAI_API_KEY,
+            azure_endpoint=get_settings().AZURE_OPENAI_BASE_URL,
+            azure_deployment=get_settings().AZURE_OPENAI_GPT45_DEPLOYMENT,
+            api_version=get_settings().AZURE_OPENAI_API_VERSION
         )
         
         # Initialize agents
