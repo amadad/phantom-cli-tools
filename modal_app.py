@@ -8,6 +8,7 @@ import modal
 import os
 from pathlib import Path
 import json
+from typing import List
 from social_pipeline import SocialPipeline
 
 # Create Modal app
@@ -20,6 +21,8 @@ image = (
     .pip_install_from_requirements("requirements.txt")
     .pip_install("PyYAML>=6.0.2")  # Ensure PyYAML is installed
     .pip_install("openai>=1.0.0")  # Required for AzureOpenAI
+    .pip_install("azure-ai-inference>=1.0.0b9")  # Fix the Azure dependency error
+    .pip_install("aiohttp>=3.9.5")  # Required for Azure AI inference
     .env({
         "PYTHONPATH": "/root",
         "PYTHONUNBUFFERED": "1"
@@ -35,11 +38,10 @@ image = (
 
 # Define secrets - you'll need to create these in Modal
 secrets = [
-    modal.secret.Secret.from_name("azure-openai"),  # Azure OpenAI credentials
-    modal.secret.Secret.from_name("composio"),      # Composio API key
-    modal.secret.Secret.from_name("slack"),         # Slack bot token and signing secret
-    modal.secret.Secret.from_name("search-apis"),   # SERP, EXA, TAVILY, FIRECRAWL keys
-    modal.secret.Secret.from_name("replicate"),     # Replicate API token
+    modal.secret.Secret.from_name("azure-openai-secrets"),  # Azure OpenAI credentials
+    modal.secret.Secret.from_name("composio-secrets"),      # Composio API key
+    modal.secret.Secret.from_name("slack-secrets"),         # Slack bot token and signing secret
+    modal.secret.Secret.from_name("serper-api-key"),        # Serper API key
 ]
 
 def get_pipeline_state():

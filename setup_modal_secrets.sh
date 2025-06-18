@@ -14,8 +14,8 @@ if ! command -v modal &> /dev/null; then
     exit 1
 fi
 
-# Check if user is authenticated
-if ! modal token verify &> /dev/null; then
+# Check if user is authenticated by trying to list secrets
+if ! modal secret list &> /dev/null; then
     echo "❌ Not authenticated with Modal. Please run 'modal token new' first."
     exit 1
 fi
@@ -23,28 +23,30 @@ fi
 echo "✅ Modal CLI found and authenticated"
 
 # Azure OpenAI Secrets
-echo "📝 Creating Azure OpenAI secrets..."
-modal secret create azure-openai-secrets \
+echo "📝 Setting up Azure OpenAI secrets..."
+modal secret create azure-openai-secrets --force \
     AZURE_OPENAI_API_KEY="${AZURE_OPENAI_API_KEY}" \
     AZURE_OPENAI_BASE_URL="${AZURE_OPENAI_BASE_URL}" \
     AZURE_OPENAI_GPT45_DEPLOYMENT="${AZURE_OPENAI_GPT45_DEPLOYMENT}" \
-    AZURE_OPENAI_API_VERSION="${AZURE_OPENAI_API_VERSION:-2024-02-15-preview}"
+    AZURE_OPENAI_API_VERSION="${AZURE_OPENAI_API_VERSION}"
 
 # Serper API Key
-echo "📝 Creating Serper API secret..."
-modal secret create serper-api-key \
+echo "📝 Setting up Serper API secret..."
+modal secret create serper-api-key --force \
     SERPER_API_KEY="${SERPER_API_KEY}"
 
 # Slack Secrets
-echo "📝 Creating Slack secrets..."
-modal secret create slack-secrets \
+echo "📝 Setting up Slack secrets..."
+modal secret create slack-secrets --force \
     SLACK_BOT_TOKEN="${SLACK_BOT_TOKEN}" \
-    SLACK_APP_TOKEN="${SLACK_APP_TOKEN}" \
-    SLACK_APPROVAL_CHANNEL="${SLACK_APPROVAL_CHANNEL:-#general}"
+    SLACK_APP_TOKEN="${SLACK_APP_TOKEN:-}" \
+    SLACK_APPROVAL_CHANNEL="${SLACK_APPROVAL_CHANNEL:-#general}" \
+    SLACK_SIGNING_SECRET="${SLACK_SIGNING_SECRET:-}" \
+    SLACK_VERIFICATION_TOKEN="${SLACK_VERIFICATION_TOKEN:-}"
 
 # Composio Secrets
-echo "📝 Creating Composio secrets..."
-modal secret create composio-secrets \
+echo "📝 Setting up Composio secrets..."
+modal secret create composio-secrets --force \
     COMPOSIO_API_KEY="${COMPOSIO_API_KEY}"
 
 echo "🎉 All Modal secrets created successfully!"
