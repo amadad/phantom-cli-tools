@@ -49,7 +49,13 @@ if [ -f .env ]; then
     # Composio (optional)
     if [ ! -z "$COMPOSIO_API_KEY" ]; then
         modal secret create composio-secrets --force \
-            COMPOSIO_API_KEY="${COMPOSIO_API_KEY}"
+            COMPOSIO_API_KEY="${COMPOSIO_API_KEY}" \
+            TWITTER_CONNECTION_ID="${TWITTER_CONNECTION_ID:-}" \
+            TWITTER_MEDIA_CONNECTION_ID="${TWITTER_MEDIA_CONNECTION_ID:-}" \
+            LINKEDIN_CONNECTION_ID="${LINKEDIN_CONNECTION_ID:-}" \
+            INSTAGRAM_CONNECTION_ID="${INSTAGRAM_CONNECTION_ID:-}" \
+            FACEBOOK_CONNECTION_ID="${FACEBOOK_CONNECTION_ID:-}" \
+            YOUTUBE_CONNECTION_ID="${YOUTUBE_CONNECTION_ID:-}"
     fi
     
     echo "✅ Modal secrets configured"

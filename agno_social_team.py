@@ -21,6 +21,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from slack_sdk.web.async_client import AsyncWebClient
+from composio_agno import ComposioToolSet, Action, App
 
 logger = logging.getLogger(__name__)
 
@@ -92,61 +93,212 @@ class ChannelSelection(BaseModel):
 # AGNO CONFIRMATION TOOLS (Built-in human-in-loop)
 # ============================================================================
 
+def get_composio_toolset() -> ComposioToolSet:
+    """Get Composio toolset instance with API key."""
+    settings = get_settings()
+    return ComposioToolSet(api_key=settings.COMPOSIO_API_KEY)
+
 @tool(requires_confirmation=True)
 def post_to_twitter(content: str, hashtags: str = "") -> Dict[str, Any]:
-    """Post content to Twitter with confirmation."""
-    return {
-        "platform": "twitter",
-        "content": content,
-        "hashtags": hashtags.split(",") if hashtags else [],
-        "status": "posted",
-        "post_id": f"twitter_{hash(content)}"
-    }
+    """Post content to Twitter via Composio with confirmation."""
+    try:
+        toolset = get_composio_toolset()
+        
+        # Prepare tweet content with hashtags
+        tweet_text = content
+        if hashtags:
+            hashtag_text = " ".join([f"#{tag.strip()}" for tag in hashtags.split(",") if tag.strip()])
+            if hashtag_text and hashtag_text not in content:
+                tweet_text = f"{content} {hashtag_text}"
+        
+        # Execute Twitter post via Composio
+        result = toolset.execute_action(
+            action=Action.TWITTER_CREATION_TWEET,
+            params={"text": tweet_text[:280]},  # Ensure Twitter character limit
+            entity_id=os.getenv("TWITTER_CONNECTION_ID")
+        )
+        
+        return {
+            "platform": "twitter",
+            "content": tweet_text,
+            "hashtags": hashtags.split(",") if hashtags else [],
+            "status": "posted" if result.get("successful") else "failed",
+            "post_id": result.get("data", {}).get("id") if result.get("successful") else None,
+            "composio_result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to post to Twitter: {e}")
+        return {
+            "platform": "twitter",
+            "content": content,
+            "status": "failed",
+            "error": str(e)
+        }
 
 @tool(requires_confirmation=True)
 def post_to_linkedin(content: str, hashtags: str = "") -> Dict[str, Any]:
-    """Post content to LinkedIn with confirmation."""
-    return {
-        "platform": "linkedin", 
-        "content": content,
-        "hashtags": hashtags.split(",") if hashtags else [],
-        "status": "posted",
-        "post_id": f"linkedin_{hash(content)}"
-    }
+    """Post content to LinkedIn via Composio with confirmation."""
+    try:
+        toolset = get_composio_toolset()
+        
+        # Prepare LinkedIn content with hashtags
+        linkedin_text = content
+        if hashtags:
+            hashtag_text = " ".join([f"#{tag.strip()}" for tag in hashtags.split(",") if tag.strip()])
+            if hashtag_text and hashtag_text not in content:
+                linkedin_text = f"{content}\n\n{hashtag_text}"
+        
+        # Execute LinkedIn post via Composio
+        result = toolset.execute_action(
+            action=Action.LINKEDIN_POST_CREATE,
+            params={"text": linkedin_text[:3000]},  # Ensure LinkedIn character limit
+            entity_id=os.getenv("LINKEDIN_CONNECTION_ID")
+        )
+        
+        return {
+            "platform": "linkedin",
+            "content": linkedin_text,
+            "hashtags": hashtags.split(",") if hashtags else [],
+            "status": "posted" if result.get("successful") else "failed",
+            "post_id": result.get("data", {}).get("id") if result.get("successful") else None,
+            "composio_result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to post to LinkedIn: {e}")
+        return {
+            "platform": "linkedin",
+            "content": content,
+            "status": "failed",
+            "error": str(e)
+        }
 
 @tool(requires_confirmation=True)
 def post_to_instagram(content: str, hashtags: str = "", image_url: str = "") -> Dict[str, Any]:
-    """Post content to Instagram with confirmation."""
-    return {
-        "platform": "instagram",
-        "content": content,
-        "hashtags": hashtags.split(",") if hashtags else [],
-        "image_url": image_url,
-        "status": "posted",
-        "post_id": f"instagram_{hash(content)}"
-    }
+    """Post content to Instagram via Composio with confirmation."""
+    try:
+        if not image_url:
+            return {
+                "platform": "instagram",
+                "content": content,
+                "status": "failed",
+                "error": "Instagram requires an image URL"
+            }
+            
+        toolset = get_composio_toolset()
+        
+        # Prepare Instagram content with hashtags
+        instagram_text = content
+        if hashtags:
+            hashtag_text = " ".join([f"#{tag.strip()}" for tag in hashtags.split(",") if tag.strip()])
+            if hashtag_text and hashtag_text not in content:
+                instagram_text = f"{content}\n\n{hashtag_text}"
+        
+        # Execute Instagram post via Composio (requires image)
+        result = toolset.execute_action(
+            action=Action.INSTAGRAM_UPLOAD_PHOTO,
+            params={
+                "image_url": image_url,
+                "caption": instagram_text[:2200]  # Instagram caption limit
+            },
+            entity_id=os.getenv("INSTAGRAM_CONNECTION_ID")
+        )
+        
+        return {
+            "platform": "instagram",
+            "content": instagram_text,
+            "hashtags": hashtags.split(",") if hashtags else [],
+            "image_url": image_url,
+            "status": "posted" if result.get("successful") else "failed",
+            "post_id": result.get("data", {}).get("id") if result.get("successful") else None,
+            "composio_result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to post to Instagram: {e}")
+        return {
+            "platform": "instagram",
+            "content": content,
+            "status": "failed",
+            "error": str(e)
+        }
 
 @tool(requires_confirmation=True)
 def post_to_facebook(content: str, hashtags: str = "") -> Dict[str, Any]:
-    """Post content to Facebook with confirmation."""
-    return {
-        "platform": "facebook",
-        "content": content,
-        "hashtags": hashtags.split(",") if hashtags else [],
-        "status": "posted",
-        "post_id": f"facebook_{hash(content)}"
-    }
+    """Post content to Facebook via Composio with confirmation."""
+    try:
+        toolset = get_composio_toolset()
+        
+        # Prepare Facebook content with hashtags
+        facebook_text = content
+        if hashtags:
+            hashtag_text = " ".join([f"#{tag.strip()}" for tag in hashtags.split(",") if tag.strip()])
+            if hashtag_text and hashtag_text not in content:
+                facebook_text = f"{content}\n\n{hashtag_text}"
+        
+        # Execute Facebook post via Composio
+        result = toolset.execute_action(
+            action=Action.FACEBOOK_PAGE_POST_CREATE,
+            params={"message": facebook_text},
+            entity_id=os.getenv("FACEBOOK_CONNECTION_ID")
+        )
+        
+        return {
+            "platform": "facebook",
+            "content": facebook_text,
+            "hashtags": hashtags.split(",") if hashtags else [],
+            "status": "posted" if result.get("successful") else "failed",
+            "post_id": result.get("data", {}).get("id") if result.get("successful") else None,
+            "composio_result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to post to Facebook: {e}")
+        return {
+            "platform": "facebook",
+            "content": content,
+            "status": "failed",
+            "error": str(e)
+        }
 
 @tool(requires_confirmation=True)
 def post_to_youtube(content: str, hashtags: str = "") -> Dict[str, Any]:
-    """Post community content to YouTube with confirmation."""
-    return {
-        "platform": "youtube",
-        "content": content,
-        "hashtags": hashtags.split(",") if hashtags else [],
-        "status": "posted",
-        "post_id": f"youtube_{hash(content)}"
-    }
+    """Post community content to YouTube via Composio with confirmation."""
+    try:
+        toolset = get_composio_toolset()
+        
+        # Prepare YouTube community post content
+        youtube_text = content
+        if hashtags:
+            hashtag_text = " ".join([f"#{tag.strip()}" for tag in hashtags.split(",") if tag.strip()])
+            if hashtag_text and hashtag_text not in content:
+                youtube_text = f"{content}\n\n{hashtag_text}"
+        
+        # Execute YouTube community post via Composio
+        result = toolset.execute_action(
+            action=Action.YOUTUBE_COMMUNITY_POST_CREATE,
+            params={"text": youtube_text[:8000]},  # YouTube community post limit
+            entity_id=os.getenv("YOUTUBE_CONNECTION_ID")
+        )
+        
+        return {
+            "platform": "youtube",
+            "content": youtube_text,
+            "hashtags": hashtags.split(",") if hashtags else [],
+            "status": "posted" if result.get("successful") else "failed",
+            "post_id": result.get("data", {}).get("id") if result.get("successful") else None,
+            "composio_result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to post to YouTube: {e}")
+        return {
+            "platform": "youtube",
+            "content": content,
+            "status": "failed",
+            "error": str(e)
+        }
 
 # ============================================================================
 # SLACK APPROVAL INTEGRATION (Lightweight)
@@ -236,6 +388,12 @@ class Settings(BaseSettings):
     
     # Composio
     COMPOSIO_API_KEY: Optional[str] = None
+    TWITTER_CONNECTION_ID: Optional[str] = None
+    TWITTER_MEDIA_CONNECTION_ID: Optional[str] = None
+    LINKEDIN_CONNECTION_ID: Optional[str] = None
+    INSTAGRAM_CONNECTION_ID: Optional[str] = None
+    FACEBOOK_CONNECTION_ID: Optional[str] = None
+    YOUTUBE_CONNECTION_ID: Optional[str] = None
     
     class Config:
         env_file = ".env"
