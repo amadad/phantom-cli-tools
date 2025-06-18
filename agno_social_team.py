@@ -1,0 +1,390 @@
+#!/usr/bin/env python3
+"""
+Agno-Native Multi-Channel Social Media Agent Team
+Leverages 90%+ Agno built-in features with minimal custom code.
+"""
+
+from agno.agent import Agent
+from agno.team import Team
+from agno.models.azure import AzureOpenAI
+from agno.tools.serpapi import SerpApiTools
+from agno.storage.sqlite import SqliteStorage
+from agno.tools.decorator import tool
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any
+from pydantic_settings import BaseSettings
+import os
+import logging
+import yaml
+
+logger = logging.getLogger(__name__)
+
+# ============================================================================
+# AGNO STRUCTURED OUTPUTS (Built-in validation)
+# ============================================================================
+
+class SocialPost(BaseModel):
+    """Universal social media post model."""
+    content: str = Field(..., description="Main post content")
+    hashtags: List[str] = Field(default_factory=list, description="Relevant hashtags")
+    mentions: List[str] = Field(default_factory=list, description="User mentions")
+    media_urls: List[str] = Field(default_factory=list, description="Media attachments")
+    
+    class Config:
+        extra = "forbid"  # Prevents additionalProperties
+
+class TwitterPost(SocialPost):
+    """Twitter-specific post with built-in validation."""
+    content: str = Field(..., max_length=280, description="Tweet content under 280 chars")
+    thread: bool = Field(default=False, description="Whether this is part of a thread")
+    
+    class Config:
+        extra = "forbid"  # Prevents additionalProperties
+
+class LinkedInPost(SocialPost):
+    """LinkedIn-specific post with built-in validation."""
+    content: str = Field(..., max_length=3000, description="LinkedIn post content")
+    professional_tone: bool = Field(default=True, description="Maintain professional tone")
+    
+    class Config:
+        extra = "forbid"  # Prevents additionalProperties
+
+class InstagramPost(SocialPost):
+    """Instagram-specific post with built-in validation."""
+    content: str = Field(..., max_length=2200, description="Instagram caption content")
+    image_required: bool = Field(default=True, description="Instagram requires visual content")
+    hashtags: List[str] = Field(default_factory=list, max_items=30, description="Max 30 hashtags")
+    
+    class Config:
+        extra = "forbid"
+
+class FacebookPost(SocialPost):
+    """Facebook-specific post with built-in validation."""
+    content: str = Field(..., max_length=63206, description="Facebook post content")
+    engaging_tone: bool = Field(default=True, description="Optimize for engagement and shares")
+    
+    class Config:
+        extra = "forbid"
+
+class YouTubePost(SocialPost):
+    """YouTube community post with built-in validation."""
+    content: str = Field(..., max_length=8000, description="YouTube community post content")
+    community_focused: bool = Field(default=True, description="Focus on community engagement")
+    
+    class Config:
+        extra = "forbid"
+
+class ChannelSelection(BaseModel):
+    """AI-powered channel routing decision."""
+    selected_channels: List[str] = Field(..., description="Optimal channels for content")
+    reasoning: str = Field(..., description="Why these channels were selected")
+    engagement_prediction: Dict[str, float] = Field(..., description="Predicted engagement per channel")
+    
+    class Config:
+        extra = "forbid"  # Prevents additionalProperties
+
+# ============================================================================
+# AGNO CONFIRMATION TOOLS (Built-in human-in-loop)
+# ============================================================================
+
+@tool(requires_confirmation=True)
+def post_to_twitter(content: str, hashtags: str = "") -> Dict[str, Any]:
+    """Post content to Twitter with confirmation."""
+    return {
+        "platform": "twitter",
+        "content": content,
+        "hashtags": hashtags.split(",") if hashtags else [],
+        "status": "posted",
+        "post_id": f"twitter_{hash(content)}"
+    }
+
+@tool(requires_confirmation=True)
+def post_to_linkedin(content: str, hashtags: str = "") -> Dict[str, Any]:
+    """Post content to LinkedIn with confirmation."""
+    return {
+        "platform": "linkedin", 
+        "content": content,
+        "hashtags": hashtags.split(",") if hashtags else [],
+        "status": "posted",
+        "post_id": f"linkedin_{hash(content)}"
+    }
+
+@tool(requires_confirmation=True)
+def post_to_instagram(content: str, hashtags: str = "", image_url: str = "") -> Dict[str, Any]:
+    """Post content to Instagram with confirmation."""
+    return {
+        "platform": "instagram",
+        "content": content,
+        "hashtags": hashtags.split(",") if hashtags else [],
+        "image_url": image_url,
+        "status": "posted",
+        "post_id": f"instagram_{hash(content)}"
+    }
+
+@tool(requires_confirmation=True)
+def post_to_facebook(content: str, hashtags: str = "") -> Dict[str, Any]:
+    """Post content to Facebook with confirmation."""
+    return {
+        "platform": "facebook",
+        "content": content,
+        "hashtags": hashtags.split(",") if hashtags else [],
+        "status": "posted",
+        "post_id": f"facebook_{hash(content)}"
+    }
+
+@tool(requires_confirmation=True)
+def post_to_youtube(content: str, hashtags: str = "") -> Dict[str, Any]:
+    """Post community content to YouTube with confirmation."""
+    return {
+        "platform": "youtube",
+        "content": content,
+        "hashtags": hashtags.split(",") if hashtags else [],
+        "status": "posted",
+        "post_id": f"youtube_{hash(content)}"
+    }
+
+# ============================================================================
+# SETTINGS (Built-in Agno pattern)
+# ============================================================================
+
+class Settings(BaseSettings):
+    """Application settings from environment variables."""
+    
+    # Azure OpenAI
+    AZURE_OPENAI_API_KEY: str
+    AZURE_OPENAI_BASE_URL: str
+    AZURE_OPENAI_GPT45_DEPLOYMENT: str
+    AZURE_OPENAI_API_VERSION: str = "2024-02-15-preview"
+    
+    # Serper API
+    SERPER_API_KEY: str
+    
+    # Slack
+    SLACK_BOT_TOKEN: Optional[str] = None
+    SLACK_APP_TOKEN: Optional[str] = None
+    SLACK_APPROVAL_CHANNEL: str = "#general"
+    
+    # Composio
+    COMPOSIO_API_KEY: Optional[str] = None
+    
+    class Config:
+        env_file = ".env"
+        extra = "allow"  # Allow extra fields from environment
+
+# Lazy load settings to avoid validation errors during import in CI/CD
+_settings_cache = None
+_brand_config_cache = None
+
+def get_settings() -> Settings:
+    """Get settings instance with lazy loading and caching."""
+    global _settings_cache
+    if _settings_cache is None:
+        try:
+            _settings_cache = Settings()
+            logger.info("✅ Settings loaded successfully")
+        except Exception as e:
+            logger.error(f"❌ Failed to load settings: {e}")
+            raise
+    return _settings_cache
+
+def get_brand_config() -> Dict[str, Any]:
+    """Load brand configuration from YAML with caching."""
+    global _brand_config_cache
+    if _brand_config_cache is None:
+        try:
+            brand_file = "brand/givecare.yml"
+            if os.path.exists(brand_file):
+                with open(brand_file, 'r') as f:
+                    _brand_config_cache = yaml.safe_load(f)
+                logger.info("✅ Brand config loaded successfully")
+            else:
+                _brand_config_cache = {"social": {"twitter_handle": "@default", "linkedin_author": "Default", "instagram_handle": "@default", "facebook_page": "default", "youtube_channel": "@default"}}
+                logger.warning("⚠️ Brand config file not found, using defaults")
+        except Exception as e:
+            logger.error(f"❌ Failed to load brand config: {e}")
+            _brand_config_cache = {"social": {}}
+    return _brand_config_cache
+
+def get_supported_channels() -> List[str]:
+    """Get list of supported social channels from brand config."""
+    brand_config = get_brand_config()
+    social_config = brand_config.get("social", {})
+    return [channel.replace("_handle", "").replace("_author", "").replace("_page", "").replace("_channel", "") for channel in social_config.keys()]
+
+# ============================================================================
+# AGNO AGENT TEAM (Built-in multi-agent coordination)
+# ============================================================================
+
+def create_social_team(session_id: Optional[str] = None) -> Team:
+    """Create Agno-native social media agent team."""
+    
+    settings = get_settings()
+    
+    # Shared Azure OpenAI model
+    azure_model = AzureOpenAI(
+        id=settings.AZURE_OPENAI_GPT45_DEPLOYMENT,
+        api_key=settings.AZURE_OPENAI_API_KEY,
+        azure_endpoint=settings.AZURE_OPENAI_BASE_URL,
+        azure_deployment=settings.AZURE_OPENAI_GPT45_DEPLOYMENT,
+        api_version=settings.AZURE_OPENAI_API_VERSION
+    )
+    
+    # Shared storage (built-in persistence)
+    storage = SqliteStorage(
+        table_name="social_team_sessions",
+        db_file="tmp/social_team.db"
+    )
+    
+    # Content Research Agent
+    content_researcher = Agent(
+        name="Content Researcher",
+        model=azure_model,
+        tools=[SerpApiTools(api_key=settings.SERPER_API_KEY)],
+        description="Expert at finding trending topics and news stories",
+        instructions=[
+            "Search for the most recent and engaging news about the given topic",
+            "Identify stories with high viral potential",
+            "Provide comprehensive summaries and key talking points"
+        ],
+        storage=storage,
+        session_id=session_id
+    )
+    
+    # Channel Router Agent (AI-powered routing)
+    channel_router = Agent(
+        name="Channel Router",
+        model=azure_model,
+        description="AI-powered social media channel selection expert",
+        instructions=[
+            "Analyze content and determine optimal social media channels",
+            "Consider audience, content type, and engagement potential",
+            "Provide reasoning for channel selection decisions"
+        ],
+        response_model=ChannelSelection,  # Built-in structured output
+        storage=storage,
+        session_id=session_id
+    )
+    
+    # Twitter Specialist Agent
+    twitter_agent = Agent(
+        name="Twitter Specialist",
+        model=azure_model,
+        tools=[post_to_twitter],  # Built-in confirmation
+        description="Expert at creating engaging Twitter content",
+        instructions=[
+            "Create concise, engaging tweets under 280 characters",
+            "Use trending hashtags and maintain Twitter best practices",
+            "Optimize for retweets and engagement"
+        ],
+        response_model=TwitterPost,  # Built-in validation
+        storage=storage,
+        session_id=session_id
+    )
+    
+    # Channel-specific agents (dynamically created from brand config)
+    channel_agents = {}
+    brand_config = get_brand_config()
+    
+    # Agent factory pattern - Agno handles the complexity
+    agent_configs = {
+        "twitter": {"model": TwitterPost, "tool": post_to_twitter, "limit": "280 chars"},
+        "linkedin": {"model": LinkedInPost, "tool": post_to_linkedin, "limit": "3000 chars"}, 
+        "instagram": {"model": InstagramPost, "tool": post_to_instagram, "limit": "2200 chars"},
+        "facebook": {"model": FacebookPost, "tool": post_to_facebook, "limit": "63K chars"},
+        "youtube": {"model": YouTubePost, "tool": post_to_youtube, "limit": "8K chars"}
+    }
+    
+    for channel, config in agent_configs.items():
+        channel_agents[channel] = Agent(
+            name=f"{channel.title()} Specialist",
+            model=azure_model,
+            tools=[config["tool"]],
+            description=f"Expert at creating {channel} content",
+            instructions=[f"Create optimized {channel} content under {config['limit']}"],
+            response_model=config["model"],
+            storage=storage,
+            session_id=session_id
+        )
+    
+    # Create Agno Team (built-in coordination) - dynamic membership
+    all_members = [content_researcher, channel_router] + list(channel_agents.values())
+    social_team = Team(
+        name="Social Media Team", 
+        members=all_members,
+        storage=storage,
+        session_id=session_id
+    )
+    
+    # Store channel mapping for easy access
+    social_team.channel_agents = channel_agents
+    
+    logger.info(f"Created social media team with {len(social_team.members)} agents")
+    return social_team
+
+# ============================================================================
+# AGNO WORKFLOW FUNCTIONS (Minimal custom logic)
+# ============================================================================
+
+async def create_multi_channel_content(
+    topic: str,
+    channels: Optional[List[str]] = None,
+    session_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Create content for multiple social channels using Agno built-ins.
+    Only ~10 lines of custom logic - rest is Agno coordination.
+    """
+    
+    # Create team (Agno built-in)
+    team = create_social_team(session_id)
+    
+    # Use Agno team with dynamic channel agents
+    content_researcher = team.members[0]  # Content Researcher
+    channel_router = team.members[1]      # Channel Router
+    
+    # Step 1: Research content (Agno agent execution)
+    research_response = content_researcher.run(
+        f"Find trending news and stories about: {topic}"
+    )
+    
+    # Step 2: Route to channels (Agno structured output)
+    if not channels:
+        routing_response = channel_router.run(
+            f"Select optimal channels for content about: {topic}"
+        )
+        channels = routing_response.content.selected_channels
+    
+    results = {"topic": topic, "channels": channels, "posts": []}
+    
+    # Step 3: Generate platform-specific content with Agno confirmation workflow
+    for channel in channels:
+        if channel.lower() in team.channel_agents:
+            agent = team.channel_agents[channel.lower()]
+            response = agent.run(f"Create and post {channel} content about: {research_response.content}")
+            
+            # Agno native confirmation workflow - universal pattern
+            if response.is_paused:
+                print(f"🚨 {channel.upper()} POST APPROVAL REQUIRED")
+                for tool in response.tools_requiring_confirmation:
+                    print(f"\nTool: {tool.tool_name}")
+                    print(f"Args: {tool.tool_args}")
+                    approval = input("Approve this action? (y/n): ").lower().strip()
+                    tool.confirmed = approval == 'y'
+                    print("✅ Approved" if tool.confirmed else "❌ Rejected")
+                
+                final_response = agent.continue_run()
+                content = final_response.content
+            else:
+                content = response.content
+            
+            results["posts"].append({
+                "platform": channel,
+                "content": content.model_dump() if hasattr(content, 'model_dump') else str(content),
+                "approved": not response.is_paused or all(t.confirmed for t in response.tools_requiring_confirmation) if response.is_paused else True
+            })
+    
+    # Agno automatically handles session storage, approvals, and state management
+    return results
+
+# Export for Modal deployment
+__all__ = ["create_social_team", "create_multi_channel_content", "get_brand_config", "get_supported_channels"]
