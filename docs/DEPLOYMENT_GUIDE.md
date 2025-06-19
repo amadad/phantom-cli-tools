@@ -1,254 +1,282 @@
-# Agno + Modal Deployment Guide
+# Deployment Guide
 
-## Problem Solved
+## Overview
+Deploy the brand-agnostic social media pipeline to Modal for serverless execution with scheduled posting and multimedia generation.
 
-This guide provides a working solution for deploying Agno agents to Modal, resolving the integration issues between Agno workflows and Modal's serverless environment.
+## Prerequisites
 
-## Key Issues Resolved
+### 1. Environment Setup
+```bash
+# Clone and setup
+git clone <repository>
+cd agent-social
+pip install -r requirements.txt
 
-1. **Workflow vs Agent Pattern**: Modal expects simple functions, not Agno workflows with async generators
-2. **FastAPIApp Import Issues**: Agno API structure has changed in recent versions
-3. **Async Generator Complexity**: Modal handles async generators poorly in FastAPI endpoints
-
-## Solution Architecture
-
-### Simplified Agent-Based Approach
-
-Instead of using complex workflows, we use direct Agno agents with simple function wrappers:
-
-```python
-# Before (Problematic)
-async for response in pipeline.run():
-    results.append(response.model_dump())
-
-# After (Working)
-result = run_agent_chat(prompt)
-return result
+# Configure environment
+cp .env.example .env
+# Fill in all API keys
 ```
 
-### Three Deployment Options
-
-1. **`modal_simple.py`** - Recommended: Direct function approach
-2. **`modal_app.py`** - Updated: Agent-based with FastAPI endpoints  
-3. **`modal_agent_deploy.py`** - Alternative: FastAPI wrapper approach
-
-## Setup Instructions
-
-### 1. Configure Modal Secrets
-
-Create these secrets in your Modal dashboard:
-
+### 2. Required API Keys
 ```bash
-# Azure OpenAI
+# AI Models
+AZURE_OPENAI_API_KEY=""           # Azure OpenAI access
+AZURE_OPENAI_BASE_URL=""          # Azure endpoint
+SERPER_API_KEY=""                 # News discovery
+
+# Media Generation
+REPLICATE_API_TOKEN=""            # Image generation
+SONAUTO_API_KEY=""               # Audio generation (optional)
+
+# Social Platforms
+COMPOSIO_API_KEY=""              # Multi-platform posting
+TWITTER_CONNECTION_ID=""          # Twitter integration
+LINKEDIN_CONNECTION_ID=""         # LinkedIn integration
+YOUTUBE_CONNECTION_ID=""          # YouTube integration
+
+# Approval Workflow
+SLACK_BOT_TOKEN=""               # Slack bot
+SLACK_APPROVAL_CHANNEL=""        # Approval channel
+```
+
+### 3. Brand Configuration
+```yaml
+# brand/your-brand.yml
+name: "YourBrand"
+voice_tone: "Professional and friendly"
+voice_style: "Conversational, clear"
+color_palette: "#FF6B35, #2D3748, #F7FAFC"
+image_style: "modern, clean, professional"
+attributes: "trustworthy, innovative, accessible"
+```
+
+## Local Development
+
+### Test Individual Components
+```bash
+# Test multimedia generation
+python utils/multimedia_gen.py
+
+# Test Slack approval workflow
+python utils/slack_approval.py
+
+# Test full pipeline
+python social_pipeline.py --test
+```
+
+### Generate Content Locally
+```bash
+# With approval workflow
+python social_pipeline.py "Your content topic"
+
+# Skip approval for testing
+python social_pipeline.py --no-approval "Your topic"
+
+# Generate and auto-post
+python social_pipeline.py --post "Your topic"
+```
+
+## Modal Deployment
+
+### 1. Install Modal CLI
+```bash
+pip install modal
+modal setup
+```
+
+### 2. Configure Modal Secrets
+```bash
+# Azure OpenAI secrets
 modal secret create azure-openai-secrets \
-  AZURE_OPENAI_API_KEY=your_key \
-  AZURE_OPENAI_BASE_URL=your_endpoint \
-  AZURE_OPENAI_GPT45_DEPLOYMENT=your_deployment \
-  AZURE_OPENAI_API_VERSION=2025-01-01-preview
+  AZURE_OPENAI_API_KEY="your-key" \
+  AZURE_OPENAI_BASE_URL="your-endpoint"
 
-# Serper API
+# Search API secrets
 modal secret create serper-api-key \
-  SERPER_API_KEY=your_serper_key
+  SERPER_API_KEY="your-key"
 
-# Composio (optional)
+# Composio secrets
 modal secret create composio-secrets \
-  COMPOSIO_API_KEY=your_composio_key
+  COMPOSIO_API_KEY="your-key" \
+  TWITTER_CONNECTION_ID="your-id" \
+  LINKEDIN_CONNECTION_ID="your-id" \
+  YOUTUBE_CONNECTION_ID="your-id"
 
-# Slack (optional)
+# Slack secrets
 modal secret create slack-secrets \
-  SLACK_BOT_TOKEN=your_slack_token \
-  SLACK_APP_TOKEN=your_app_token
-```
+  SLACK_BOT_TOKEN="your-token" \
+  SLACK_APPROVAL_CHANNEL="#your-channel"
 
-### 2. Test Locally
-
-```bash
-# Run deployment readiness tests
-python test_deployment.py
-
-# Test Modal functions locally
-modal run modal_simple.py --topic "AI automation" --platforms "twitter,linkedin"
+# Media generation secrets (optional)
+modal secret create media-secrets \
+  REPLICATE_API_TOKEN="your-token" \
+  SONAUTO_API_KEY="your-key"
 ```
 
 ### 3. Deploy to Modal
-
 ```bash
-# Deploy the simple version (recommended)
-modal deploy modal_simple.py
+# Deploy the application
+modal deploy modal_deploy.py
 
-# Or deploy the full version
-modal deploy modal_app.py
+# Test deployment
+modal run modal_deploy.py::run_social_pipeline \
+  --topic "Test topic" \
+  --platforms "twitter,linkedin"
+
+# Check health
+modal run modal_deploy.py::health_check
 ```
 
-## API Endpoints
+### 4. Monitor Deployment
+```bash
+# Stream logs
+modal logs -f brand-social-pipeline
 
-### Simple Deployment (`modal_simple.py`)
+# Check scheduled runs
+modal logs brand-social-pipeline scheduled_pipeline
 
-- **POST `/content_api`** - Create social media content
-- **POST `/chat`** - Chat with the agent
-- **GET `/health`** - Health check
+# View app dashboard
+modal app list
+```
 
-### Full Deployment (`modal_app.py`)
+## Production Configuration
 
-- **POST `/trigger`** - Manual content creation trigger
-- **Function `run_content_creation`** - Direct function call
-- **Function `scheduled`** - Scheduled content creation
-- **ASGI `/slack/events`** - Slack integration
+### Scheduled Execution
+The pipeline runs automatically every 6 hours:
+- **00:00 UTC**: Morning content
+- **06:00 UTC**: Midday content  
+- **12:00 UTC**: Afternoon content
+- **18:00 UTC**: Evening content
 
-## Usage Examples
+### Manual Triggers
+```bash
+# Manual pipeline execution
+modal run modal_deploy.py::run_social_pipeline \
+  --topic "Breaking news topic" \
+  --platforms "twitter,linkedin,youtube" \
+  --auto_post false
 
-### 1. Direct Function Call
+# Emergency posting (skip approval)
+modal run modal_deploy.py::run_social_pipeline \
+  --topic "Urgent announcement" \
+  --auto_post true
+```
 
+### Environment-Specific Configs
 ```python
-import modal
+# Update modal_deploy.py for different environments
+app_names = {
+    "dev": "brand-social-dev",
+    "staging": "brand-social-staging", 
+    "prod": "brand-social-pipeline"
+}
 
-# Call the deployed function
-result = modal.Function.lookup("agno-social-simple", "create_social_content").remote(
-    topic="caregiver burnout",
-    platforms=["twitter", "linkedin"]
-)
-print(result)
+# Environment-specific secrets
+secrets_by_env = {
+    "dev": ["dev-secrets"],
+    "prod": ["prod-secrets"]
+}
 ```
 
-### 2. HTTP API Call
+## Monitoring & Maintenance
 
+### Health Checks
 ```bash
-# POST to the API endpoint
-curl -X POST "https://your-modal-url/content_api" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "topic": "caregiver burnout",
-    "platforms": ["twitter", "linkedin"]
-  }'
+# Application health
+curl https://your-app.modal.run/health
+
+# Pipeline status
+modal logs brand-social-pipeline --follow
 ```
 
-### 3. Local Testing
+### Content Monitoring
+- **Slack approval channel**: Monitor approval requests
+- **Output directory**: Review generated content
+- **Modal logs**: Track pipeline execution
 
+### Error Handling
 ```bash
-# Test with specific topic
-modal run modal_simple.py --topic "healthcare innovation"
+# Check failed runs
+modal logs brand-social-pipeline --filter "ERROR"
 
-# Research only mode
-modal run modal_simple.py --topic "AI ethics" --research-only
+# Restart failed pipeline
+modal run modal_deploy.py::run_social_pipeline --topic "retry-topic"
+
+# Update deployment
+modal deploy modal_deploy.py --force
 ```
-
-## Key Files
-
-### Core Files
-- **`modal_simple.py`** - Simple, direct function approach (recommended)
-- **`modal_app.py`** - Full featured deployment with scheduling
-- **`social_agent.py`** - Agno agent implementation
-- **`social_pipeline.py`** - Original workflow (for reference)
-
-### Utilities
-- **`test_deployment.py`** - Deployment readiness tests
-- **`setup_modal_secrets.sh`** - Secret configuration script
-
-## Best Practices
-
-### 1. Function Design
-- Keep functions simple and focused
-- Avoid complex async generators
-- Use direct agent calls instead of workflows
-
-### 2. Error Handling
-- Always wrap agent calls in try/catch
-- Return structured error responses
-- Include diagnostic information
-
-### 3. Performance
-- Initialize agents inside functions (not globally)
-- Use appropriate timeouts
-- Consider caching for repeated requests
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Import Errors**
-   ```
-   Solution: Run test_deployment.py to verify all imports
-   ```
+#### 1. API Key Errors
+```bash
+# Verify secrets
+modal secret list
 
-2. **Missing Secrets**
-   ```
-   Solution: Verify Modal secrets are configured correctly
-   ```
+# Update secrets
+modal secret create secret-name KEY="new-value"
+```
 
-3. **Agent Initialization Fails**
-   ```
-   Solution: Check Azure OpenAI credentials and endpoints
-   ```
+#### 2. Composio Connection Issues
+```bash
+# Test connection IDs in Composio dashboard
+# Verify platform permissions
+# Check rate limits
+```
 
-4. **Serper API Not Working**
-   ```
-   Solution: Verify SERPER_API_KEY is set and valid
-   ```
+#### 3. Slack Approval Not Working
+```bash
+# Verify bot permissions
+# Check channel configuration
+# Test with terminal approval fallback
+```
 
-### Debug Steps
+#### 4. Media Generation Failures
+```bash
+# Check Replicate/Sonauto API status
+# Verify API keys and quotas
+# Test with simplified prompts
+```
 
-1. **Test Locally First**
-   ```bash
-   python test_deployment.py
-   ```
+### Debug Mode
+```python
+# Enable debug logging
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
-2. **Check Modal Logs**
-   ```bash
-   modal logs agno-social-simple
-   ```
+# Test individual components
+python -c "
+import asyncio
+from utils.multimedia_gen import test_multimedia
+test_multimedia()
+"
+```
 
-3. **Verify Function Status**
-   ```bash
-   modal app list
-   modal function list agno-social-simple
-   ```
+## Scaling & Optimization
 
-## Deployment Verification
+### Performance Tuning
+- **Concurrent execution**: Adjust Modal timeout settings
+- **Media generation**: Optimize prompts for faster generation
+- **API rate limits**: Implement backoff strategies
+- **Content caching**: Cache research results
 
-After deployment, verify everything works:
+### Cost Management
+- **Model selection**: Use appropriate models per task
+- **Media generation**: Generate on-demand vs batch
+- **API usage**: Monitor costs per platform
+- **Resource allocation**: Right-size Modal functions
 
-1. **Health Check**
-   ```bash
-   curl https://your-modal-url/health
-   ```
+### Multi-Brand Support
+```python
+# Deploy multiple brand instances
+brands = ["brand1", "brand2", "brand3"]
+for brand in brands:
+    app = modal.App(f"{brand}-social-pipeline")
+    # Deploy brand-specific instance
+```
 
-2. **Test Content Creation**
-   ```bash
-   curl -X POST https://your-modal-url/content_api \
-     -H "Content-Type: application/json" \
-     -d '{"topic": "test", "platforms": ["twitter"]}'
-   ```
+---
 
-3. **Check Logs**
-   ```bash
-   modal logs agno-social-simple --follow
-   ```
-
-## Performance Considerations
-
-- **Cold Start**: First request may take 10-15 seconds
-- **Warm Requests**: Subsequent requests are much faster
-- **Concurrent Requests**: Set `allow_concurrent_inputs` appropriately
-- **Timeouts**: Set realistic timeouts for agent processing
-
-## Security Notes
-
-- Never commit API keys to version control
-- Use Modal secrets for all credentials
-- Regularly rotate API keys
-- Monitor usage and costs
-
-## Next Steps
-
-1. **Production Deployment**: Configure proper monitoring and alerting
-2. **Scaling**: Adjust concurrent request limits based on usage
-3. **Integration**: Connect to your application's webhook endpoints
-4. **Monitoring**: Set up logging and metrics collection
-
-## Support
-
-For issues with this deployment:
-1. Check the troubleshooting section
-2. Run the test script: `python test_deployment.py`
-3. Review Modal logs for errors
-4. Verify all secrets are properly configured
+**Clean deployment process for scalable, brand-driven social media automation.**
