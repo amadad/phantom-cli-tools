@@ -1,0 +1,191 @@
+# GiveCare Brand Configuration v2 - Content Unit Optimized
+name: "GiveCare"
+url: "https://givecareapp.com"
+
+# Core brand identity
+voice:
+  tone: "Warm, honest, and empowering"
+  style: "Conversational, human-first, avoids jargon"
+  attributes: ["empathetic", "clear", "resourceful", "responsible"]
+
+# Visual identity
+visual_style:
+  primary: "soft, painterly, warm lighting with editorial vignette style"
+  color_palette: "#FF9F1C, #54340E, #FFE8D6"
+  image_style: "intimate personal moments with thick tan border frame"
+  video_style: "warm, human-centered, documentary feel"
+  
+# Brand story and positioning  
+story: |
+  GiveCare was founded to support the invisible labor of family caregivers.
+  Our mission is to bring emotional, logistical, and informational clarity through human-centered AI tools.
+
+positioning: "Companion for caregivers | Human-centered tech for emotional + logistical load | Where policy meets real life"
+
+# Content unit configuration - NEW
+content_units:
+  style: "cohesive storytelling with synchronized text and visuals"
+  visual_text_harmony: "visuals should emotionally reflect and amplify the text message"
+  ensure_alignment: true
+  
+  # Media generation rules
+  media_rules:
+    image:
+      - "Always include thick tan/warm beige border for brand recognition"
+      - "Use editorial vignette style with soft focus edges"
+      - "Maintain consistent warm color temperature"
+    video:
+      - "6-60 seconds depending on platform"
+      - "Documentary style with authentic moments"
+      - "Soft transitions, no harsh cuts"
+    audio:
+      - "Warm, calming instrumental background"
+      - "Avoid clinical or corporate sounds"
+      - "Gentle acoustic instruments preferred"
+
+# Platform-specific configurations - ENHANCED
+platforms:
+  twitter:
+    max_chars: 280
+    media: ["image"]
+    hashtag_limit: 3
+    hashtag_style: "inline"
+    optimal_times: ["9am", "12pm", "5pm"]
+    content_template: |
+      {core_message}
+      
+      {key_points_brief}
+      
+      {hashtags}
+    
+  linkedin:
+    max_chars: 3000
+    media: ["image", "document"]
+    hashtag_limit: 5
+    professional_tone: true
+    optimal_times: ["8am", "12pm", "5pm"]
+    content_template: |
+      💡 {core_message}
+      
+      {expanded_story}
+      
+      Key Insights:
+      {key_points_detailed}
+      
+      What's your experience? Share below.
+      
+      {hashtags}
+  
+  youtube:
+    media: ["video", "audio"]
+    video_length: 60
+    community_post: true
+    max_chars: 8000
+    content_template: |
+      🎥 {core_message}
+      
+      In today's video:
+      {key_points_list}
+      
+      💬 Share your thoughts in the comments!
+      
+      Subscribe for more caregiver support content.
+  
+  instagram:
+    max_chars: 2200
+    media: ["image", "video"]
+    video_length: 30
+    hashtag_limit: 10
+    hashtag_location: "first_comment"
+    content_template: |
+      {core_message}
+      
+      {emotional_story}
+      
+      Double tap if this resonates 💛
+  
+  facebook:
+    max_chars: 5000
+    media: ["image", "video"]
+    video_length: 60
+    community_focused: true
+    content_template: |
+      {core_message}
+      
+      {full_story}
+      
+      👥 Tag someone who needs to see this
+
+# Style guidelines for content units
+style_rules:
+  - "Use second-person 'you' to speak directly to caregivers"
+  - "Keep sentences short and clear (15-20 words max)"
+  - "Prefer active voice; cut fluff and jargon"
+  - "Show empathy and understanding in every post"
+  - "Ensure visual and text elements tell the same story"
+
+# Content themes
+topics:
+  - "Family caregiver burnout and self-care"
+  - "Navigating healthcare systems as a caregiver"
+  - "Building support networks for caregivers"
+  - "Caregiver wellness and mental health"
+  - "Technology tools for modern caregiving"
+  - "Financial planning for family caregivers"
+  - "Balancing work and caregiving"
+  - "Caregiver rights and advocacy"
+
+# Research focus areas
+research_keywords:
+  - "caregiver burnout"
+  - "family caregiving"
+  - "dementia care"
+  - "eldercare"
+  - "caregiver support"
+  - "healthcare navigation"
+  - "respite care"
+  - "caregiver wellness"
+
+# Social handles
+social:
+  linkedin_author: "urn:li:organization:106542185"
+  twitter_handle: "@givecareapp"
+  instagram_handle: "@givecareapp"
+  facebook_page: "mygivecare"
+  youtube_channel: "@givecareapp"
+
+# Performance settings - NEW
+performance:
+  parallel_platforms: true
+  media_generation_timeout: 300
+  retry_attempts: 3
+  cache_ttl: 3600
+  
+# API configurations - NEW
+apis:
+  azure_openai:
+    model: "gpt-4"
+    temperature: 0.7
+    max_tokens: 4000
+  
+  replicate:
+    image_model: "black-forest-labs/flux-schnell"
+    quality: 90
+  
+  sora:
+    video_length: 60
+    resolution: "1080x1080"
+    
+# Workflow settings
+approval:
+  required: true
+  channel: "givecare-content-approvals"
+  timeout_minutes: 30
+  auto_approve_threshold: 0.95  # Auto-approve if confidence > 95%
+
+# Analytics tracking - NEW
+analytics:
+  track_engagement: true
+  track_reach: true
+  track_conversions: true
+  reporting_frequency: "weekly"
