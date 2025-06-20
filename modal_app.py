@@ -30,8 +30,7 @@ image = (
     .pip_install("torch", "torchvision", "torchaudio", gpu="t4")  # If using AI models
     .run_commands([
         "mkdir -p /app/cache/agno",
-        "mkdir -p /app/cache/media",
-        "mkdir -p /app/output"
+        "mkdir -p /app/cache/media"
     ])
     # Add application files
     .add_local_file("social_pipeline_v2.py", remote_path="/app/social_pipeline_v2.py")
@@ -43,12 +42,11 @@ image = (
 @app.cls(
     image=image,
     volumes={
-        "/storage": storage_volume,
-        "/app/output": storage_volume  # Persist output files
+        "/storage": storage_volume  # Single mount path for persistent storage
     },
     gpu="t4",  # GPU for faster AI operations
-    keep_warm=1,  # Keep 1 instance warm
-    container_idle_timeout=300,  # 5 minutes idle timeout
+    min_containers=1,  # Keep 1 instance warm
+    scaledown_window=300,  # 5 minutes idle timeout
     timeout=1800,  # 30 minutes max execution
     retries=2,  # Automatic retries on failure
     cpu=2.0,  # 2 CPU cores
@@ -66,6 +64,11 @@ class SocialPipelineService:
         sys.path.append("/app")
         
         from social_pipeline_v2 import OptimizedSocialPipeline
+        
+        # Create storage subdirectories
+        import os
+        os.makedirs("/storage/output", exist_ok=True)
+        os.makedirs("/storage/cache", exist_ok=True)
         
         # Initialize with persistent storage
         self.pipeline = OptimizedSocialPipeline(
