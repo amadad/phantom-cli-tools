@@ -45,7 +45,7 @@ image = (
         "/storage": storage_volume  # Single mount path for persistent storage
     },
     gpu="t4",  # GPU for faster AI operations
-    min_containers=1,  # Keep 1 instance warm
+    buffer_containers=1,  # Keep 1 instance warm (for parameterized classes)
     scaledown_window=300,  # 5 minutes idle timeout
     timeout=1800,  # 30 minutes max execution
     retries=2,  # Automatic retries on failure
@@ -58,8 +58,11 @@ class SocialPipelineService:
     Connections and agents are initialized once and reused.
     """
     
-    def __init__(self):
-        """Initialize pipeline once when container starts."""
+    brand_config_path: str = modal.parameter(default="/app/brand/givecare.yml")
+    storage_path: str = modal.parameter(default="/storage/agno.db")
+    
+    def __enter__(self):
+        """Initialize pipeline when container starts."""
         import sys
         sys.path.append("/app")
         
@@ -72,8 +75,8 @@ class SocialPipelineService:
         
         # Initialize with persistent storage
         self.pipeline = OptimizedSocialPipeline(
-            brand_config_path="/app/brand/givecare.yml",
-            storage_path="/storage/agno.db"
+            brand_config_path=self.brand_config_path,
+            storage_path=self.storage_path
         )
         
         # Pre-warm the agents
@@ -90,6 +93,11 @@ class SocialPipelineService:
             "Balancing work and caregiving responsibilities",
             "Mental health resources for caregivers"
         ]
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Cleanup when container shuts down."""
+        pass
     
     @modal.method()
     async def run_pipeline(
@@ -143,11 +151,12 @@ class SocialPipelineService:
     @modal.method()
     async def test_pipeline(self):
         """Quick test of the pipeline functionality."""
-        return await self.run_pipeline(
-            topic="Test: Caregiver self-care tips",
-            platforms=["twitter"],
-            auto_post=False
+        # Direct method call since we're already inside the class
+        result = await self.pipeline.create_social_content(
+            topics=["Test: Caregiver self-care tips"],
+            limit=1
         )
+        return {"status": "success", "content_generated": len(result) if result else 0}
 
 # Scheduled function (runs every 6 hours)
 @app.function(

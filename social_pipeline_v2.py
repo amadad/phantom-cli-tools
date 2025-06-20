@@ -12,7 +12,9 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 import logging
 
-from agno import Agent, Team, Storage
+from agno.agent import Agent
+from agno.team import Team
+from agno.storage import Storage
 from agno.models import AzureOpenAI
 from agno.tools import SerpApiTools, Toolkit
 from pydantic import BaseModel, Field
