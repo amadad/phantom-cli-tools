@@ -60,10 +60,6 @@ class SocialPipelineService:
     brand_config_path: str = modal.parameter(default="/app/brand/givecare.yml")
     storage_path: str = modal.parameter(default="/storage/agno.db")
     
-    def __init__(self):
-        """Initialize topics list from brand config."""
-        self.topics = None  # Will be loaded from brand config in __enter__
-    
     def __enter__(self):
         """Initialize pipeline when container starts."""
         import sys
@@ -72,32 +68,20 @@ class SocialPipelineService:
         from social_pipeline import OptimizedSocialPipeline
         import yaml
         
-<<<<<<< HEAD
-=======
         # Initialize topics list
         self.topics = None
         
->>>>>>> c29aef7 (refactor: move topics initialization from constructor to __enter__ method)
         # Load topics from brand config
         try:
             with open(self.brand_config_path, 'r') as f:
                 brand_config = yaml.safe_load(f)
-            self.topics = brand_config.get('topics', [
-                "Family caregiver burnout and self-care strategies",  # fallback
-                "Navigating healthcare systems as a family caregiver",
-                "Building resilient support networks for caregivers",
-                "Caregiver wellness during challenging times"
-            ])
+            self.topics = brand_config.get('topics', [])
+            if not self.topics:
+                raise ValueError("No topics found in brand config")
             print(f"📋 Loaded {len(self.topics)} topics from brand config")
         except Exception as e:
             print(f"⚠️ Error loading brand config: {e}")
-            # Fallback topics
-            self.topics = [
-                "Family caregiver burnout and self-care strategies",
-                "Navigating healthcare systems as a family caregiver",
-                "Building resilient support networks for caregivers",
-                "Caregiver wellness during challenging times"
-            ]
+            raise RuntimeError(f"Failed to load topics from brand config: {e}")
         
         # Create storage subdirectories
         import os
