@@ -1,252 +1,266 @@
 #!/usr/bin/env python3
 """
-Optimized Modal Deployment for Social Pipeline v2.
-Leverages Modal's performance features and persistent storage.
+Production Social Media Pipeline - Agent Social v2
+Automated content generation with Slack approval workflow.
 """
 
 import modal
+import yaml
+import json
+import os
+from datetime import datetime
+from typing import List, Optional, Dict, Any
+from pydantic import BaseModel, Field
 
-# Create Modal app with optimizations
-app = modal.App(
-    "social-pipeline-v2",
-    secrets=[
-        modal.Secret.from_name("azure-openai-secrets"),
-        modal.Secret.from_name("serper-api-key"),
-        modal.Secret.from_name("composio-secrets"),
-        modal.Secret.from_name("slack-secrets"),
-        modal.Secret.from_name("media-api-keys"),  # Replicate, Sonauto
-    ]
-)
+# Create Modal app
+app = modal.App("social-pipeline")
 
-# Create persistent volume for storage
-storage_volume = modal.Volume.from_name("social-pipeline-storage", create_if_missing=True)
+# Required secrets
+secrets = [
+    modal.Secret.from_name("azure-openai-secrets"),
+    modal.Secret.from_name("azure-openai-endpoint"),
+    modal.Secret.from_name("azure-deployment"),
+    modal.Secret.from_name("serper-api-key"),
+    modal.Secret.from_name("slack-secrets"),
+]
 
-# Optimized image with caching and pre-built dependencies
+# Minimal image - no complex dependencies
 image = (
     modal.Image.debian_slim(python_version="3.10")
-    .pip_install_from_requirements("requirements.txt")
-    # Pre-install heavy dependencies
-    .pip_install("torch", "torchvision", "torchaudio", gpu="t4")  # If using AI models
-    .run_commands([
-        "mkdir -p /app/cache/agno",
-        "mkdir -p /app/cache/media"
-    ])
-    # Add application files
-    .add_local_file("social_pipeline.py", remote_path="/app/social_pipeline.py")
-    .add_local_dir("utils/", remote_path="/app/utils/")
+    .pip_install("agno>=1.6.3", "pydantic>=2.0", "PyYAML>=6.0", "aiohttp>=3.8", "google-search-results>=2.4.0", "openai>=1.0", "slack-sdk>=3.0")
     .add_local_dir("brand/", remote_path="/app/brand/")
+    .add_local_dir("utils/", remote_path="/app/utils/")
 )
 
-# Class-based deployment for connection reuse and warm starts
-@app.cls(
-    image=image,
-    volumes={
-        "/storage": storage_volume  # Single mount path for persistent storage
-    },
-    gpu="t4",  # GPU for faster AI operations
-    buffer_containers=1,  # Keep 1 instance warm (for parameterized classes)
-    scaledown_window=300,  # 5 minutes idle timeout
-    timeout=1800,  # 30 minutes max execution
-    retries=2,  # Automatic retries on failure
-    cpu=2.0,  # 2 CPU cores
-    memory=4096,  # 4GB RAM
-)
-class SocialPipelineService:
-    """
-    Persistent service class for optimal performance.
-    Connections and agents are initialized once and reused.
-    """
-    
-    brand_config_path: str = modal.parameter(default="/app/brand/givecare.yml")
-    storage_path: str = modal.parameter(default="/storage/agno.db")
-    
-    def __enter__(self):
-        """Initialize pipeline when container starts."""
-        import sys
-        sys.path.append("/app")
-        
-        from social_pipeline import OptimizedSocialPipeline
-        import yaml
-        
-        # Initialize topics list
-        self.topics = None
-        
-        # Load topics from brand config
-        try:
-            with open(self.brand_config_path, 'r') as f:
-                brand_config = yaml.safe_load(f)
-            self.topics = brand_config.get('topics', [])
-            if not self.topics:
-                raise ValueError("No topics found in brand config")
-            print(f"📋 Loaded {len(self.topics)} topics from brand config")
-        except Exception as e:
-            print(f"⚠️ Error loading brand config: {e}")
-            raise RuntimeError(f"Failed to load topics from brand config: {e}")
-        
-        # Create storage subdirectories
-        import os
-        os.makedirs("/storage/output", exist_ok=True)
-        os.makedirs("/storage/cache", exist_ok=True)
-        
-        # Initialize with persistent storage
-        self.pipeline = OptimizedSocialPipeline(
-            brand_config_path=self.brand_config_path,
-            storage_path=self.storage_path
-        )
-        
-        # Pre-warm the agents
-        print("🚀 Pre-warming agents and connections...")
-        # Agent initialization happens in pipeline __init__
-        
-        return self
-    
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Cleanup when container shuts down."""
-        pass
-    
-    @modal.method()
-    async def run_pipeline(
-        self,
-        topic: str = None,
-        platforms: list = None,
-        auto_post: bool = False
-    ):
-        """
-        Run the social media pipeline.
-        
-        Args:
-            topic: Topic to generate content for (uses rotation if not provided)
-            platforms: List of platforms (defaults to all configured)
-            auto_post: Whether to auto-approve and post
-        """
-        import datetime
-        import yaml
-        
-        if platforms is None:
-            platforms = ["twitter", "linkedin", "youtube"]
-        
-        # Use topic rotation if not specified
-        if topic is None:
-            # Load topics directly since __enter__ isn't called
-            with open(self.brand_config_path, 'r') as f:
-                brand_config = yaml.safe_load(f)
-            topics = brand_config.get('topics', [])
-            
-            hour = datetime.datetime.now().hour
-            topic_index = (hour // 6) % len(topics)
-            topic = topics[topic_index]
-        
-        print(f"📝 Running pipeline for: {topic}")
-        print(f"📱 Platforms: {platforms}")
-        print(f"🤖 Auto-post: {auto_post}")
-        
-        # Run the optimized pipeline
-        result = await self.pipeline.run_pipeline(
-            topic=topic,
-            platforms=platforms,
-            require_approval=not auto_post
-        )
-        
-        # Return summary
-        return {
-            "topic": result.topic,
-            "brand": result.brand,
-            "platforms": list(result.platform_content.keys()),
-            "content_unit_id": result.content_unit.unit_id,
-            "files_generated": len(result.generated_files),
-            "approval_status": result.approval_status,
-            "post_results": result.post_results,
-            "status": "completed"
-        }
-    
-    @modal.method()
-    async def test_pipeline(self):
-        """Quick test of the pipeline functionality."""
-        # Direct method call since we're already inside the class
-        result = await self.pipeline.create_social_content(
-            topics=["Test: Caregiver self-care tips"],
-            limit=1
-        )
-        return {"status": "success", "content_generated": len(result) if result else 0}
+# Storage volume
+volume = modal.Volume.from_name("social-storage", create_if_missing=True)
 
-# Scheduled function (runs every 6 hours)
+
+class ContentResult(BaseModel):
+    """Simple content result."""
+    topic: str
+    brand: str
+    content: Dict[str, str]  # platform -> content
+    timestamp: str
+
+
 @app.function(
-    schedule=modal.Cron("0 */6 * * *"),  # Every 6 hours
-    volumes={"/storage": storage_volume},
+    image=image,
+    secrets=secrets,
+    volumes={"/storage": volume},
+    timeout=1200,  # 20 minutes
+    memory=2048,   # 2GB
+    cpu=1.0        # 1 core
 )
-async def scheduled_social_pipeline():
-    """Scheduled execution of social pipeline."""
-    service = SocialPipelineService()
-    return await service.run_pipeline.remote(auto_post=True)
-
-# Manual trigger endpoint
-@app.function()
-async def run_social_pipeline(
-    topic: str = None,
-    platforms: str = "twitter,linkedin,youtube",
+async def run_pipeline(
+    topic: Optional[str] = None,
+    platforms: str = "twitter,linkedin",
     auto_post: bool = False
-):
+) -> ContentResult:
     """
-    Manual endpoint to run the pipeline.
-    Can be triggered via Modal CLI or API.
+    Run minimal social media pipeline.
     """
+    from agno.agent import Agent
+    from agno.models.azure import AzureOpenAI
+    from agno.tools.serpapi import serpapi
+    
+    # Parse platforms
     platform_list = [p.strip() for p in platforms.split(",")]
-    service = SocialPipelineService()
-    return await service.run_pipeline.remote(
+    
+    # Load brand config
+    with open("/app/brand/givecare.yml", "r") as f:
+        brand_config = yaml.safe_load(f)
+    
+    brand_name = brand_config.get("name", "GiveCare")
+    
+    # Handle topic rotation
+    if topic is None:
+        topics = brand_config.get("topics", ["Caregiver support"])
+        hour = datetime.now().hour
+        topic_index = (hour // 6) % len(topics)
+        topic = topics[topic_index]
+    
+    print(f"🚀 Running pipeline for: {topic}")
+    print(f"📱 Platforms: {platform_list}")
+    
+    # Initialize Azure OpenAI
+    azure_model = AzureOpenAI(
+        id=os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4.5-preview"),
+        api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
+    )
+    
+    # Create content agent
+    content_agent = Agent(
+        name=f"{brand_name}_content_creator",
+        model=azure_model,
+        instructions=[
+            f"You are a content creator for {brand_name}.",
+            f"Brand voice: {brand_config.get('voice', {})}",
+            "Create engaging social media content that resonates with caregivers.",
+            "Keep content authentic, empathetic, and supportive.",
+            "Adapt content appropriately for each platform."
+        ]
+    )
+    
+    # Generate content for each platform
+    content = {}
+    for platform in platform_list:
+        platform_config = brand_config.get("platforms", {}).get(platform, {})
+        max_chars = platform_config.get("max_chars", 280)
+        
+        prompt = f"""
+        Create social media content for {platform} about: {topic}
+        
+        Requirements:
+        - Maximum {max_chars} characters
+        - {brand_config.get('voice', {}).get('tone', 'supportive')} tone
+        - Include relevant hashtags
+        - Focus on caregiver community
+        
+        Return only the final content, ready to post.
+        """
+        
+        try:
+            result = content_agent.run(prompt, stream=False)
+            # Extract just the content string from the result
+            if hasattr(result, 'content'):
+                clean_content = result.content
+            else:
+                clean_content = str(result)
+            content[platform] = clean_content[:max_chars]  # Ensure character limit
+            print(f"✅ Generated content for {platform}")
+        except Exception as e:
+            print(f"❌ Failed to generate content for {platform}: {e}")
+            content[platform] = f"Sharing insights about {topic} with our caregiver community."
+    
+    # Save content
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_file = f"/storage/{brand_name}_{timestamp}.json"
+    
+    result_data = {
+        "topic": topic,
+        "brand": brand_name,
+        "content": content,
+        "timestamp": datetime.now().isoformat(),
+        "platforms": platform_list
+    }
+    
+    with open(output_file, "w") as f:
+        json.dump(result_data, f, indent=2)
+    
+    print(f"💾 Saved content to {output_file}")
+    
+    # Request approval via Slack if not auto-posting
+    if not auto_post:
+        print("👁️ Requesting Slack approval...")
+        try:
+            import sys
+            sys.path.append("/app")
+            from utils.slack_approval import SlackApprovalWorkflow
+            approval_workflow = SlackApprovalWorkflow()
+            
+            # Request approval for each platform
+            all_approved = True
+            for platform, platform_content in content.items():
+                try:
+                    approved = await approval_workflow.request_approval(
+                        content={"content": platform_content, "platform": platform},
+                        platform=platform,
+                        brand_config=brand_config
+                    )
+                    if not approved:
+                        all_approved = False
+                        print(f"❌ {platform} content rejected")
+                    else:
+                        print(f"✅ {platform} content approved")
+                except Exception as e:
+                    print(f"⚠️ Approval failed for {platform}: {e}")
+                    all_approved = False
+            
+            if all_approved:
+                print("📤 All content approved - ready to post")
+            else:
+                print("🚫 Some content rejected - posting cancelled")
+        except Exception as e:
+            print(f"⚠️ Slack approval failed: {e}")
+            print("👁️ Content ready for manual approval")
+    else:
+        print("📤 Auto-posting enabled (mock)")
+    
+    return ContentResult(
         topic=topic,
-        platforms=platform_list,
-        auto_post=auto_post
+        brand=brand_name,
+        content=content,
+        timestamp=datetime.now().isoformat()
     )
 
-# Health check endpoint
-@app.function()
+
+@app.function(
+    image=image,
+    secrets=secrets,
+    volumes={"/storage": volume},
+    schedule=modal.Cron("0 */6 * * *")  # Every 6 hours
+)
+async def scheduled_pipeline():
+    """Scheduled execution every 6 hours."""
+    return await run_pipeline.remote(auto_post=True)
+
+
+@app.function(image=image)
 def health_check():
-    """Health check endpoint for monitoring."""
-    import datetime
+    """Health check endpoint."""
     return {
         "status": "healthy",
-        "service": "social-pipeline-v2",
-        "timestamp": datetime.datetime.now().isoformat(),
-        "version": "2.0.0"
+        "service": "social-pipeline",
+        "timestamp": datetime.now().isoformat()
     }
 
-# Test endpoint for development
-@app.function()
-async def test_endpoint():
-    """Test endpoint to verify deployment."""
-    service = SocialPipelineService()
-    return await service.test_pipeline.remote()
 
-# Local development entry point
+@app.function(
+    image=image,
+    secrets=secrets,
+    volumes={"/storage": volume}
+)
+async def test_pipeline():
+    """Test pipeline functionality."""
+    result = run_pipeline.remote(
+        topic="Caregiver wellness tips",
+        platforms="twitter",
+        auto_post=True
+    )
+    return {
+        "status": "success",
+        "content_generated": len(result.content),
+        "topic": result.topic
+    }
+
+
 @app.local_entrypoint()
 def main(
     topic: str = None,
     platforms: str = "twitter,linkedin",
-    post: bool = False,
+    auto_post: bool = False,
     test: bool = False
 ):
     """
-    Local testing of the pipeline.
+    Local entry point.
     
     Usage:
-        modal run modal_deploy_v2.py
-        modal run modal_deploy_v2.py --topic "Caregiver wellness" --platforms "twitter,youtube"
-        modal run modal_deploy_v2.py --test
+        modal run modal_app.py
+        modal run modal_app.py --topic "Caregiver support"
+        modal run modal_app.py --test
     """
     if test:
-        print("🧪 Running test pipeline...")
-        result = test_endpoint.remote()
+        print("🧪 Running test...")
+        result = test_pipeline.remote()
     else:
-        print(f"🚀 Running pipeline locally...")
-        result = run_social_pipeline.remote(topic, platforms, post)
+        print("🚀 Running pipeline...")
+        result = run_pipeline.remote(topic, platforms, auto_post)
     
     print(f"✅ Result: {result}")
 
-# Deployment commands:
-# - Deploy: modal deploy modal_deploy_v2.py
-# - Run: modal run modal_deploy_v2.py
-# - Test: modal run modal_deploy_v2.py --test
-# - Logs: modal logs -f
 
 if __name__ == "__main__":
     main()
