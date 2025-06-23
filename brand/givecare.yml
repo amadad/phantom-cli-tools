@@ -8,12 +8,58 @@ voice:
   style: "Conversational, human-first, avoids jargon"
   attributes: ["empathetic", "clear", "resourceful", "responsible"]
 
-# Visual identity
+# Visual identity system
 visual_style:
-  primary: "soft, painterly, warm lighting with editorial vignette style"
-  color_palette: "#FF9F1C, #54340E, #FFE8D6"
-  image_style: "intimate personal moments with thick tan border frame"
-  video_style: "warm, human-centered, documentary feel"
+  # Core brand DNA (never changes)
+  core:
+    palette: 
+      primary: "#FF9F1C"  # Warm orange
+      secondary: "#54340E"  # Deep brown  
+      accent: "#FFE8D6"  # Cream
+    emotion: "peaceful, reflective, resilient, empathetic"
+    tone: "authentic, warm, human-centered"
+  
+  # Visual modes for different content types
+  visual_modes:
+    - name: "framed_portrait"
+      description: "Intimate family moments with signature tan border frame"
+      technique: "photorealistic documentary style"
+      lighting: "soft natural light, golden hour feel"
+      composition: "close-up to medium shots, authentic expressions"
+      border: 
+        color: "#D7B899"
+        style: "thick tan border, soft-edged, matte finish"
+      suggested_usage: ["social posts", "testimonials", "personal stories"]
+      prompt_template: |
+        Documentary-style photograph showing {scene_description}.
+        Shot with natural lighting, authentic emotions, intimate framing.
+        Professional photography with thick tan (#D7B899) border frame.
+        Warm color grading, soft vignette edges, high quality composition.
+    
+    - name: "lifestyle_scene"  
+      description: "Wider environmental shots showing caregiving in context"
+      technique: "lifestyle photography, environmental portraits"
+      lighting: "diffuse window light, warm ambient"
+      composition: "medium to wide shots, contextual storytelling"
+      finish: "soft grain, editorial feel, no border"
+      suggested_usage: ["hero images", "feature stories", "educational content"]
+      prompt_template: |
+        Lifestyle photography capturing {scene_description}.
+        Environmental portrait style with contextual storytelling.
+        Warm diffuse lighting, soft grain, editorial quality.
+        Authentic home setting, genuine moments, professional composition.
+    
+    - name: "illustrative_concept"
+      description: "Soft illustrations for abstract concepts and guidance"
+      technique: "digital painting, watercolor style"
+      palette: "muted earth tones, pastel highlights"
+      style: "minimal detail, impressionist edges, gentle forms"
+      suggested_usage: ["infographics", "guides", "conceptual content"]
+      prompt_template: |
+        Soft watercolor illustration depicting {scene_description}.
+        Gentle brush strokes, muted earth tones, minimal detail.
+        Peaceful composition, impressionist style, caring atmosphere.
+        Digital painting technique with soft edges and calming palette.
   
 # Brand story and positioning  
 story: |
@@ -135,6 +181,18 @@ topics:
   - "Balancing work and caregiving"
   - "Caregiver rights and advocacy"
 
+# Test scenarios for evaluation
+test_scenarios:
+  - topic: "Family caregiver burnout and self-care"
+    expected_tone: "empathetic, supportive"
+    platforms: ["twitter", "linkedin"]
+  - topic: "Technology tools for modern caregiving"
+    expected_tone: "helpful, practical"
+    platforms: ["twitter", "linkedin"]
+  - topic: "Building support networks for caregivers"
+    expected_tone: "encouraging, community-focused"
+    platforms: ["twitter", "linkedin"]
+
 # Research focus areas
 research_keywords:
   - "caregiver burnout"
@@ -164,9 +222,21 @@ performance:
 # API configurations - NEW
 apis:
   azure_openai:
-    model: "gpt-4"
+    model: "gpt-4.5"
     temperature: 0.7
     max_tokens: 4000
+  
+  # Models to test for evaluation  
+  test_models:
+    - name: "o4-mini"
+      deployment: "AZURE_OPENAI_O4_MINI_DEPLOYMENT"
+      description: "Smallest/fastest model"
+    - name: "gpt-4.1-nano"
+      deployment: "AZURE_OPENAI_GPT41_DEPLOYMENT" 
+      description: "Medium capability model"
+    - name: "gpt-4.5"
+      deployment: "AZURE_OPENAI_GPT45_DEPLOYMENT"
+      description: "Most capable model"
   
   replicate:
     image_model: "black-forest-labs/flux-schnell"

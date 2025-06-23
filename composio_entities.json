@@ -1,0 +1,103 @@
+{
+  "integrations": [
+    {
+      "name": "youtube_J08b",
+      "id": "474abbb9-82f7-4b69-9314-e98a8227cf26",
+      "app_name": "youtube",
+      "status": "N/A"
+    },
+    {
+      "name": "facebook_NQzg",
+      "id": "174c558e-8cf3-497a-9baf-edba461472a6",
+      "app_name": "facebook",
+      "status": "N/A"
+    },
+    {
+      "name": "facebook_6cfN",
+      "id": "fa156062-b3b3-4ff9-8679-14f5bde3cc0f",
+      "app_name": "facebook",
+      "status": "N/A"
+    },
+    {
+      "name": "twitter_media_zBFw",
+      "id": "783f3101-1de1-47cc-af29-e6195d40eb83",
+      "app_name": "twitter_media",
+      "status": "N/A"
+    },
+    {
+      "name": "twitter_CODg",
+      "id": "d0b42455-41b7-4444-994f-a267d92d8c71",
+      "app_name": "twitter",
+      "status": "N/A"
+    },
+    {
+      "name": "linkedin_ABAR",
+      "id": "4a91024a-e287-4a40-affe-23528d3a8b6c",
+      "app_name": "linkedin",
+      "status": "N/A"
+    }
+  ],
+  "entities_info": {
+    "youtube": [
+      {
+        "id": "15c1b29a-6571-4d3d-8364-f201693a7aca",
+        "app_name": "youtube",
+        "status": "ACTIVE",
+        "member": "N/A",
+        "metadata": {}
+      }
+    ],
+    "twitter_media": [
+      {
+        "id": "4357db42-045d-4a9f-9e0b-640b258ff313",
+        "app_name": "twitter_media",
+        "status": "ACTIVE",
+        "member": "N/A",
+        "metadata": {}
+      }
+    ],
+    "twitter": [
+      {
+        "id": "24b79587-149a-46be-8f02-59621dc9989d",
+        "app_name": "twitter",
+        "status": "ACTIVE",
+        "member": "N/A",
+        "metadata": {}
+      }
+    ],
+    "linkedin": [
+      {
+        "id": "52251831-ff5f-4006-a5a4-ca894bd21eb0",
+        "app_name": "linkedin",
+        "status": "ACTIVE",
+        "member": "N/A",
+        "metadata": {}
+      }
+    ]
+  },
+  "twitter_entities": [
+    {
+      "id": "4357db42-045d-4a9f-9e0b-640b258ff313",
+      "app_name": "twitter_media",
+      "status": "ACTIVE",
+      "member": "N/A",
+      "metadata": {}
+    },
+    {
+      "id": "24b79587-149a-46be-8f02-59621dc9989d",
+      "app_name": "twitter",
+      "status": "ACTIVE",
+      "member": "N/A",
+      "metadata": {}
+    }
+  ],
+  "linkedin_entities": [
+    {
+      "id": "52251831-ff5f-4006-a5a4-ca894bd21eb0",
+      "app_name": "linkedin",
+      "status": "ACTIVE",
+      "member": "N/A",
+      "metadata": {}
+    }
+  ]
+}
