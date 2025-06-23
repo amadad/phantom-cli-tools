@@ -23,20 +23,17 @@ async def post_to_platforms(content: Dict[str, str], brand_config: Dict[str, Any
                 print(f"📤 Posting to {platform.upper()}...")
                 
                 if platform.lower() == "twitter":
-                    # Initialize Twitter-specific toolset
-                    twitter_toolset = ComposioToolSet(
-                        api_key=api_key,
-                        entity_id="24b79587-149a-46be-8f02-59621dc9989d"
-                    )
-                    
-                    # Post to Twitter with optional image
+                    # Post to Twitter with connected account ID
                     params = {"text": platform_content}
                     if image_url:
                         params["media"] = [image_url]
                     
-                    result = twitter_toolset.execute_action(
+                    # Use entity ID from environment
+                    twitter_entity_id = os.getenv("TWITTER_ENTITY_ID")
+                    result = toolset.execute_action(
                         action="TWITTER_CREATION_OF_A_POST",
-                        params=params
+                        params=params,
+                        entity_id=twitter_entity_id
                     )
                     post_results[platform] = {
                         "status": "posted",
@@ -48,33 +45,31 @@ async def post_to_platforms(content: Dict[str, str], brand_config: Dict[str, Any
                     print(f"✅ Posted to Twitter successfully{' with image' if image_url else ''}")
                     
                 elif platform.lower() == "linkedin":
-                    # Initialize LinkedIn-specific toolset
-                    linkedin_toolset = ComposioToolSet(
-                        api_key=api_key,
-                        entity_id="52251831-ff5f-4006-a5a4-ca894bd21eb0"
-                    )
-                    
-                    # Post to LinkedIn company page with optional image
-                    linkedin_author = brand_config.get("social", {}).get("linkedin_author")
+                    # Use personal LinkedIn profile 
+                    # NOTE: Company page posting requires r_organization_admin scope in LinkedIn app
+                    linkedin_author = brand_config.get("social", {}).get("linkedin_author", "urn:li:person:6fPQN564Fe")
                     
                     params = {
-                        "text": platform_content,
+                        "commentary": platform_content,
+                        "author": linkedin_author,
                         "visibility": "PUBLIC"
                     }
                     
-                    # Post as company page if author URN is provided
-                    if linkedin_author:
-                        params["author"] = linkedin_author
+                    if linkedin_author.startswith("urn:li:organization:"):
                         print(f"📢 Posting to LinkedIn company page: {linkedin_author}")
+                        print("⚠️  NOTE: Company posting requires LinkedIn app to have r_organization_admin scope")
                     else:
-                        print(f"📢 Posting to LinkedIn personal profile")
+                        print(f"📢 Posting to LinkedIn personal profile: {linkedin_author}")
                     
                     if image_url:
                         params["media"] = [{"url": image_url}]
                     
-                    result = linkedin_toolset.execute_action(
+                    # Use entity ID from environment
+                    linkedin_entity_id = os.getenv("LINKEDIN_ENTITY_ID")
+                    result = toolset.execute_action(
                         action="LINKEDIN_CREATE_LINKED_IN_POST",
-                        params=params
+                        params=params,
+                        entity_id=linkedin_entity_id
                     )
                     post_results[platform] = {
                         "status": "posted", 
