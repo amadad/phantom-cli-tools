@@ -1,28 +1,41 @@
-# Brand-Agnostic Social Media Pipeline
+# Agent Social - Automated Social Media Pipeline
 
-Clean, modular social media automation driven entirely by brand YAML configuration.
+AI-powered social media content generation with brand-aligned multimedia and human approval workflow.
 
 ## 🎯 Architecture
 
 ```
-Brand YAML → Research → Content Generation → Multimedia → Approval → Publishing
+Brand YAML → Research → Content Unit Generation → Parallel Media Creation → Approval → Multi-Platform Publishing
 ```
 
-## 📁 File Structure
+## 📁 Project Structure
 
 ```
 agent-social/
-├── social_pipeline.py          # Main pipeline (315 lines)
-├── modal_deploy.py             # Serverless deployment (95 lines)
+├── social_pipeline.py          # Main pipeline with Agno integration
+├── modal_app.py                # Modal serverless deployment
 ├── utils/
-│   ├── multimedia_gen.py       # Image/video/audio generation (362 lines)
-│   └── slack_approval.py       # Interactive approval workflow (293 lines)
+│   ├── content_unit.py         # Content unit abstraction
+│   ├── media_gen_parallel.py   # Parallel multimedia generation
+│   └── slack_approval.py       # Interactive approval workflow
 ├── brand/
-│   └── givecare.yml            # Brand configuration (YAML-driven)
-└── output/                     # Generated content and media
+│   └── givecare.yml            # Brand configuration (v2)
+├── tests/
+│   ├── unit/                   # Unit tests
+│   ├── integration/            # Integration tests
+│   └── e2e/                    # End-to-end tests
+└── output/                     # Generated content archive
 ```
 
-**Total: ~1,065 lines** (vs 1,819 before cleanup)
+## 🚀 Features
+
+- **Content Units**: Unified content generation with synchronized text and media
+- **Parallel Processing**: Concurrent media generation and platform adaptation
+- **Brand-First Design**: YAML configuration drives all content decisions
+- **Human-in-the-Loop**: Slack-based approval workflow
+- **Multi-Platform Support**: Twitter, LinkedIn, YouTube, Instagram, Facebook
+- **Agno Integration**: Leverages Agno 1.6.3 for agent orchestration
+- **Modal Deployment**: Serverless execution with scheduled runs
 
 ## 🚀 Usage
 

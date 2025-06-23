@@ -8,7 +8,7 @@ from unittest.mock import Mock, AsyncMock, patch, MagicMock
 from pathlib import Path
 import json
 
-from social_pipeline_v2 import OptimizedSocialPipeline, PipelineResult
+from social_pipeline import OptimizedSocialPipeline, PipelineResult
 from utils.content_unit import ContentUnit, MediaAssets, PlatformContent
 
 
@@ -27,9 +27,9 @@ class TestPipelineIntegration:
     ):
         """Test the complete pipeline flow from research to content generation."""
         # Mock Agno agents
-        with patch('social_pipeline_v2.Agent') as MockAgent, \
-             patch('social_pipeline_v2.Team') as MockTeam, \
-             patch('social_pipeline_v2.AzureOpenAI') as MockAzure, \
+        with patch('social_pipeline.Agent') as MockAgent, \
+             patch('social_pipeline.Team') as MockTeam, \
+             patch('social_pipeline.AzureOpenAI') as MockAzure, \
              patch('utils.media_gen_parallel.generate_multimedia_set_async') as mock_media_gen, \
              patch('utils.slack_approval.SlackApprovalWorkflow') as MockApproval:
             
@@ -120,8 +120,8 @@ class TestPipelineIntegration:
                 content=f"Content for {platform}"
             )
         
-        with patch('social_pipeline_v2.Agent') as MockAgent, \
-             patch('social_pipeline_v2.ContentUnitGenerator') as MockGenerator, \
+        with patch('social_pipeline.Agent') as MockAgent, \
+             patch('social_pipeline.ContentUnitGenerator') as MockGenerator, \
              patch('utils.media_gen_parallel.generate_multimedia_set_async') as mock_media_gen:
             
             # Setup mocks
@@ -173,7 +173,7 @@ class TestPipelineIntegration:
         monkeypatch
     ):
         """Test pipeline handles errors gracefully."""
-        with patch('social_pipeline_v2.Agent') as MockAgent:
+        with patch('social_pipeline.Agent') as MockAgent:
             # Mock agent that fails
             mock_agent = MockAgent.return_value
             mock_agent.run_async = AsyncMock(side_effect=Exception("Research failed"))
@@ -194,8 +194,8 @@ class TestPipelineIntegration:
         monkeypatch
     ):
         """Test pipeline when approval is not required."""
-        with patch('social_pipeline_v2.Agent') as MockAgent, \
-             patch('social_pipeline_v2.ContentUnitGenerator') as MockGenerator, \
+        with patch('social_pipeline.Agent') as MockAgent, \
+             patch('social_pipeline.ContentUnitGenerator') as MockGenerator, \
              patch('utils.media_gen_parallel.generate_multimedia_set_async') as mock_media_gen, \
              patch('utils.slack_approval.SlackApprovalWorkflow') as MockApproval:
             
@@ -311,8 +311,8 @@ class TestPipelinePerformance:
         """Test pipeline performance meets requirements."""
         import time
         
-        with patch('social_pipeline_v2.Agent') as MockAgent, \
-             patch('social_pipeline_v2.ContentUnitGenerator') as MockGenerator, \
+        with patch('social_pipeline.Agent') as MockAgent, \
+             patch('social_pipeline.ContentUnitGenerator') as MockGenerator, \
              patch('utils.media_gen_parallel.generate_multimedia_set_async') as mock_media_gen:
             
             # Setup fast mocks

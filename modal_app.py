@@ -5,7 +5,6 @@ Leverages Modal's performance features and persistent storage.
 """
 
 import modal
-from pathlib import Path
 
 # Create Modal app with optimizations
 app = modal.App(
@@ -33,7 +32,7 @@ image = (
         "mkdir -p /app/cache/media"
     ])
     # Add application files
-    .add_local_file("social_pipeline_v2.py", remote_path="/app/social_pipeline_v2.py")
+    .add_local_file("social_pipeline.py", remote_path="/app/social_pipeline.py")
     .add_local_dir("utils/", remote_path="/app/utils/")
     .add_local_dir("brand/", remote_path="/app/brand/")
 )
@@ -61,12 +60,38 @@ class SocialPipelineService:
     brand_config_path: str = modal.parameter(default="/app/brand/givecare.yml")
     storage_path: str = modal.parameter(default="/storage/agno.db")
     
+    def __init__(self):
+        """Initialize topics list from brand config."""
+        self.topics = None  # Will be loaded from brand config in __enter__
+    
     def __enter__(self):
         """Initialize pipeline when container starts."""
         import sys
         sys.path.append("/app")
         
-        from social_pipeline_v2 import OptimizedSocialPipeline
+        from social_pipeline import OptimizedSocialPipeline
+        import yaml
+        
+        # Load topics from brand config
+        try:
+            with open(self.brand_config_path, 'r') as f:
+                brand_config = yaml.safe_load(f)
+            self.topics = brand_config.get('topics', [
+                "Family caregiver burnout and self-care strategies",  # fallback
+                "Navigating healthcare systems as a family caregiver",
+                "Building resilient support networks for caregivers",
+                "Caregiver wellness during challenging times"
+            ])
+            print(f"📋 Loaded {len(self.topics)} topics from brand config")
+        except Exception as e:
+            print(f"⚠️ Error loading brand config: {e}")
+            # Fallback topics
+            self.topics = [
+                "Family caregiver burnout and self-care strategies",
+                "Navigating healthcare systems as a family caregiver",
+                "Building resilient support networks for caregivers",
+                "Caregiver wellness during challenging times"
+            ]
         
         # Create storage subdirectories
         import os
@@ -83,16 +108,6 @@ class SocialPipelineService:
         print("🚀 Pre-warming agents and connections...")
         # Agent initialization happens in pipeline __init__
         
-        self.topics = [
-            "Family caregiver burnout and self-care strategies",
-            "Navigating healthcare systems as a family caregiver",
-            "Building resilient support networks for caregivers",
-            "Caregiver wellness during challenging times",
-            "Technology tools for modern caregiving",
-            "Financial planning for family caregivers",
-            "Balancing work and caregiving responsibilities",
-            "Mental health resources for caregivers"
-        ]
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):

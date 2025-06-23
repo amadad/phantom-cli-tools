@@ -10,7 +10,7 @@ from pathlib import Path
 from unittest.mock import patch, AsyncMock, Mock
 import yaml
 
-from social_pipeline_v2 import run_and_test_pipeline
+from social_pipeline import run_and_test_pipeline
 from utils.content_unit import ContentUnit, MediaAssets
 
 
@@ -52,13 +52,13 @@ class TestPipelineE2E:
         with open(config_file, 'w') as f:
             yaml.dump(brand_config, f)
         
-        with patch('social_pipeline_v2.OptimizedSocialPipeline._load_brand_config') as mock_load, \
+        with patch('social_pipeline.OptimizedSocialPipeline._load_brand_config') as mock_load, \
              patch('agno.Agent') as MockAgent, \
              patch('agno.Team') as MockTeam, \
              patch('agno.models.AzureOpenAI') as MockAzure, \
              patch('utils.media_gen_parallel.generate_brand_image_async') as mock_image_gen, \
              patch('utils.slack_approval.SlackApprovalWorkflow.request_approval') as mock_approval, \
-             patch('social_pipeline_v2.Path.mkdir'):
+             patch('social_pipeline.Path.mkdir'):
             
             # Setup mocks
             mock_load.return_value = brand_config
@@ -124,12 +124,12 @@ class TestPipelineE2E:
         """Test complete pipeline for multiple platforms."""
         platforms = ["twitter", "linkedin", "youtube"]
         
-        with patch('social_pipeline_v2.Agent') as MockAgent, \
-             patch('social_pipeline_v2.Team') as MockTeam, \
-             patch('social_pipeline_v2.AzureOpenAI') as MockAzure, \
+        with patch('social_pipeline.Agent') as MockAgent, \
+             patch('social_pipeline.Team') as MockTeam, \
+             patch('social_pipeline.AzureOpenAI') as MockAzure, \
              patch('utils.media_gen_parallel.generate_multimedia_set_async') as mock_media_gen, \
              patch('utils.slack_approval.SlackApprovalWorkflow.request_approval') as mock_approval, \
-             patch('social_pipeline_v2.Path.mkdir'):
+             patch('social_pipeline.Path.mkdir'):
             
             # Mock agents
             research_agent = Mock()
@@ -195,12 +195,12 @@ class TestPipelineE2E:
     @pytest.mark.e2e
     async def test_pipeline_with_approval_rejection(self, mock_env_vars):
         """Test pipeline when content is rejected during approval."""
-        with patch('social_pipeline_v2.Agent') as MockAgent, \
-             patch('social_pipeline_v2.Team') as MockTeam, \
-             patch('social_pipeline_v2.AzureOpenAI') as MockAzure, \
+        with patch('social_pipeline.Agent') as MockAgent, \
+             patch('social_pipeline.Team') as MockTeam, \
+             patch('social_pipeline.AzureOpenAI') as MockAzure, \
              patch('utils.media_gen_parallel.generate_multimedia_set_async') as mock_media_gen, \
              patch('utils.slack_approval.SlackApprovalWorkflow.request_approval') as mock_approval, \
-             patch('social_pipeline_v2.Path.mkdir'):
+             patch('social_pipeline.Path.mkdir'):
             
             # Setup basic mocks
             MockAgent.return_value.run_async = AsyncMock()
@@ -229,12 +229,12 @@ class TestPipelineE2E:
     @pytest.mark.e2e
     async def test_pipeline_error_recovery(self, mock_env_vars):
         """Test pipeline handles and recovers from errors."""
-        with patch('social_pipeline_v2.Agent') as MockAgent, \
-             patch('social_pipeline_v2.Team') as MockTeam, \
-             patch('social_pipeline_v2.AzureOpenAI') as MockAzure, \
+        with patch('social_pipeline.Agent') as MockAgent, \
+             patch('social_pipeline.Team') as MockTeam, \
+             patch('social_pipeline.AzureOpenAI') as MockAzure, \
              patch('utils.media_gen_parallel.generate_brand_image_async') as mock_image_gen, \
              patch('utils.media_gen_parallel.generate_brand_video_async') as mock_video_gen, \
-             patch('social_pipeline_v2.Path.mkdir'):
+             patch('social_pipeline.Path.mkdir'):
             
             # Mock successful research
             research_agent = Mock()
@@ -276,12 +276,12 @@ class TestPipelineE2E:
         """Test pipeline performance in realistic scenario."""
         import time
         
-        with patch('social_pipeline_v2.Agent') as MockAgent, \
-             patch('social_pipeline_v2.Team') as MockTeam, \
-             patch('social_pipeline_v2.AzureOpenAI') as MockAzure, \
+        with patch('social_pipeline.Agent') as MockAgent, \
+             patch('social_pipeline.Team') as MockTeam, \
+             patch('social_pipeline.AzureOpenAI') as MockAzure, \
              patch('utils.media_gen_parallel.generate_multimedia_set_async') as mock_media_gen, \
              patch('utils.slack_approval.SlackApprovalWorkflow.request_approval') as mock_approval, \
-             patch('social_pipeline_v2.Path.mkdir'):
+             patch('social_pipeline.Path.mkdir'):
             
             # Setup mocks with realistic delays
             async def mock_research_delay(*args, **kwargs):
