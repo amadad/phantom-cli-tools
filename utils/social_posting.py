@@ -12,8 +12,9 @@ async def post_to_platforms(content: Dict[str, str], brand_config: Dict[str, Any
     try:
         from composio import ComposioToolSet
         
-        # Initialize Composio toolset with API key only
-        toolset = ComposioToolSet(api_key=os.getenv("COMPOSIO_API_KEY"))
+        # Initialize Composio toolset with API key only  
+        api_key = os.getenv("COMPOSIO_API_KEY")
+        toolset = ComposioToolSet(api_key=api_key)
         
         post_results = {}
         
@@ -22,15 +23,20 @@ async def post_to_platforms(content: Dict[str, str], brand_config: Dict[str, Any
                 print(f"📤 Posting to {platform.upper()}...")
                 
                 if platform.lower() == "twitter":
+                    # Initialize Twitter-specific toolset
+                    twitter_toolset = ComposioToolSet(
+                        api_key=api_key,
+                        entity_id="24b79587-149a-46be-8f02-59621dc9989d"
+                    )
+                    
                     # Post to Twitter with optional image
                     params = {"text": platform_content}
                     if image_url:
                         params["media"] = [image_url]
                     
-                    result = toolset.execute_action(
+                    result = twitter_toolset.execute_action(
                         action="TWITTER_CREATION_OF_A_POST",
-                        params=params,
-                        entity_id="24b79587-149a-46be-8f02-59621dc9989d"
+                        params=params
                     )
                     post_results[platform] = {
                         "status": "posted",
@@ -42,6 +48,12 @@ async def post_to_platforms(content: Dict[str, str], brand_config: Dict[str, Any
                     print(f"✅ Posted to Twitter successfully{' with image' if image_url else ''}")
                     
                 elif platform.lower() == "linkedin":
+                    # Initialize LinkedIn-specific toolset
+                    linkedin_toolset = ComposioToolSet(
+                        api_key=api_key,
+                        entity_id="52251831-ff5f-4006-a5a4-ca894bd21eb0"
+                    )
+                    
                     # Post to LinkedIn company page with optional image
                     linkedin_author = brand_config.get("social", {}).get("linkedin_author")
                     
@@ -60,10 +72,9 @@ async def post_to_platforms(content: Dict[str, str], brand_config: Dict[str, Any
                     if image_url:
                         params["media"] = [{"url": image_url}]
                     
-                    result = toolset.execute_action(
+                    result = linkedin_toolset.execute_action(
                         action="LINKEDIN_CREATE_LINKED_IN_POST",
-                        params=params,
-                        entity_id="52251831-ff5f-4006-a5a4-ca894bd21eb0"
+                        params=params
                     )
                     post_results[platform] = {
                         "status": "posted", 
