@@ -205,7 +205,120 @@ async def run_pipeline(
 )
 async def scheduled_pipeline():
     """Scheduled execution every 6 hours."""
-    return await run_pipeline.remote(auto_post=True)
+    # Run the pipeline logic directly in scheduled context
+    from agno.agent import Agent
+    from agno.models.azure import AzureOpenAI
+    from agno.tools.serpapi import serpapi
+    
+    # Load brand config
+    with open("/app/brand/givecare.yml", "r") as f:
+        brand_config = yaml.safe_load(f)
+    
+    brand_name = brand_config.get("name", "GiveCare")
+    
+    # Handle topic rotation
+    topics = brand_config.get("topics", ["Caregiver support"])
+    hour = datetime.now().hour
+    topic_index = (hour // 6) % len(topics)
+    topic = topics[topic_index]
+    
+    print(f"🕒 Scheduled run at {datetime.now()}")
+    print(f"🚀 Running pipeline for: {topic}")
+    
+    # Initialize Azure OpenAI
+    azure_model = AzureOpenAI(
+        id=os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4.5-preview"),
+        api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
+    )
+    
+    # Create content agent
+    content_agent = Agent(
+        name=f"{brand_name}_scheduled_creator",
+        model=azure_model,
+        instructions=[
+            f"You are a content creator for {brand_name}.",
+            f"Brand voice: {brand_config.get('voice', {})}",
+            "Create engaging social media content that resonates with caregivers.",
+            "Keep content authentic, empathetic, and supportive."
+        ]
+    )
+    
+    # Generate content for default platforms
+    platforms = ["twitter", "linkedin"]
+    content = {}
+    
+    for platform in platforms:
+        platform_config = brand_config.get("platforms", {}).get(platform, {})
+        max_chars = platform_config.get("max_chars", 280)
+        
+        prompt = f"""
+        Create social media content for {platform} about: {topic}
+        
+        Requirements:
+        - Maximum {max_chars} characters
+        - {brand_config.get('voice', {}).get('tone', 'supportive')} tone
+        - Include relevant hashtags
+        - Focus on caregiver community
+        
+        Return only the final content, ready to post.
+        """
+        
+        try:
+            result = content_agent.run(prompt, stream=False)
+            if hasattr(result, 'content'):
+                clean_content = result.content
+            else:
+                clean_content = str(result)
+            content[platform] = clean_content[:max_chars]
+            print(f"✅ Generated content for {platform}")
+        except Exception as e:
+            print(f"❌ Failed to generate content for {platform}: {e}")
+            content[platform] = f"Sharing insights about {topic} with our caregiver community."
+    
+    # Save content
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_file = f"/storage/{brand_name}_scheduled_{timestamp}.json"
+    
+    result_data = {
+        "topic": topic,
+        "brand": brand_name,
+        "content": content,
+        "timestamp": datetime.now().isoformat(),
+        "platforms": platforms,
+        "run_type": "scheduled"
+    }
+    
+    with open(output_file, "w") as f:
+        json.dump(result_data, f, indent=2)
+    
+    print(f"💾 Saved scheduled content to {output_file}")
+    
+    # Send Slack notification
+    try:
+        import sys
+        sys.path.append("/app")
+        from utils.slack_approval import SlackApprovalWorkflow
+        approval_workflow = SlackApprovalWorkflow()
+        
+        for platform, platform_content in content.items():
+            await approval_workflow.request_approval(
+                content={"content": platform_content, "platform": platform},
+                platform=platform,
+                brand_config=brand_config
+            )
+            print(f"📱 Slack notification sent for {platform}")
+    except Exception as e:
+        print(f"⚠️ Slack notification failed: {e}")
+    
+    return {
+        "status": "completed",
+        "topic": topic,
+        "platforms": platforms,
+        "timestamp": datetime.now().isoformat(),
+        "run_type": "scheduled"
+    }
 
 
 @app.function(image=image)
