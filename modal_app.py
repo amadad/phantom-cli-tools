@@ -120,15 +120,21 @@ class SocialPipelineService:
             auto_post: Whether to auto-approve and post
         """
         import datetime
+        import yaml
         
         if platforms is None:
             platforms = ["twitter", "linkedin", "youtube"]
         
         # Use topic rotation if not specified
         if topic is None:
+            # Load topics directly since __enter__ isn't called
+            with open(self.brand_config_path, 'r') as f:
+                brand_config = yaml.safe_load(f)
+            topics = brand_config.get('topics', [])
+            
             hour = datetime.datetime.now().hour
-            topic_index = (hour // 6) % len(self.topics)
-            topic = self.topics[topic_index]
+            topic_index = (hour // 6) % len(topics)
+            topic = topics[topic_index]
         
         print(f"📝 Running pipeline for: {topic}")
         print(f"📱 Platforms: {platforms}")
