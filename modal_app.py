@@ -72,6 +72,12 @@ class SocialPipelineService:
         from social_pipeline import OptimizedSocialPipeline
         import yaml
         
+<<<<<<< HEAD
+=======
+        # Initialize topics list
+        self.topics = None
+        
+>>>>>>> c29aef7 (refactor: move topics initialization from constructor to __enter__ method)
         # Load topics from brand config
         try:
             with open(self.brand_config_path, 'r') as f:
