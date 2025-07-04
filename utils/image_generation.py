@@ -1,5 +1,6 @@
 """
-Image generation utilities with brand-specific styling.
+Image generation utilities with brand-specific styling and visual modes.
+Consolidated from multiple image generation modules.
 """
 import os
 from typing import Dict, Any, Optional
@@ -140,3 +141,30 @@ def generate_visual_prompt(topic: str, agent) -> str:
     except Exception as e:
         print(f"❌ Failed to generate visual prompt: {e}")
         return f"Supportive caregiving community illustration about {topic}"
+
+
+async def generate_brand_image_with_mode(visual_prompt: str, topic: str, brand_config: Dict[str, Any]) -> Optional[str]:
+    """Generate image with visual mode selection (consolidated from visual_mode_generator)."""
+    
+    # Visual modes for variety
+    visual_modes = ["framed_portrait", "lifestyle_scene", "illustrative_concept"]
+    
+    # Select mode based on topic or rotate
+    import hashlib
+    mode_index = hash(topic) % len(visual_modes)
+    selected_mode = visual_modes[mode_index]
+    
+    print(f"🎨 Using visual mode: {selected_mode}")
+    
+    # Mode-specific prompt enhancements
+    mode_prompts = {
+        "framed_portrait": "Documentary-style photograph showing",
+        "lifestyle_scene": "Lifestyle photography capturing", 
+        "illustrative_concept": "Artistic illustration depicting"
+    }
+    
+    enhanced_prompt = f"{mode_prompts[selected_mode]} {visual_prompt[:100]}..."
+    print(f"🎨 Generated mode-specific prompt: {enhanced_prompt}")
+    
+    # Generate with the enhanced prompt
+    return await generate_brand_image(enhanced_prompt, topic, brand_config)

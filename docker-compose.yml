@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # One-time run service (for testing)
+  agent-social:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - ./output:/app/output
+      - ./brands:/app/brands:ro
+    command: python main.py --topic "test content"
+    profiles:
+      - run
+
+  # Scheduled service (runs every 6 hours)
+  agent-social-scheduler:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - ./output:/app/output
+      - ./brands:/app/brands:ro
+    command: python main.py --schedule 6
+    restart: unless-stopped
+    profiles:
+      - scheduler
+
+  # Development service (with live code reload)
+  agent-social-dev:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - ./output:/app/output
+      - ./brands:/app/brands:ro
+      - ./utils:/app/utils:ro
+      - ./main.py:/app/main.py:ro
+    command: python main.py
+    profiles:
+      - dev
+
+# Volumes for persistent data
+volumes:
+  output:

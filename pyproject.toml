@@ -1,0 +1,21 @@
+[project]
+name = "agent-social"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "agno>=1.7.1",
+    "composio-agno>=0.7.20",
+    "google-search-results>=2.4.2",
+    "pydantic>=2.11.7",
+    "python-telegram-bot>=20.0",
+    "slack-sdk>=3.35.0",
+    "PyYAML>=6.0.2",
+    "aiohttp>=3.9.5",
+    "replicate>=0.15.0",
+    "openai>=1.0",
+    "python-dotenv>=1.0.0",
+    "schedule>=1.2.0",
+    "numpy>=1.24.0",
+]

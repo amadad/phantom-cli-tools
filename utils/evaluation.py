@@ -132,3 +132,16 @@ def grade_pipeline_performance(pipeline_results: List[Dict[str, Any]]) -> Dict[s
         "feedback": feedback,
         "detailed_results": pipeline_results
     }
+
+
+def evaluate_content(content: str, brand_config: Dict[str, Any]) -> float:
+    """
+    Simple content evaluation function that returns a score between 0 and 1.
+    This is a compatibility wrapper for the main application.
+    """
+    # Use the first platform in the brand config or default to 'twitter'
+    platforms = brand_config.get("platforms", {})
+    platform = list(platforms.keys())[0] if platforms else "twitter"
+    
+    evaluation = evaluate_content_quality(content, platform, brand_config)
+    return evaluation["overall_score"]

@@ -1,346 +1,162 @@
-# Agent Social Contributor Guide
+# AGENTS.md - AI Agent Instructions for Agent Social
 
-## 🚀 Dev Environment Setup
-
-### **Python Environment**
-```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate   # Windows
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up pre-commit hooks (optional)
-pre-commit install
-```
-
-### **Environment Variables**
-```bash
-# Copy example environment file and configure your values
-cp .env.example .env
-# Edit .env with your actual API keys
-
-# Required variables:
-# - AZURE_OPENAI_API_KEY: Azure OpenAI API key
-# - AZURE_OPENAI_ENDPOINT: Azure OpenAI endpoint
-# - AZURE_OPENAI_API_VERSION: API version (e.g., "2024-10-01-preview")
-# - AZURE_OPENAI_DEPLOYMENT_NAME: Model deployment name
-# - COMPOSIO_API_KEY: For social media posting
-# - AGNO_API_KEY: Agno framework API key
-# - SERPER_API_KEY: For news/story discovery
-# - SLACK_BOT_TOKEN: For approval workflow
-# - SLACK_APP_TOKEN: For Slack Socket Mode
-# - SLACK_CHANNEL_ID: Channel for content approvals
-```
-
-### **Local Development**
-```bash
-# Run the pipeline locally
-python social_pipeline.py
-
-# Test specific components
-python -c "from social_pipeline import test_agents; test_agents()"
-
-# Check brand configuration
-python -c "from social_pipeline import brand_framework; print(brand_framework.guidelines)"
-```
-
----
-
-## 🧪 Testing Instructions
-
-### **Test Structure**
-```
-tests/                      # Test directory (to be created)
-├── test_content_gen.py    # Content generation tests
-├── test_approval.py       # Slack approval workflow tests
-├── test_posting.py        # Social media posting tests
-└── test_brand.py          # Brand consistency tests
-```
-
-### **Running Tests**
-```bash
-# Install test dependencies
-pip install pytest pytest-asyncio pytest-mock
-
-# Run all tests
-pytest -v
-
-# Test specific component
-pytest tests/test_content_gen.py -v
-
-# Test with coverage
-pytest --cov=social_pipeline --cov-report=html
-
-# Integration test (requires API keys)
-python social_pipeline.py --test-mode
-```
-
-### **Manual Testing**
-```bash
-# Test story discovery only
-python -c "from social_pipeline import discover_stories; discover_stories(test_mode=True)"
-
-# Test content generation without posting
-python -c "from social_pipeline import generate_content; generate_content(test_mode=True)"
-
-# Test Slack approval flow
-python -c "from social_pipeline import test_slack_approval; test_slack_approval()"
-```
-
----
-
-## 🔄 Git Workflow & PR Instructions
-
-### **Branch Naming**
-```bash
-# Feature branches
-git checkout -b feature/add-instagram-support
-git checkout -b feature/improve-brand-voice
-
-# Bug fixes
-git checkout -b fix/slack-timeout-handling
-git checkout -b fix/api-rate-limiting
-
-# Improvements
-git checkout -b improve/content-quality
-git checkout -b refactor/agent-structure
-```
-
-### **Commit Message Format**
-```bash
-# Format: type(scope): description
-feat(agents): add Instagram content generation
-fix(slack): resolve approval timeout issues
-docs(readme): update deployment instructions
-test(content): add brand voice consistency tests
-refactor(pipeline): simplify approval workflow
-
-# Include context in commit body
-git commit -m "feat(agents): add humor to content generation
-
-- Implement personality traits for agents
-- Add humor detection and generation
-- Include tone variation based on platform
-- Test with sample content
-
-Resolves #123"
-```
-
-### **Pull Request Guidelines**
-
-#### **PR Template**
-```markdown
-## Summary
-Brief description of changes and why they're needed.
-
-## Changes
-- [ ] New feature implementation
-- [ ] Bug fixes
-- [ ] Documentation updates
-- [ ] Test additions/updates
+## Code Style
+- Use **Black** for Python formatting with 120 character line length
+- Use **type hints** for all function parameters and returns
+- Use **async/await** for all I/O operations (API calls, file operations)
+- Use **f-strings** for string formatting, not `.format()` or `%`
+- Variable names should be **descriptive, not abbreviated** (`content_generation` not `content_gen`)
+- Use **Pydantic models** for all structured data (API responses, configuration)
 
 ## Testing
-- [ ] Tested locally with real API calls
-- [ ] Tested in Modal dev environment
-- [ ] Content quality verified
-- [ ] Brand consistency checked
+- Run `uv run main.py --no-stories --no-image` before finalizing changes
+- Test individual components with Python one-liners using `asyncio.run()`
+- All API integrations must have **graceful fallback** behavior
+- Check `output/content/` directory for generated JSON files after test runs
+- Verify environment variables are loaded with `os.getenv()` defaults
 
-## Checklist
-- [ ] Code follows project style
-- [ ] Self-review completed
-- [ ] Documentation updated
-- [ ] No API keys in code
-- [ ] Modal deployment tested
-```
+## Dependencies & Package Management
+- Use **UV package manager** (`uv sync`, `uv add`, `uv run`)
+- All dependencies go in `pyproject.toml`, not requirements.txt
+- Pin major versions for stability: `"agno>=1.7.1"`, `"pydantic>=2.11.7"`
+- New dependencies require justification and testing
 
----
-
-## 🛠️ Development Patterns
-
-### **Project Structure**
-```
-social_pipeline.py          # Main pipeline (all components)
-brands/                     # Brand configuration directory
-└── givecare.yaml          # GiveCare brand framework
-output/                    # Generated content output
-requirements.txt           # Production dependencies
-modal_app.py              # Modal deployment configuration
-.github/
-└── workflows/
-    └── ci-cd.yml         # GitHub Actions CI/CD
-```
-
-### **Code Style Standards**
+## API Integration Patterns
+### Azure OpenAI (Agno 1.7.1)
 ```python
-# Use type hints for all functions
-async def generate_content(
-    story: dict, 
-    platform: str = "twitter"
-) -> ContentResult:
-    """Generate platform-specific content from story."""
-    pass
-
-# Pydantic models for data validation
-class ContentResult(BaseModel):
-    platform: str
-    content: str
-    visuals: Optional[List[str]] = None
-    
-# Async by default for API operations
-async def post_to_platform(
-    content: ContentResult,
-    platform_client: Any
-) -> PostResult:
-    """Post content to specified platform."""
-    pass
+# ✅ CORRECT Pattern
+from agno.models.azure import AzureOpenAI
+model = AzureOpenAI(
+    azure_deployment=os.getenv("AZURE_OPENAI_DEFAULT_MODEL"),
+    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+    api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
+)
+response = await agent.arun(prompt)  # Use .arun() not .generate()
 ```
 
-### **Agent Development Pattern**
+### SerpAPI Integration
 ```python
-# Agent structure for content generation
-agent = Agent(
-    name="content_creator",
-    role="Social media content creator",
-    instructions=[
-        "Create engaging social content",
-        "Follow brand voice guidelines",
-        "Adapt tone for platform"
-    ],
-    response_model=ContentOutput,
-    model="o4-mini",  # Fast model for content
-    tools=[necessary_tools_only]
+# ✅ CORRECT - Use SerpAPI.com (not Serper.dev)
+response = await client.get(
+    "https://serpapi.com/search.json",
+    params={"engine": "google", "q": query, "api_key": os.getenv("SERP_API_KEY")}
 )
 ```
 
----
-
-## 🔍 Code Review Process
-
-### **Review Checklist**
-- [ ] **Functionality**: Pipeline works end-to-end
-- [ ] **Content Quality**: Generated content meets standards
-- [ ] **Brand Consistency**: Follows brand guidelines
-- [ ] **API Usage**: Efficient API calls, proper error handling
-- [ ] **Security**: No exposed API keys or secrets
-- [ ] **Performance**: Reasonable execution time
-- [ ] **Documentation**: Code comments updated
-
-### **Testing Before Review**
-1. Run the pipeline locally with test mode
-2. Verify content quality and brand alignment
-3. Test approval workflow in Slack
-4. Check Modal deployment compatibility
-5. Ensure no breaking changes to scheduled runs
-
----
-
-## 📚 Modal Deployment
-
-### **Deployment Commands**
-```bash
-# Deploy to Modal
-modal deploy modal_app.py
-
-# Test deployment
-modal run modal_app.py::test_endpoint
-
-# Check logs
-modal logs -f
-
-# Run scheduled job manually
-modal run modal_app.py::scheduled_social_pipeline
-```
-
-### **Environment Configuration**
-```bash
-# Set Modal secrets
-modal secret create agent-social-secrets \
-  AZURE_OPENAI_API_KEY=<key> \
-  COMPOSIO_API_KEY=<key> \
-  SERPER_API_KEY=<key> \
-  SLACK_BOT_TOKEN=<token> \
-  AGNO_API_KEY=<key>
-```
-
----
-
-## 🚨 Troubleshooting
-
-### **Common Issues**
-
-#### **"Composio tool not found"**
-```bash
-# Problem: Composio tools not properly initialized
-# Solution: Ensure COMPOSIO_API_KEY is set and valid
-composio login  # If using CLI
-composio apps list  # Verify access
-```
-
-#### **Slack approval timeout**
-```bash
-# Problem: Content approval timing out
-# Solution: Check Slack Socket Mode connection
-# Verify SLACK_APP_TOKEN and SLACK_BOT_TOKEN are valid
-# Ensure bot is in the approval channel
-```
-
-#### **Modal deployment fails**
-```bash
-# Problem: Import errors in Modal
-# Solution: Ensure all dependencies in requirements.txt
-# Check that no local file imports are used
-# Verify secret names match exactly
-```
-
-#### **Content generation quality issues**
+### Error Handling
 ```python
-# Problem: Generated content doesn't match brand voice
-# Solution: Review brand framework YAML
-# Adjust agent instructions
-# Test with different prompts
+# ✅ CORRECT Pattern
+try:
+    result = await api_call()
+    print(f"✅ Success: {result}")
+    return result
+except Exception as e:
+    print(f"❌ Failed: {e}")
+    return fallback_value  # Always provide fallback
 ```
 
-#### **API rate limiting**
-```python
-# Problem: Hitting API rate limits
-# Solution: Implement exponential backoff
-# Reduce frequency of scheduled runs
-# Cache story discovery results
+## File Organization Rules
+- **Keep 8 core files**: main.py + 7 utils files (includes Sora video generation)
+- **Consolidate related functions** in single files (don't split unnecessarily)
+- **No redundant modules** - if functionality overlaps, merge files
+- **utils/** prefix for all utility modules
+- **brands/** for YAML configuration only
+
+## Configuration Management
+- All configuration in **YAML files** (`brands/givecare.yml`)
+- Environment variables for **secrets only** (API keys, tokens)
+- Use `os.getenv()` with sensible defaults
+- **No hardcoded values** in source code
+
+## Content Generation Guidelines
+- All content must be **brand-aligned** using YAML voice configuration
+- Use **structured outputs** (Pydantic models) for consistency
+- Generate **platform-specific content** (Twitter 280 chars, LinkedIn longer)
+- Include **quality scoring** (0-1 scale) for all generated content
+- Save all generated content as **JSON with metadata**
+
+## Approval Workflow Standards
+- **Terminal approval** is primary interface (built-in input prompts)
+- **Telegram/Slack** are optional secondary channels
+- **30-second timeout** for approval prompts in automated environments
+- **Always log approval decisions** (approved/rejected/timeout)
+
+## Image Generation Standards
+- Use **Replicate FLUX models** for high quality
+- Implement **visual modes** (framed_portrait, lifestyle_scene, illustrative_concept)
+- Include **fallback models** if primary fails
+- **Brand-specific styling** from YAML configuration
+- **Async generation** with proper error handling
+
+## Commit Message Format
+```
+[Fix] Fix SerpAPI integration using correct endpoint
+[Feature] Add visual mode selection for image generation  
+[Refactor] Consolidate redundant utility modules
+[Docs] Update README with current architecture
 ```
 
+## PR Requirements
+- **Test pipeline end-to-end** with `uv run main.py`
+- **Update documentation** if changing architecture
+- **Include testing instructions** in PR description
+- **One feature per PR** - keep changes focused
+- **No breaking changes** without migration plan
+
+## Directory Structure Rules
+```
+agent-social/
+├── main.py                     # CLI entry point only
+├── utils/                      # All utilities (max 6 files)
+├── brands/                     # YAML configs only
+├── output/content/             # Generated content archive
+└── docs/                       # Essential docs only (3-4 files max)
+```
+
+## Environment Setup Commands
+```bash
+# Initial setup
+uv sync
+cp .env.example .env
+
+# Development testing
+uv run main.py --no-stories --no-image    # Safe testing
+uv run main.py --topic "test"             # Custom topic
+uv run main.py --platforms "twitter"      # Single platform
+
+# Component testing
+python -c "from utils.evaluation import evaluate_content; print(evaluate_content('test', 'twitter'))"
+```
+
+## Debugging Guidelines
+- Use **descriptive print statements** with emojis (🔍, ✅, ❌, ⚠️)
+- **Log API response status codes** for external services
+- **Check output/content/** for generated JSON files
+- **Use --no-stories --no-image flags** to isolate issues
+- **Monitor API quotas** and rate limits
+
+## Performance Requirements
+- **Content generation**: < 15 seconds per platform
+- **Image generation**: < 30 seconds per image
+- **Story discovery**: < 10 seconds with SerpAPI
+- **Total pipeline**: < 60 seconds end-to-end
+- **Memory usage**: < 500MB for normal operations
+
+## Security Guidelines
+- **Never commit API keys** to repository
+- **Use environment variables** for all secrets
+- **Validate all external input** before processing
+- **Sanitize file paths** when saving content
+- **Log security-relevant events** (API failures, auth issues)
+
+## Future Development Rules
+- **No new files** without removing existing ones (keep at 8 total)
+- **Consolidate before expanding** - merge similar functionality
+- **Maintain backward compatibility** for CLI interface
+- **Document all breaking changes** with migration guides
+- **Test on clean environment** before releasing
+
 ---
 
-## 🤝 Getting Help
-
-### **Documentation Resources**
-- **social_pipeline.py** - Main pipeline code with inline docs
-- **brands/givecare.yaml** - Brand voice configuration
-- **modal_app.py** - Deployment configuration
-- **.github/workflows/ci-cd.yml** - CI/CD pipeline
-
-### **Key Areas to Understand**
-1. **Brand Framework**: How brand voice is maintained
-2. **Approval Workflow**: Slack integration for content review
-3. **Multi-platform Support**: Adapting content per platform
-4. **Modal Deployment**: Serverless execution model
-
----
-
-## 📋 Definition of Done
-
-### **Feature Completion**
-- [ ] **Implementation**: Feature works in pipeline
-- [ ] **Testing**: Manual test of full pipeline
-- [ ] **Brand Compliance**: Content matches voice
-- [ ] **Approval Flow**: Slack workflow functions
-- [ ] **Deployment**: Works on Modal platform
-- [ ] **Documentation**: Updated as needed
-- [ ] **Monitoring**: Logs show successful runs
-- [ ] **Performance**: Completes in reasonable time
-
----
-
-*Building an AI-powered social media presence that authentically represents the GiveCare brand and engages with the caregiving community.*
+*These instructions ensure Agent Social remains lean, focused, and maintainable while delivering high-quality automated content generation.*

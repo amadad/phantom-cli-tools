@@ -1,0 +1,20 @@
+{
+  "topic": "Building support networks for caregivers",
+  "brand": "GiveCare",
+  "content": {
+    "twitter": "Caregiving is easier when you're not alone. Connect, support, and share your journey\u2014to build strength together. \ud83d\udcac #CaregiverSupport #CommunityStrength\n\n#caregiving #support #community",
+    "linkedin": "As caregivers, forming a supportive network can make an incredible difference. It provides emotional support, essential resources, and the reassurance that you're not alone. Let's commit to reaching out, building connections, and supporting each other. Caregiving becomes lighter when we carry it together. #CaregivingCommunity #SupportNetworks #TogetherWeAreStronger\n\n#caregiving #support #community"
+  },
+  "image_url": null,
+  "visual_prompt": null,
+  "timestamp": "2025-07-04T17:37:13.589031",
+  "platforms": [
+    "twitter",
+    "linkedin"
+  ],
+  "generation_metadata": {
+    "has_image": false,
+    "platform_count": 2,
+    "total_chars": 584
+  }
+}

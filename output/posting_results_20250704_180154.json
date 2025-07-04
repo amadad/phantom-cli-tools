@@ -1,0 +1,548 @@
+{
+  "twitter": {
+    "success": true,
+    "platform": "twitter",
+    "content": "Taking time to recharge isn't selfish\u2014it's essential. What's your go-to self-care activity? Share below! #CaregiverSelfCare #GiveCare\n\n#caregiving #support #community",
+    "image_url": {
+      "name": "GiveCare",
+      "url": "https://givecareapp.com",
+      "voice": {
+        "tone": "Warm, honest, and empowering",
+        "style": "Conversational, human-first, avoids jargon",
+        "attributes": [
+          "empathetic",
+          "clear",
+          "resourceful",
+          "responsible"
+        ]
+      },
+      "visual_style": {
+        "core": {
+          "palette": {
+            "primary": "#FF9F1C",
+            "secondary": "#54340E",
+            "accent": "#FFE8D6"
+          },
+          "emotion": "peaceful, reflective, resilient, empathetic",
+          "tone": "authentic, warm, human-centered"
+        },
+        "visual_modes": [
+          {
+            "name": "framed_portrait",
+            "description": "Intimate family moments with signature tan border frame",
+            "technique": "photorealistic documentary style",
+            "lighting": "soft natural light, golden hour feel",
+            "composition": "close-up to medium shots, authentic expressions",
+            "border": {
+              "color": "#D7B899",
+              "style": "thick tan border, soft-edged, matte finish"
+            },
+            "suggested_usage": [
+              "social posts",
+              "testimonials",
+              "personal stories"
+            ],
+            "prompt_template": "Documentary-style photograph showing {scene_description}.\nShot with natural lighting, authentic emotions, intimate framing.\nProfessional photography with thick tan (#D7B899) border frame.\nWarm color grading, soft vignette edges, high quality composition.\n"
+          },
+          {
+            "name": "lifestyle_scene",
+            "description": "Wider environmental shots showing caregiving in context",
+            "technique": "lifestyle photography, environmental portraits",
+            "lighting": "diffuse window light, warm ambient",
+            "composition": "medium to wide shots, contextual storytelling",
+            "finish": "soft grain, editorial feel, no border",
+            "suggested_usage": [
+              "hero images",
+              "feature stories",
+              "educational content"
+            ],
+            "prompt_template": "Lifestyle photography capturing {scene_description}.\nEnvironmental portrait style with contextual storytelling.\nWarm diffuse lighting, soft grain, editorial quality.\nAuthentic home setting, genuine moments, professional composition.\n"
+          },
+          {
+            "name": "illustrative_concept",
+            "description": "Soft illustrations for abstract concepts and guidance",
+            "technique": "digital painting, watercolor style",
+            "palette": "muted earth tones, pastel highlights",
+            "style": "minimal detail, impressionist edges, gentle forms",
+            "suggested_usage": [
+              "infographics",
+              "guides",
+              "conceptual content"
+            ],
+            "prompt_template": "Soft watercolor illustration depicting {scene_description}.\nGentle brush strokes, muted earth tones, minimal detail.\nPeaceful composition, impressionist style, caring atmosphere.\nDigital painting technique with soft edges and calming palette.\n"
+          }
+        ]
+      },
+      "story": "GiveCare was founded to support the invisible labor of family caregivers.\nOur mission is to bring emotional, logistical, and informational clarity through human-centered AI tools.\n",
+      "positioning": "Companion for caregivers | Human-centered tech for emotional + logistical load | Where policy meets real life",
+      "content_units": {
+        "style": "cohesive storytelling with synchronized text and visuals",
+        "visual_text_harmony": "visuals should emotionally reflect and amplify the text message",
+        "ensure_alignment": true,
+        "media_rules": {
+          "image": [
+            "Always include thick tan/warm beige border for brand recognition",
+            "Use editorial vignette style with soft focus edges",
+            "Maintain consistent warm color temperature"
+          ],
+          "video": [
+            "6-60 seconds depending on platform",
+            "Documentary style with authentic moments",
+            "Soft transitions, no harsh cuts"
+          ],
+          "audio": [
+            "Warm, calming instrumental background",
+            "Avoid clinical or corporate sounds",
+            "Gentle acoustic instruments preferred"
+          ]
+        }
+      },
+      "platforms": {
+        "twitter": {
+          "max_chars": 280,
+          "media": [
+            "image"
+          ],
+          "hashtag_limit": 3,
+          "hashtag_style": "inline",
+          "optimal_times": [
+            "9am",
+            "12pm",
+            "5pm"
+          ],
+          "content_template": "{core_message}\n\n{key_points_brief}\n\n{hashtags}\n"
+        },
+        "linkedin": {
+          "max_chars": 3000,
+          "media": [
+            "image",
+            "document"
+          ],
+          "hashtag_limit": 5,
+          "professional_tone": true,
+          "optimal_times": [
+            "8am",
+            "12pm",
+            "5pm"
+          ],
+          "content_template": "\ud83d\udca1 {core_message}\n\n{expanded_story}\n\nKey Insights:\n{key_points_detailed}\n\nWhat's your experience? Share below.\n\n{hashtags}\n"
+        },
+        "youtube": {
+          "media": [
+            "video",
+            "audio"
+          ],
+          "video_length": 60,
+          "community_post": true,
+          "max_chars": 8000,
+          "content_template": "\ud83c\udfa5 {core_message}\n\nIn today's video:\n{key_points_list}\n\n\ud83d\udcac Share your thoughts in the comments!\n\nSubscribe for more caregiver support content.\n"
+        },
+        "instagram": {
+          "max_chars": 2200,
+          "media": [
+            "image",
+            "video"
+          ],
+          "video_length": 30,
+          "hashtag_limit": 10,
+          "hashtag_location": "first_comment",
+          "content_template": "{core_message}\n\n{emotional_story}\n\nDouble tap if this resonates \ud83d\udc9b\n"
+        },
+        "facebook": {
+          "max_chars": 5000,
+          "media": [
+            "image",
+            "video"
+          ],
+          "video_length": 60,
+          "community_focused": true,
+          "content_template": "{core_message}\n\n{full_story}\n\n\ud83d\udc65 Tag someone who needs to see this\n"
+        }
+      },
+      "style_rules": [
+        "Use second-person 'you' to speak directly to caregivers",
+        "Keep sentences short and clear (15-20 words max)",
+        "Prefer active voice; cut fluff and jargon",
+        "Show empathy and understanding in every post",
+        "Ensure visual and text elements tell the same story"
+      ],
+      "topics": [
+        "Family caregiver burnout and self-care",
+        "Navigating healthcare systems as a caregiver",
+        "Building support networks for caregivers",
+        "Caregiver wellness and mental health",
+        "Technology tools for modern caregiving",
+        "Financial planning for family caregivers",
+        "Balancing work and caregiving",
+        "Caregiver rights and advocacy"
+      ],
+      "test_scenarios": [
+        {
+          "topic": "Family caregiver burnout and self-care",
+          "expected_tone": "empathetic, supportive",
+          "platforms": [
+            "twitter",
+            "linkedin"
+          ]
+        },
+        {
+          "topic": "Technology tools for modern caregiving",
+          "expected_tone": "helpful, practical",
+          "platforms": [
+            "twitter",
+            "linkedin"
+          ]
+        },
+        {
+          "topic": "Building support networks for caregivers",
+          "expected_tone": "encouraging, community-focused",
+          "platforms": [
+            "twitter",
+            "linkedin"
+          ]
+        }
+      ],
+      "research_keywords": [
+        "caregiver burnout",
+        "family caregiving",
+        "dementia care",
+        "eldercare",
+        "caregiver support",
+        "healthcare navigation",
+        "respite care",
+        "caregiver wellness"
+      ],
+      "social": {
+        "linkedin_author": "urn:li:person:6fPQN564Fe",
+        "twitter_handle": "@givecareapp",
+        "instagram_handle": "@givecareapp",
+        "facebook_page": "mygivecare",
+        "youtube_channel": "@givecareapp"
+      },
+      "performance": {
+        "parallel_platforms": true,
+        "media_generation_timeout": 300,
+        "retry_attempts": 3,
+        "cache_ttl": 3600
+      },
+      "apis": {
+        "azure_openai": {
+          "model": "gpt-4.5",
+          "temperature": 0.7,
+          "max_tokens": 4000
+        },
+        "test_models": [
+          {
+            "name": "o4-mini",
+            "deployment": "AZURE_OPENAI_O4_MINI_DEPLOYMENT",
+            "description": "Smallest/fastest model"
+          },
+          {
+            "name": "gpt-4.1-nano",
+            "deployment": "AZURE_OPENAI_GPT41_DEPLOYMENT",
+            "description": "Medium capability model"
+          },
+          {
+            "name": "gpt-4.5",
+            "deployment": "AZURE_OPENAI_GPT45_DEPLOYMENT",
+            "description": "Most capable model"
+          }
+        ],
+        "replicate": {
+          "image_model": "black-forest-labs/flux-schnell",
+          "quality": 90
+        },
+        "sora": {
+          "video_length": 60,
+          "resolution": "1080x1080"
+        }
+      },
+      "approval": {
+        "required": true,
+        "channel": "givecare-content-approvals",
+        "timeout_minutes": 30,
+        "auto_approve_threshold": 0.95
+      },
+      "analytics": {
+        "track_engagement": true,
+        "track_reach": true,
+        "track_conversions": true,
+        "reporting_frequency": "weekly"
+      }
+    },
+    "dry_run": null
+  },
+  "linkedin": {
+    "success": true,
+    "platform": "linkedin",
+    "content": "Being a caregiver means constantly giving, and it's easy to overlook your own needs. Let's pause for a moment and consider how vital self-care truly is in caregiving roles. I'd love to hear your favorite methods or routines that help you recharge and rejuvenate. Comment below and let's inspire one another! #CaregivingCommunity #SelfCare #GiveCare\n\n#caregiving #support #community",
+    "image_url": {
+      "name": "GiveCare",
+      "url": "https://givecareapp.com",
+      "voice": {
+        "tone": "Warm, honest, and empowering",
+        "style": "Conversational, human-first, avoids jargon",
+        "attributes": [
+          "empathetic",
+          "clear",
+          "resourceful",
+          "responsible"
+        ]
+      },
+      "visual_style": {
+        "core": {
+          "palette": {
+            "primary": "#FF9F1C",
+            "secondary": "#54340E",
+            "accent": "#FFE8D6"
+          },
+          "emotion": "peaceful, reflective, resilient, empathetic",
+          "tone": "authentic, warm, human-centered"
+        },
+        "visual_modes": [
+          {
+            "name": "framed_portrait",
+            "description": "Intimate family moments with signature tan border frame",
+            "technique": "photorealistic documentary style",
+            "lighting": "soft natural light, golden hour feel",
+            "composition": "close-up to medium shots, authentic expressions",
+            "border": {
+              "color": "#D7B899",
+              "style": "thick tan border, soft-edged, matte finish"
+            },
+            "suggested_usage": [
+              "social posts",
+              "testimonials",
+              "personal stories"
+            ],
+            "prompt_template": "Documentary-style photograph showing {scene_description}.\nShot with natural lighting, authentic emotions, intimate framing.\nProfessional photography with thick tan (#D7B899) border frame.\nWarm color grading, soft vignette edges, high quality composition.\n"
+          },
+          {
+            "name": "lifestyle_scene",
+            "description": "Wider environmental shots showing caregiving in context",
+            "technique": "lifestyle photography, environmental portraits",
+            "lighting": "diffuse window light, warm ambient",
+            "composition": "medium to wide shots, contextual storytelling",
+            "finish": "soft grain, editorial feel, no border",
+            "suggested_usage": [
+              "hero images",
+              "feature stories",
+              "educational content"
+            ],
+            "prompt_template": "Lifestyle photography capturing {scene_description}.\nEnvironmental portrait style with contextual storytelling.\nWarm diffuse lighting, soft grain, editorial quality.\nAuthentic home setting, genuine moments, professional composition.\n"
+          },
+          {
+            "name": "illustrative_concept",
+            "description": "Soft illustrations for abstract concepts and guidance",
+            "technique": "digital painting, watercolor style",
+            "palette": "muted earth tones, pastel highlights",
+            "style": "minimal detail, impressionist edges, gentle forms",
+            "suggested_usage": [
+              "infographics",
+              "guides",
+              "conceptual content"
+            ],
+            "prompt_template": "Soft watercolor illustration depicting {scene_description}.\nGentle brush strokes, muted earth tones, minimal detail.\nPeaceful composition, impressionist style, caring atmosphere.\nDigital painting technique with soft edges and calming palette.\n"
+          }
+        ]
+      },
+      "story": "GiveCare was founded to support the invisible labor of family caregivers.\nOur mission is to bring emotional, logistical, and informational clarity through human-centered AI tools.\n",
+      "positioning": "Companion for caregivers | Human-centered tech for emotional + logistical load | Where policy meets real life",
+      "content_units": {
+        "style": "cohesive storytelling with synchronized text and visuals",
+        "visual_text_harmony": "visuals should emotionally reflect and amplify the text message",
+        "ensure_alignment": true,
+        "media_rules": {
+          "image": [
+            "Always include thick tan/warm beige border for brand recognition",
+            "Use editorial vignette style with soft focus edges",
+            "Maintain consistent warm color temperature"
+          ],
+          "video": [
+            "6-60 seconds depending on platform",
+            "Documentary style with authentic moments",
+            "Soft transitions, no harsh cuts"
+          ],
+          "audio": [
+            "Warm, calming instrumental background",
+            "Avoid clinical or corporate sounds",
+            "Gentle acoustic instruments preferred"
+          ]
+        }
+      },
+      "platforms": {
+        "twitter": {
+          "max_chars": 280,
+          "media": [
+            "image"
+          ],
+          "hashtag_limit": 3,
+          "hashtag_style": "inline",
+          "optimal_times": [
+            "9am",
+            "12pm",
+            "5pm"
+          ],
+          "content_template": "{core_message}\n\n{key_points_brief}\n\n{hashtags}\n"
+        },
+        "linkedin": {
+          "max_chars": 3000,
+          "media": [
+            "image",
+            "document"
+          ],
+          "hashtag_limit": 5,
+          "professional_tone": true,
+          "optimal_times": [
+            "8am",
+            "12pm",
+            "5pm"
+          ],
+          "content_template": "\ud83d\udca1 {core_message}\n\n{expanded_story}\n\nKey Insights:\n{key_points_detailed}\n\nWhat's your experience? Share below.\n\n{hashtags}\n"
+        },
+        "youtube": {
+          "media": [
+            "video",
+            "audio"
+          ],
+          "video_length": 60,
+          "community_post": true,
+          "max_chars": 8000,
+          "content_template": "\ud83c\udfa5 {core_message}\n\nIn today's video:\n{key_points_list}\n\n\ud83d\udcac Share your thoughts in the comments!\n\nSubscribe for more caregiver support content.\n"
+        },
+        "instagram": {
+          "max_chars": 2200,
+          "media": [
+            "image",
+            "video"
+          ],
+          "video_length": 30,
+          "hashtag_limit": 10,
+          "hashtag_location": "first_comment",
+          "content_template": "{core_message}\n\n{emotional_story}\n\nDouble tap if this resonates \ud83d\udc9b\n"
+        },
+        "facebook": {
+          "max_chars": 5000,
+          "media": [
+            "image",
+            "video"
+          ],
+          "video_length": 60,
+          "community_focused": true,
+          "content_template": "{core_message}\n\n{full_story}\n\n\ud83d\udc65 Tag someone who needs to see this\n"
+        }
+      },
+      "style_rules": [
+        "Use second-person 'you' to speak directly to caregivers",
+        "Keep sentences short and clear (15-20 words max)",
+        "Prefer active voice; cut fluff and jargon",
+        "Show empathy and understanding in every post",
+        "Ensure visual and text elements tell the same story"
+      ],
+      "topics": [
+        "Family caregiver burnout and self-care",
+        "Navigating healthcare systems as a caregiver",
+        "Building support networks for caregivers",
+        "Caregiver wellness and mental health",
+        "Technology tools for modern caregiving",
+        "Financial planning for family caregivers",
+        "Balancing work and caregiving",
+        "Caregiver rights and advocacy"
+      ],
+      "test_scenarios": [
+        {
+          "topic": "Family caregiver burnout and self-care",
+          "expected_tone": "empathetic, supportive",
+          "platforms": [
+            "twitter",
+            "linkedin"
+          ]
+        },
+        {
+          "topic": "Technology tools for modern caregiving",
+          "expected_tone": "helpful, practical",
+          "platforms": [
+            "twitter",
+            "linkedin"
+          ]
+        },
+        {
+          "topic": "Building support networks for caregivers",
+          "expected_tone": "encouraging, community-focused",
+          "platforms": [
+            "twitter",
+            "linkedin"
+          ]
+        }
+      ],
+      "research_keywords": [
+        "caregiver burnout",
+        "family caregiving",
+        "dementia care",
+        "eldercare",
+        "caregiver support",
+        "healthcare navigation",
+        "respite care",
+        "caregiver wellness"
+      ],
+      "social": {
+        "linkedin_author": "urn:li:person:6fPQN564Fe",
+        "twitter_handle": "@givecareapp",
+        "instagram_handle": "@givecareapp",
+        "facebook_page": "mygivecare",
+        "youtube_channel": "@givecareapp"
+      },
+      "performance": {
+        "parallel_platforms": true,
+        "media_generation_timeout": 300,
+        "retry_attempts": 3,
+        "cache_ttl": 3600
+      },
+      "apis": {
+        "azure_openai": {
+          "model": "gpt-4.5",
+          "temperature": 0.7,
+          "max_tokens": 4000
+        },
+        "test_models": [
+          {
+            "name": "o4-mini",
+            "deployment": "AZURE_OPENAI_O4_MINI_DEPLOYMENT",
+            "description": "Smallest/fastest model"
+          },
+          {
+            "name": "gpt-4.1-nano",
+            "deployment": "AZURE_OPENAI_GPT41_DEPLOYMENT",
+            "description": "Medium capability model"
+          },
+          {
+            "name": "gpt-4.5",
+            "deployment": "AZURE_OPENAI_GPT45_DEPLOYMENT",
+            "description": "Most capable model"
+          }
+        ],
+        "replicate": {
+          "image_model": "black-forest-labs/flux-schnell",
+          "quality": 90
+        },
+        "sora": {
+          "video_length": 60,
+          "resolution": "1080x1080"
+        }
+      },
+      "approval": {
+        "required": true,
+        "channel": "givecare-content-approvals",
+        "timeout_minutes": 30,
+        "auto_approve_threshold": 0.95
+      },
+      "analytics": {
+        "track_engagement": true,
+        "track_reach": true,
+        "track_conversions": true,
+        "reporting_frequency": "weekly"
+      }
+    },
+    "dry_run": null
+  }
+}

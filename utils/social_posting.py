@@ -23,17 +23,20 @@ async def post_to_platforms(content: Dict[str, str], brand_config: Dict[str, Any
                 print(f"📤 Posting to {platform.upper()}...")
                 
                 if platform.lower() == "twitter":
-                    # Post to Twitter with connected account ID
+                    # Initialize Twitter-specific toolset
+                    twitter_toolset = ComposioToolSet(
+                        api_key=api_key,
+                        entity_id="24b79587-149a-46be-8f02-59621dc9989d"
+                    )
+                    
+                    # Post to Twitter with optional image
                     params = {"text": platform_content}
                     if image_url:
                         params["media"] = [image_url]
                     
-                    # Use entity ID from environment
-                    twitter_entity_id = os.getenv("TWITTER_ENTITY_ID")
-                    result = toolset.execute_action(
+                    result = twitter_toolset.execute_action(
                         action="TWITTER_CREATION_OF_A_POST",
-                        params=params,
-                        entity_id=twitter_entity_id
+                        params=params
                     )
                     post_results[platform] = {
                         "status": "posted",
@@ -45,32 +48,56 @@ async def post_to_platforms(content: Dict[str, str], brand_config: Dict[str, Any
                     print(f"✅ Posted to Twitter successfully{' with image' if image_url else ''}")
                     
                 elif platform.lower() == "linkedin":
-                    # Use personal LinkedIn profile 
-                    # NOTE: Company page posting requires r_organization_admin scope in LinkedIn app
-                    linkedin_author = brand_config.get("social", {}).get("linkedin_author", "urn:li:person:6fPQN564Fe")
+                    # Try multiple approaches to find the working LinkedIn connection
+                    linkedin_toolset = None
                     
+                    # First try: Use the working entity ID from the file
+                    try:
+                        linkedin_toolset = ComposioToolSet(
+                            api_key=api_key,
+                            entity_id="52251831-ff5f-4006-a5a4-ca894bd21eb0"
+                        )
+                    except:
+                        # Second try: Use default entity with connected account ID
+                        try:
+                            linkedin_toolset = ComposioToolSet(api_key=api_key)
+                        except:
+                            pass
+                    
+                    if not linkedin_toolset:
+                        raise Exception("Could not initialize LinkedIn toolset")
+                    
+                    # Post to LinkedIn company page with optional image
+                    linkedin_author = brand_config.get("social", {}).get("linkedin_author")
+                    
+                    # Simple LinkedIn post format
                     params = {
                         "commentary": platform_content,
-                        "author": linkedin_author,
                         "visibility": "PUBLIC"
                     }
                     
-                    if linkedin_author.startswith("urn:li:organization:"):
+                    # Add author for company page posting
+                    if linkedin_author:
+                        params["author"] = linkedin_author
                         print(f"📢 Posting to LinkedIn company page: {linkedin_author}")
-                        print("⚠️  NOTE: Company posting requires LinkedIn app to have r_organization_admin scope")
                     else:
-                        print(f"📢 Posting to LinkedIn personal profile: {linkedin_author}")
+                        print(f"📢 Posting to LinkedIn personal profile")
                     
                     if image_url:
                         params["media"] = [{"url": image_url}]
                     
-                    # Use entity ID from environment
-                    linkedin_entity_id = os.getenv("LINKEDIN_ENTITY_ID")
-                    result = toolset.execute_action(
-                        action="LINKEDIN_CREATE_LINKED_IN_POST",
-                        params=params,
-                        entity_id=linkedin_entity_id
-                    )
+                    # Try different LinkedIn integrations
+                    try:
+                        result = linkedin_toolset.execute_action(
+                            action="LINKEDIN_CREATE_LINKED_IN_POST",
+                            params=params,
+                            connected_account_id="ac_TlVLBltfJNxs"  # Try the newest LinkedIn integration
+                        )
+                    except:
+                        result = linkedin_toolset.execute_action(
+                            action="LINKEDIN_CREATE_LINKED_IN_POST",
+                            params=params
+                        )
                     post_results[platform] = {
                         "status": "posted", 
                         "platform": platform,
