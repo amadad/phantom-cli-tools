@@ -22,12 +22,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Import our utilities (consolidated and simplified)
-from utils.content_generation import generate_platform_content, get_topic_from_rotation, save_content_results, post_to_platforms, save_posting_results
-from utils.image_generation import generate_visual_prompt, generate_brand_image_with_mode
-from utils.telegram_approval import TelegramApprovalWorkflow
-from utils.story_discovery import discover_stories_for_topic
-from utils.evaluation import evaluate_content
+# Import pipeline modules (clear separation of concerns)
+from pipeline.content import generate_platform_content, get_topic_from_rotation, save_content_results, post_to_platforms, save_posting_results
+from pipeline.media import generate_visual_prompt, generate_brand_image_with_mode
+from pipeline.approval import TelegramApprovalWorkflow
+from pipeline.discovery import discover_stories_for_topic
+from pipeline.evaluation import evaluate_content
 
 
 class AgentSocial:

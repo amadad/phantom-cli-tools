@@ -29,3 +29,4 @@ _archive
 # Keep output structure, ignore contents (user requested to keep files)
 output/articles/*
 output/images/*
+output/content/*

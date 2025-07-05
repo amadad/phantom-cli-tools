@@ -18,6 +18,12 @@ visual_style:
       accent: "#FFE8D6"  # Cream
     emotion: "peaceful, reflective, resilient, empathetic"
     tone: "authentic, warm, human-centered"
+    avoid:
+      - "cliché stock photography"
+      - "overly staged family portraits"
+      - "artificial hospital settings"
+      - "corporate headshots"
+      - "generic wellness imagery"
   
   # Visual modes for different content types
   visual_modes:
@@ -88,6 +94,36 @@ content_units:
       - "Warm, calming instrumental background"
       - "Avoid clinical or corporate sounds"
       - "Gentle acoustic instruments preferred"
+    
+    # What to avoid in media generation
+    image_negative_prompts:
+      - "posed family portraits in clinical settings"
+      - "overly bright medical lighting"
+      - "generic stock photo compositions"
+      - "artificial smiles or expressions"
+      - "sterile hospital environments"
+      - "stock photography"
+    
+    video_negative_prompts:
+      - "corporate training video style"
+      - "dramatic music or sound effects"
+      - "talking head presentations"
+      - "artificial dialogue or scripted conversations"
+      - "medical facility settings"
+  # Technical specifications
+  technical_specs:
+    image:
+      - "Documentary photography style"
+      - "Soft natural lighting with warm tones"
+      - "Authentic expressions and genuine moments"
+      - "High resolution with subtle grain texture"
+      - "Shallow depth of field for intimacy"
+    video:
+      - "Cinéma vérité documentary style"
+      - "Handheld camera work for authenticity"
+      - "Natural ambient sound"
+      - "Soft color grading with warm highlights"
+      - "Minimal cuts, let moments breathe"
 
 # Platform-specific configurations - ENHANCED
 platforms:

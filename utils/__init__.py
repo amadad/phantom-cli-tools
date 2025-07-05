@@ -1,1 +1,0 @@
-# Utils package for GiveCare social media pipeline
