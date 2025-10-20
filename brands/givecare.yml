@@ -257,23 +257,11 @@ performance:
   
 # API configurations - NEW
 apis:
-  azure_openai:
-    model: "gpt-4.5"
+  openai:
+    model: "gpt-5-nano"
     temperature: 0.7
     max_tokens: 4000
-  
-  # Models to test for evaluation  
-  test_models:
-    - name: "o4-mini"
-      deployment: "AZURE_OPENAI_O4_MINI_DEPLOYMENT"
-      description: "Smallest/fastest model"
-    - name: "gpt-4.1-nano"
-      deployment: "AZURE_OPENAI_GPT41_DEPLOYMENT" 
-      description: "Medium capability model"
-    - name: "gpt-4.5"
-      deployment: "AZURE_OPENAI_GPT45_DEPLOYMENT"
-      description: "Most capable model"
-  
+
   replicate:
     image_model: "black-forest-labs/flux-schnell"
     quality: 90

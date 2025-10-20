@@ -131,9 +131,7 @@ class AgentSocial:
                 logger.info("🎨 Generating image...")
                 try:
                     # Generate visual prompt
-                    from utils.content_generation import create_content_agent
-                    agent = create_content_agent(self.brand_config)
-                    visual_prompt = generate_visual_prompt(topic, agent)
+                    visual_prompt = await generate_visual_prompt(topic, self.brand_config)
                     
                     # Generate image
                     image_url = await generate_brand_image_with_mode(
@@ -310,12 +308,11 @@ if __name__ == "__main__":
     
     # Check required environment variables
     required_vars = [
-        "AZURE_OPENAI_API_KEY",
-        "AZURE_OPENAI_ENDPOINT",
-        "COMPOSIO_API_KEY",
-        "SERPER_API_KEY"
+        "OPENAI_API_KEY",
+        "SERP_API_KEY",
+        "REPLICATE_API_TOKEN"
     ]
-    
+
     missing = [var for var in required_vars if not os.getenv(var)]
     if missing:
         logger.error(f"Missing required environment variables: {', '.join(missing)}")

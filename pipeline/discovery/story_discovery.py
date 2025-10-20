@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Story Discovery Module for Agent Social
-Uses Agno's built-in Serper tools for news discovery.
+Uses Agno 2.0 for news discovery.
 """
 
 import os
@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 
 # Agno imports
 from agno.agent import Agent
-from agno.models.azure import AzureOpenAI
+from agno.models.openai import OpenAIChat
 import httpx
 import asyncio
 
@@ -113,21 +113,16 @@ When evaluating stories:
 5. Filter out negative or controversial content
 
 Return structured results with relevance scores."""
-        
-        # Configure Azure OpenAI model properly
-        model = AzureOpenAI(
-            azure_deployment=os.getenv("AZURE_OPENAI_DEFAULT_MODEL", "gpt-4.5-preview"),
-            api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-            azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-            api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2025-01-01-preview"),
-        )
-        
+
         return Agent(
             name="story_discoverer",
-            model=model,
+            model=OpenAIChat(
+                id=os.getenv("OPENAI_MODEL", "gpt-5-nano"),
+                api_key=os.getenv("OPENAI_API_KEY")
+            ),
             instructions=instructions,
             tools=[],  # No tools needed, we'll use direct API calls
-            response_model=StoryDiscoveryResult
+            output_schema=StoryDiscoveryResult
         )
     
     async def discover_stories(
@@ -190,7 +185,7 @@ Rate each story's relevance (0-1) based on:
 Return the stories with updated relevance scores."""
                 
                     response = await self.agent.arun(prompt)
-                    result = response.content if hasattr(response, 'content') else response
+                    result = response
                     
                     # Use the agent's evaluation if available, otherwise use our stories
                     if hasattr(result, 'stories') and result.stories:
@@ -216,9 +211,9 @@ Create realistic, relevant story ideas:
 - Score relevance 0.8-0.9 for brand alignment
                 
 Return structured results with titles, descriptions, and relevance scores."""
-                
+
                 response = await self.agent.arun(prompt)
-                result = response.content if hasattr(response, 'content') else response
+                result = response
             
             # Filter stories by relevance score
             if hasattr(result, 'stories'):
@@ -249,7 +244,7 @@ Return structured results with titles, descriptions, and relevance scores."""
                 
                 # We'll need to adjust this to work with the actual response
                 response = await self.agent.arun(prompt)
-                result = response.content if hasattr(response, 'content') else response
+                result = response
                 
                 # Extract topics from response (this is simplified)
                 if hasattr(result, 'stories'):

@@ -13,39 +13,6 @@ from verdict.common.judge import JudgeUnit, PairwiseJudgeUnit, BestOfKJudgeUnit
 from verdict.common.ranker import RankerUnit
 from verdict.scale import BooleanScale
 
-# Configure environment for Verdict with Azure OpenAI
-# The key issue is mapping Azure deployment to standard model names
-azure_deployment = os.getenv("AZURE_OPENAI_O4_MINI_DEPLOYMENT", "o4-mini")
-azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT", "")
-azure_api_key = os.getenv("AZURE_OPENAI_API_KEY", "")
-azure_api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2025-01-01-preview")
-
-# Set environment variables for Azure OpenAI
-os.environ["OPENAI_API_TYPE"] = "azure"
-os.environ["OPENAI_API_KEY"] = azure_api_key
-os.environ["OPENAI_API_BASE"] = azure_endpoint
-os.environ["OPENAI_API_VERSION"] = azure_api_version
-
-# Configure LiteLLM to map gpt-4o-mini to your Azure deployment
-try:
-    import litellm
-    
-    # Create model mapping for Azure deployments
-    litellm.model_alias_map = {
-        "gpt-4o-mini": f"azure/{azure_deployment}"
-    }
-    
-    # Set Azure configuration
-    os.environ[f"AZURE_API_KEY_{azure_deployment.upper().replace('-', '_')}"] = azure_api_key
-    os.environ[f"AZURE_API_BASE_{azure_deployment.upper().replace('-', '_')}"] = azure_endpoint
-    os.environ[f"AZURE_API_VERSION_{azure_deployment.upper().replace('-', '_')}"] = azure_api_version
-    
-    print(f"✅ Configured LiteLLM mapping: gpt-4o-mini -> azure/{azure_deployment}")
-except ImportError:
-    print("⚠️ LiteLLM not found, using basic environment variables")
-except Exception as e:
-    print(f"⚠️ Failed to configure LiteLLM: {e}")
-
 
 class SocialContentJudge:
     """

@@ -233,7 +233,7 @@ async def _generate_with_visual_mode(prompt: str, visual_mode: Dict[str, Any], b
         return None
 
 
-def generate_visual_prompt(topic: str, brand_config: Dict[str, Any]) -> str:
+async def generate_visual_prompt(topic: str, brand_config: Dict[str, Any]) -> str:
     """
     Generate visual prompt using brand context.
     Brand-agnostic - uses configuration for style guidance.
@@ -241,28 +241,23 @@ def generate_visual_prompt(topic: str, brand_config: Dict[str, Any]) -> str:
     
     try:
         from agno.agent import Agent
-        from agno.models.azure import AzureOpenAI
-        
+        from agno.models.openai import OpenAIChat
+
         # Get brand context for visual prompt generation
         brand_name = brand_config.get("name", "Brand")
         brand_voice = brand_config.get("voice", {})
         content_units = brand_config.get("content_units", {})
-        
+
         # Build brand-aware visual prompt instructions
         visual_guidance = _build_visual_guidance(brand_config)
-        
-        # Configure Azure OpenAI
-        model = AzureOpenAI(
-            azure_deployment=os.getenv("AZURE_OPENAI_DEFAULT_MODEL", "gpt-4.5-preview"),
-            api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-            azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-            api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2025-01-01-preview"),
-        )
-        
+
         # Create visual prompt agent
         agent = Agent(
             name=f"{brand_name.replace(' ', '_')}_visual_prompter",
-            model=model,
+            model=OpenAIChat(
+                id=os.getenv("OPENAI_MODEL", "gpt-5-nano"),
+                api_key=os.getenv("OPENAI_API_KEY")
+            ),
             instructions=[
                 f"You create visual prompts for {brand_name} content.",
                 f"Brand voice: {brand_voice.get('tone', 'professional')}",
@@ -284,12 +279,9 @@ def generate_visual_prompt(topic: str, brand_config: Dict[str, Any]) -> str:
         
         Return a detailed 2-3 sentence visual description with specific subjects and setting.
         """
-        
-        visual_result = agent.run(image_prompt_query, stream=False)
-        if hasattr(visual_result, 'content'):
-            visual_prompt = visual_result.content
-        else:
-            visual_prompt = str(visual_result)
+
+        visual_result = await agent.arun(image_prompt_query)
+        visual_prompt = str(visual_result)
         
         print(f"✅ Generated visual prompt: {visual_prompt}")
         return visual_prompt

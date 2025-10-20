@@ -1,6 +1,6 @@
 """
 Content generation utilities for social media platforms.
-Uses Agno 1.7.1 with structured outputs for consistency.
+Uses Agno 2.0 with structured outputs for consistency.
 """
 import os
 import asyncio
@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 from pydantic import BaseModel, Field
 from agno.agent import Agent
-from agno.models.azure import AzureOpenAI
+from agno.models.openai import OpenAIChat
 
 
 class PlatformContent(BaseModel):
@@ -63,19 +63,14 @@ def create_content_agent(brand_config: Dict[str, Any]) -> Agent:
         "- Facebook: Community-focused, conversational"
     ]
     
-    # Configure Azure OpenAI model properly
-    model = AzureOpenAI(
-        azure_deployment=os.getenv("AZURE_OPENAI_DEFAULT_MODEL", "gpt-4.5-preview"),
-        api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-        api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2025-01-01-preview"),
-    )
-    
     return Agent(
         name=f"{brand_name}_content_creator",
-        model=model,
+        model=OpenAIChat(
+            id=os.getenv("OPENAI_MODEL", "gpt-5-nano"),
+            api_key=os.getenv("OPENAI_API_KEY")
+        ),
         instructions=instructions,
-        response_model=ContentGenerationResult  # Structured output
+        output_schema=ContentGenerationResult  # Structured output
     )
 
 
@@ -124,7 +119,7 @@ async def generate_content_for_platforms(
         
         # Use .arun() with response_model for structured output
         response = await agent.arun(prompt)
-        result = response.content if hasattr(response, 'content') else response
+        result = response
         
         # The result is already typed as ContentGenerationResult
         print(f"✅ Generated content for all platforms")
