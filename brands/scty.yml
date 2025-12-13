@@ -1,0 +1,65 @@
+# SCTY Brand Profile
+name: "SCTY"
+url: "https://scty.org"
+
+# Voice - How we write
+voice:
+  tone: "Bold, innovative, and thought-provoking"
+  style: "Direct, tech-forward, visionary"
+  rules:
+    - "Speak with authority about technology and society"
+    - "Balance technical insight with accessibility"
+    - "Challenge conventional thinking"
+
+# Visual Style - How we look
+visual:
+  palette:
+    primary: "#1A1A2E"    # Deep navy
+    secondary: "#16213E"  # Dark blue
+    accent: "#0F3460"     # Electric blue
+    highlight: "#E94560"  # Vibrant red
+  style: "Futuristic, abstract, digital art, high contrast"
+  mood: "innovative, cutting-edge, transformative, bold"
+  avoid:
+    - "stock photography"
+    - "generic tech imagery"
+    - "dated design elements"
+    - "overly corporate"
+
+# Platforms
+platforms:
+  twitter:
+    max_chars: 280
+    hashtags: 3
+  linkedin:
+    max_chars: 3000
+    hashtags: 5
+  facebook:
+    max_chars: 63206
+    hashtags: 3
+    style: "Community-focused, tech insights"
+  instagram:
+    max_chars: 2200
+    hashtags: 5
+    style: "Bold visuals, minimal text"
+  threads:
+    max_chars: 500
+    hashtags: 2
+    style: "Quick takes, conversation starters"
+  youtube:
+    title_max_chars: 100
+    description_max_chars: 5000
+    style: "Deep dives, future-forward"
+
+# Topics we cover
+topics:
+  - "AI and society"
+  - "digital transformation"
+  - "tech ethics"
+  - "innovation trends"
+  - "future of work"
+
+# Social handles
+handles:
+  twitter: "@scty_org"
+  linkedin: "urn:li:organization:scty"

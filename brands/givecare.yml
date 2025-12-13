@@ -1,285 +1,106 @@
-# GiveCare Brand Configuration v2 - Content Unit Optimized
+# GiveCare Brand Profile
 name: "GiveCare"
 url: "https://givecareapp.com"
 
-# Core brand identity
+# Voice - How we write
 voice:
   tone: "Warm, honest, and empowering"
   style: "Conversational, human-first, avoids jargon"
-  attributes: ["empathetic", "clear", "resourceful", "responsible"]
+  rules:
+    - "Use second-person 'you' to speak directly to caregivers"
+    - "Keep sentences short and clear (15-20 words max)"
+    - "Show empathy and understanding in every post"
 
-# Visual identity system
-visual_style:
-  # Core brand DNA (never changes)
-  core:
-    palette: 
-      primary: "#FF9F1C"  # Warm orange
-      secondary: "#54340E"  # Deep brown  
-      accent: "#FFE8D6"  # Cream
-    emotion: "peaceful, reflective, resilient, empathetic"
-    tone: "authentic, warm, human-centered"
-    avoid:
-      - "cliché stock photography"
-      - "overly staged family portraits"
-      - "artificial hospital settings"
-      - "corporate headshots"
-      - "generic wellness imagery"
-  
-  # Visual modes for different content types
-  visual_modes:
-    - name: "framed_portrait"
-      description: "Intimate family moments with signature tan border frame"
-      technique: "photorealistic documentary style"
-      lighting: "soft natural light, golden hour feel"
-      composition: "close-up to medium shots, authentic expressions"
-      border: 
-        color: "#D7B899"
-        style: "thick tan border, soft-edged, matte finish"
-      suggested_usage: ["social posts", "testimonials", "personal stories"]
-      prompt_template: |
-        Documentary-style photograph showing {scene_description}.
-        Shot with natural lighting, authentic emotions, intimate framing.
-        Professional photography with thick tan (#D7B899) border frame.
-        Warm color grading, soft vignette edges, high quality composition.
-    
-    - name: "lifestyle_scene"  
-      description: "Wider environmental shots showing caregiving in context"
-      technique: "lifestyle photography, environmental portraits"
-      lighting: "diffuse window light, warm ambient"
-      composition: "medium to wide shots, contextual storytelling"
-      finish: "soft grain, editorial feel, no border"
-      suggested_usage: ["hero images", "feature stories", "educational content"]
-      prompt_template: |
-        Lifestyle photography capturing {scene_description}.
-        Environmental portrait style with contextual storytelling.
-        Warm diffuse lighting, soft grain, editorial quality.
-        Authentic home setting, genuine moments, professional composition.
-    
-    - name: "illustrative_concept"
-      description: "Soft illustrations for abstract concepts and guidance"
-      technique: "digital painting, watercolor style"
-      palette: "muted earth tones, pastel highlights"
-      style: "minimal detail, impressionist edges, gentle forms"
-      suggested_usage: ["infographics", "guides", "conceptual content"]
-      prompt_template: |
-        Soft watercolor illustration depicting {scene_description}.
-        Gentle brush strokes, muted earth tones, minimal detail.
-        Peaceful composition, impressionist style, caring atmosphere.
-        Digital painting technique with soft edges and calming palette.
-  
-# Brand story and positioning  
-story: |
-  GiveCare was founded to support the invisible labor of family caregivers.
-  Our mission is to bring emotional, logistical, and informational clarity through human-centered AI tools.
+# Visual Style - How we look
+visual:
+  palette:
+    primary: "#FF9F1C"    # Warm orange
+    secondary: "#54340E"  # Deep brown
+    accent: "#FFE8D6"     # Cream
 
-positioning: "Companion for caregivers | Human-centered tech for emotional + logistical load | Where policy meets real life"
+  # Core visual identity
+  style: "Documentary photography, soft natural lighting, authentic moments"
+  mood: "peaceful, reflective, resilient, empathetic"
 
-# Content unit configuration - NEW
-content_units:
-  style: "cohesive storytelling with synchronized text and visuals"
-  visual_text_harmony: "visuals should emotionally reflect and amplify the text message"
-  ensure_alignment: true
-  
-  # Media generation rules
-  media_rules:
-    image:
-      - "Always include thick tan/warm beige border for brand recognition"
-      - "Use editorial vignette style with soft focus edges"
-      - "Maintain consistent warm color temperature"
-    video:
-      - "6-60 seconds depending on platform"
-      - "Documentary style with authentic moments"
-      - "Soft transitions, no harsh cuts"
-    audio:
-      - "Warm, calming instrumental background"
-      - "Avoid clinical or corporate sounds"
-      - "Gentle acoustic instruments preferred"
-    
-    # What to avoid in media generation
-    image_negative_prompts:
-      - "posed family portraits in clinical settings"
-      - "overly bright medical lighting"
-      - "generic stock photo compositions"
-      - "artificial smiles or expressions"
-      - "sterile hospital environments"
-      - "stock photography"
-    
-    video_negative_prompts:
-      - "corporate training video style"
-      - "dramatic music or sound effects"
-      - "talking head presentations"
-      - "artificial dialogue or scripted conversations"
-      - "medical facility settings"
-  # Technical specifications
-  technical_specs:
-    image:
-      - "Documentary photography style"
-      - "Soft natural lighting with warm tones"
-      - "Authentic expressions and genuine moments"
-      - "High resolution with subtle grain texture"
-      - "Shallow depth of field for intimacy"
-    video:
-      - "Cinéma vérité documentary style"
-      - "Handheld camera work for authenticity"
-      - "Natural ambient sound"
-      - "Soft color grading with warm highlights"
-      - "Minimal cuts, let moments breathe"
+  # What to avoid
+  avoid:
+    - "stock photography poses"
+    - "clinical/hospital settings"
+    - "artificial smiles"
+    - "corporate headshots"
+    - "busy or cluttered backgrounds"
+    - "harsh lighting"
+    - "oversaturated colors"
 
-# Platform-specific configurations - ENHANCED
+  # DETAILED IMAGE GENERATION GUIDELINES
+  image_direction:
+    # Subject types that work
+    subjects:
+      - "Hands: weathered hands holding younger hands, hands preparing food, hands arranging flowers, hands writing notes"
+      - "Moments: person gazing out window with morning light, someone tending a small garden, quiet tea/coffee moment alone"
+      - "Spaces: sunlit kitchen corner, cozy reading nook, peaceful bedroom with soft linens, home office with plants"
+      - "Nature: single flower in soft focus, morning dew on leaves, sunset through curtains, path through quiet garden"
+      - "Objects: well-worn journal and pen, steaming cup of tea, family photos on shelf, comfortable armchair"
+
+    # Camera and technical style
+    technique:
+      - "Shallow depth of field (f/1.8-2.8) - subject sharp, background soft"
+      - "Natural window light, soft and directional"
+      - "Slightly desaturated, warm color grade"
+      - "Eye-level or slightly above perspective"
+      - "Negative space for text overlay"
+      - "35mm or 50mm lens feel"
+
+    # Emotional keywords to inject
+    emotions:
+      - "quiet strength"
+      - "tender resilience"
+      - "peaceful solitude"
+      - "gentle hope"
+      - "earned rest"
+
+    # Specific scene templates
+    scene_templates:
+      self_care: "Close-up of weathered but elegant hands wrapped around a warm mug, morning light streaming through gauze curtains, shallow depth of field, muted warm tones"
+      connection: "Two people's hands gently touching over a kitchen table, soft overhead light, family photos blurred in background, intimate and warm"
+      rest: "Empty comfortable armchair by a window, soft afternoon light, a closed book and reading glasses on the armrest, peaceful and inviting"
+      nature: "Single wildflower in a simple vase on a windowsill, golden hour light, soft focus background of a quiet room"
+      reflection: "Person seen from behind, looking out a rain-spotted window, natural light creating a silhouette, contemplative mood"
+
+# Platforms
 platforms:
   twitter:
     max_chars: 280
-    media: ["image"]
-    hashtag_limit: 3
-    hashtag_style: "inline"
-    optimal_times: ["9am", "12pm", "5pm"]
-    content_template: |
-      {core_message}
-      
-      {key_points_brief}
-      
-      {hashtags}
-    
+    hashtags: 3
   linkedin:
     max_chars: 3000
-    media: ["image", "document"]
-    hashtag_limit: 5
-    professional_tone: true
-    optimal_times: ["8am", "12pm", "5pm"]
-    content_template: |
-      💡 {core_message}
-      
-      {expanded_story}
-      
-      Key Insights:
-      {key_points_detailed}
-      
-      What's your experience? Share below.
-      
-      {hashtags}
-  
-  youtube:
-    media: ["video", "audio"]
-    video_length: 60
-    community_post: true
-    max_chars: 8000
-    content_template: |
-      🎥 {core_message}
-      
-      In today's video:
-      {key_points_list}
-      
-      💬 Share your thoughts in the comments!
-      
-      Subscribe for more caregiver support content.
-  
+    hashtags: 5
+  facebook:
+    max_chars: 63206
+    hashtags: 3
+    style: "Community-focused, slightly casual"
   instagram:
     max_chars: 2200
-    media: ["image", "video"]
-    video_length: 30
-    hashtag_limit: 10
-    hashtag_location: "first_comment"
-    content_template: |
-      {core_message}
-      
-      {emotional_story}
-      
-      Double tap if this resonates 💛
-  
-  facebook:
-    max_chars: 5000
-    media: ["image", "video"]
-    video_length: 60
-    community_focused: true
-    content_template: |
-      {core_message}
-      
-      {full_story}
-      
-      👥 Tag someone who needs to see this
+    hashtags: 5
+    style: "Visual-first, use emojis sparingly"
+  threads:
+    max_chars: 500
+    hashtags: 2
+    style: "Conversational, authentic"
+  youtube:
+    title_max_chars: 100
+    description_max_chars: 5000
+    style: "Educational, warm"
 
-# Style guidelines for content units
-style_rules:
-  - "Use second-person 'you' to speak directly to caregivers"
-  - "Keep sentences short and clear (15-20 words max)"
-  - "Prefer active voice; cut fluff and jargon"
-  - "Show empathy and understanding in every post"
-  - "Ensure visual and text elements tell the same story"
-
-# Content themes
+# Topics we cover
 topics:
-  - "Family caregiver burnout and self-care"
-  - "Navigating healthcare systems as a caregiver"
-  - "Building support networks for caregivers"
-  - "Caregiver wellness and mental health"
-  - "Technology tools for modern caregiving"
-  - "Financial planning for family caregivers"
-  - "Balancing work and caregiving"
-  - "Caregiver rights and advocacy"
-
-# Test scenarios for evaluation
-test_scenarios:
-  - topic: "Family caregiver burnout and self-care"
-    expected_tone: "empathetic, supportive"
-    platforms: ["twitter", "linkedin"]
-  - topic: "Technology tools for modern caregiving"
-    expected_tone: "helpful, practical"
-    platforms: ["twitter", "linkedin"]
-  - topic: "Building support networks for caregivers"
-    expected_tone: "encouraging, community-focused"
-    platforms: ["twitter", "linkedin"]
-
-# Research focus areas
-research_keywords:
-  - "caregiver burnout"
-  - "family caregiving"
-  - "dementia care"
-  - "eldercare"
-  - "caregiver support"
-  - "healthcare navigation"
-  - "respite care"
+  - "caregiver burnout and self-care"
+  - "navigating healthcare systems"
+  - "building support networks"
   - "caregiver wellness"
+  - "balancing work and caregiving"
 
-# Social handles  
-social:
-  linkedin_author: "urn:li:organization:106542185"
-  twitter_handle: "@givecareapp"
-  instagram_handle: "@givecareapp"
-  facebook_page: "mygivecare"
-  youtube_channel: "@givecareapp"
-
-# Performance settings - NEW
-performance:
-  parallel_platforms: true
-  media_generation_timeout: 300
-  retry_attempts: 3
-  cache_ttl: 3600
-  
-# API configurations - NEW
-apis:
-  openai:
-    model: "gpt-5-nano"
-    temperature: 0.7
-    max_tokens: 4000
-
-  replicate:
-    image_model: "black-forest-labs/flux-schnell"
-    quality: 90
-  
-  sora:
-    video_length: 60
-    resolution: "1080x1080"
-    
-# Workflow settings
-approval:
-  required: true
-  channel: "givecare-content-approvals"
-  timeout_minutes: 30
-  auto_approve_threshold: 0.95  # Auto-approve if confidence > 95%
-
-# Analytics tracking - NEW
-analytics:
-  track_engagement: true
-  track_reach: true
-  track_conversions: true
-  reporting_frequency: "weekly"
+# Social handles
+handles:
+  twitter: "@givecareapp"
+  linkedin: "urn:li:organization:106542185"

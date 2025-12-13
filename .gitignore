@@ -1,32 +1,30 @@
-# Virtual environment
-.venv
-venv/
+# Dependencies
+node_modules/
 
-# Environment files
+# Environment
 .env
 
 # System files
 .DS_Store
-.windsurfrules
-.windsurf*
 
-# IDE files
+# IDE
 .claude
+.vscode
+.idea
 
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
+# Runtime/temp
+tmp/
+server/temp/
+
+# Output (keep structure, ignore contents)
+output/images/*
+output/articles/*
+output/content/*
+output/queue/*
+output/state/*
 
 # Logs
 *.log
-social_pipeline.log
 
 # Archive
 _archive
-
-# Keep output structure, ignore contents (user requested to keep files)
-output/articles/*
-output/images/*
-output/content/*

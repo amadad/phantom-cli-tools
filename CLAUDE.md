@@ -1,231 +1,318 @@
-## Agent Social Implementation Guidelines
+# Phantom Loom
 
-### Important: Documentation Standards
-- **DO NOT create README files** in any directory
-- **Use CLAUDE.md files** for agent-specific instructions
-- **Keep CLAUDE.md files minimal** - only essential context for AI agents
-- **README.md** is only for the root directory (user-facing documentation)
+Brand-driven content generation: **topic → image + copy → post**
 
-### Project Overview
-**Agent Social** is an automated social media content pipeline that discovers news, creates brand-aligned content, and posts to multiple platforms with human approval workflow.
+## What It Does
 
-### Architecture Principles
-- **Simplified Design**: Consolidated from 17 to 7 Python files for maintainability
-- **Agno 1.7.1 Patterns**: Structured outputs, proper `.arun()` API usage
-- **Brand-First**: YAML-based brand framework drives all content
-- **Human-in-the-Loop**: Terminal, Telegram, and Slack approval workflows
-- **SerpAPI Integration**: Real news story discovery (SerpAPI.com, not Serper.dev)
-- **Azure OpenAI**: GPT-4.5 with proper model configuration
+1. **Define brand once** - Visual style + voice in YAML
+2. **Generate content** - Enter topic, get on-brand image + multi-platform copy
+3. **Post** - Publish to Twitter, LinkedIn, Facebook, Instagram, Threads, YouTube
 
-### Technical Stack & Patterns
-- **AI Framework**: Agno 1.7.1 with structured outputs via Pydantic
-- **LLM Models**: Azure OpenAI GPT-4.5 (configurable deployment)
-- **Content Discovery**: SerpAPI.com for news discovery (working)
-- **Social Posting**: Dry-run mode (Composio integration future)
-- **Approval Flow**: Terminal (primary), Telegram/Slack (optional)
-- **Deployment**: Docker + UV package manager
-- **Media Generation**: Replicate FLUX models for images
+## Platform Support
 
-### Current Working Pipeline
-```python
-# 1. Story Discovery (SerpAPI)
-stories = await discover_stories()  # SerpAPI.com integration
+| Platform | GiveCare | SCTY | Auth Type | Content |
+|----------|----------|------|-----------|---------|
+| Twitter | ✅ | ✅ | OAuth 1.0a | Text + Images |
+| LinkedIn | ✅ | ✅ | OAuth 2.0 | Text + Images |
+| Facebook | ✅ | ✅ | OAuth 2.0 | Text + Images |
+| Instagram | ✅ | ✅ | Instagram API | Images (required) |
+| Threads | ✅ | ✅ | Threads API | Text + Images |
+| YouTube | ✅ | ✅ | Google OAuth | Videos/Shorts |
 
-# 2. Content Creation (Azure OpenAI)
-content = await generate_content(story, brand_framework)  # Agno agents with structured outputs
+## Architecture
 
-# 3. Media Generation (Replicate + Sora)
-image = await generate_image(visual_prompt)  # FLUX models
-video = await generate_video(video_prompt)   # Sora models (optional)
-
-# 4. Approval Request (Human-in-the-loop)
-approved = await request_approval(content)  # Terminal/Telegram/Slack
-
-# 5. Social Posting (Future)
-if approved:
-    await post_to_platforms(content)  # Currently dry-run mode
+```
+┌─────────────────────────────────────────────────────┐
+│              TanStack Start (port 3000)             │
+│  ┌────────────────────────────────────────────────┐ │
+│  │                  React UI                      │ │
+│  │     Enter topic → Preview image + copy → Post  │ │
+│  └────────────────────┬───────────────────────────┘ │
+│                       │ Server Functions            │
+│  ┌────────────────────▼───────────────────────────┐ │
+│  │  Brand Loader │ Content Gen │ Image Gen        │ │
+│  │  (YAML)       │ (Gemini 2.5 Flash Lite)        │ │
+│  └────────────────────────────────────────────────┘ │
+└───────────────────────┬─────────────────────────────┘
+                        │
+┌───────────────────────▼─────────────────────────────┐
+│              Social Posting (Direct APIs)           │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────┐ │
+│  │ Twitter  │ │ LinkedIn │ │ Facebook │ │  Meta  │ │
+│  │ OAuth1.0a│ │ OAuth2.0 │ │ Graph API│ │IG/THR  │ │
+│  └──────────┘ └──────────┘ └──────────┘ └────────┘ │
+│  ┌─────────────────────────────────────────────────┐│
+│  │              YouTube (Google OAuth)             ││
+│  │           Videos & Shorts uploading             ││
+│  └─────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────┘
 ```
 
-### Critical Agent Configuration (Agno 1.7.1)
-```python
-# ✅ CORRECT: Working patterns
-from agno.agent import Agent
-from agno.models.azure import AzureOpenAI
-from pydantic import BaseModel, Field
+## Quick Start
 
-# Structured response model
-class ContentGenerationResult(BaseModel):
-    topic: str = Field(description="Content topic")
-    twitter_content: str = Field(description="Twitter content")
-    linkedin_content: str = Field(description="LinkedIn content")
-    visual_prompt: str = Field(description="Image generation prompt")
-    brand_alignment_score: float = Field(default=0.9)
+```bash
+cd web
+npm install
+npm run dev
 
-# Proper Azure OpenAI model configuration
-model = AzureOpenAI(
-    azure_deployment=os.getenv("AZURE_OPENAI_DEFAULT_MODEL", "gpt-4.5-preview"),
-    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-    api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2025-01-01-preview"),
-)
-
-# Create agent with structured outputs
-content_agent = Agent(
-    name="content_creator",
-    model=model,
-    instructions=brand_instructions,
-    response_model=ContentGenerationResult
-)
-
-# ✅ CORRECT: Use .arun() method (not .generate())
-response = await agent.arun(prompt)
-result = response.content if hasattr(response, 'content') else response
+# Open http://localhost:3000
 ```
 
-### Brand Framework Integration
+## File Structure
+
+```
+phantom-loom/
+├── web/                   # Fullstack app (TanStack Start)
+│   └── src/
+│       ├── routes/        # Pages (index, generate)
+│       ├── lib/
+│       │   ├── api.ts     # Client-side API wrapper
+│       │   └── server/    # Server functions
+│       │       ├── generate.ts   # Content + image generation
+│       │       ├── brand.ts      # Brand YAML loader
+│       │       ├── image.ts      # Gemini image gen
+│       │       └── types.ts
+│       └── components/
+├── agent/                 # Social posting tools
+│   ├── src/social/
+│   │   ├── twitter-direct.ts     # Twitter (OAuth 1.0a)
+│   │   ├── linkedin-direct.ts    # LinkedIn (OAuth 2.0)
+│   │   ├── facebook-direct.ts    # Facebook Pages (Graph API)
+│   │   ├── instagram-direct.ts   # Instagram (Platform API)
+│   │   ├── threads-direct.ts     # Threads (Threads API)
+│   │   └── youtube-direct.ts     # YouTube (Data API v3)
+│   ├── test-*.ts                 # Test scripts for each platform
+│   ├── linkedin-auth.ts          # LinkedIn OAuth flow
+│   ├── facebook-auth.ts          # Facebook OAuth flow
+│   ├── instagram-auth.ts         # Instagram OAuth flow
+│   ├── threads-auth.ts           # Threads OAuth flow
+│   └── youtube-auth.ts           # YouTube/Google OAuth flow
+├── brands/                # Brand YAML configs
+│   └── givecare.yml
+├── galleries/             # Reference images (optional)
+├── output/                # Generated images (gitignored)
+├── .env                   # API keys (gitignored)
+└── CLAUDE.md
+```
+
+## Brand Configuration
+
 ```yaml
-# brands/givecare.yml - Current working format
+# brands/givecare.yml
 name: "GiveCare"
+
 voice:
-  tone: "empathetic, supportive, hopeful"
-  style: "conversational, inclusive, authentic"
+  tone: "Warm, honest, and empowering"
+  style: "Conversational, human-first"
+  rules:
+    - "Use second-person 'you'"
+    - "Keep sentences short"
 
-topics:
-  - "family caregiving"
-  - "dementia support"
-  - "caregiver self-care"
-  - "support networks"
+visual:
+  palette:
+    primary: "#FF9F1C"
+    secondary: "#54340E"
+  style: "Documentary photography, soft natural lighting"
+  mood: "peaceful, reflective, resilient"
+  avoid:
+    - "stock photography"
+    - "clinical settings"
 
-research_keywords:
-  - "caregiving support"
-  - "family caregiver resources"
-  - "dementia care"
-
-visual_style:
-  primary: "soft, warm, documentary-style photography"
-  color_palette: "#FF9F1C, #54340E, #FFE8D6"
+platforms:
+  twitter:
+    max_chars: 280
+    hashtags: 3
+  linkedin:
+    max_chars: 3000
+    hashtags: 5
 ```
 
-### Key File Structure (Simplified)
-```
-main.py                     # CLI entry point & pipeline orchestration
-utils/
-├── content_generation.py   # Azure OpenAI content + posting (consolidated)
-├── story_discovery.py      # SerpAPI news discovery (working)
-├── image_generation.py     # Replicate FLUX + visual modes (consolidated)
-├── sora.py                 # Azure OpenAI Sora video generation
-├── evaluation.py           # Content quality scoring
-├── telegram_approval.py    # Mobile approval workflow
-└── slack_approval.py       # Team approval workflow
-brands/
-└── givecare.yml            # Brand voice configuration
-output/content/             # Generated content archive (JSON)
-pyproject.toml              # UV dependencies (Agno 1.7.1+)
-```
+## Environment Variables
 
-### Critical Technical Patterns
-
-#### ✅ Agno 1.7.1 Working Patterns
-- **Structured Outputs**: All agents use Pydantic response models
-- **Correct API**: Use `.arun()` method (not `.generate()`)
-- **Proper Models**: Use `AzureOpenAI` from `agno.models.azure`
-- **Model Config**: Use `azure_deployment` parameter (not `model`)
-
-#### ✅ SerpAPI Integration (Fixed)
-- **Correct Service**: Use SerpAPI.com (not Serper.dev)
-- **API Key**: `SERP_API_KEY` environment variable
-- **Direct HTTP**: Custom async implementation for reliability
-- **Fallback**: Generates contextual content if search fails
-
-#### ✅ Architecture Patterns
-- **Async Everything**: All API calls use async/await
-- **Error Recovery**: Graceful degradation with fallback content
-- **Content Archival**: JSON files with metadata in output/content/
-- **Approval Workflow**: Terminal prompts with Telegram/Slack backup
-- **Platform Adaptation**: Twitter (280 chars) vs LinkedIn (longer form)
-- **Visual Modes**: 3 modes (framed_portrait, lifestyle_scene, illustrative_concept)
-
-### Development Workflow
-1. **Test locally** with `uv run main.py --no-stories --no-image`
-2. **Review output** in `output/content/` directory
-3. **Check logs** for API call success/failure
-4. **Use flags** to isolate issues (--no-stories, --no-image)
-
-### Essential Commands
 ```bash
-# Local Development
-uv sync                                      # Install dependencies
-uv run main.py                              # Run full pipeline
-uv run main.py --no-stories                 # Skip story discovery
-uv run main.py --no-image                   # Skip image generation
-uv run main.py --topic "custom topic"       # Custom topic
-uv run main.py --platforms "twitter"        # Single platform
+# .env (at project root)
 
-# Testing Components
-python -c "from utils.story_discovery import discover_stories_for_topic; import asyncio; asyncio.run(discover_stories_for_topic('test', {}))"
+# =============================================================================
+# REQUIRED: Core Services
+# =============================================================================
+GEMINI_API_KEY=your_gemini_api_key  # Google AI Studio
+REPLICATE_API_TOKEN=your_replicate_api_token  # Image/video generation
+
+# =============================================================================
+# TWITTER: Direct API (OAuth 1.0a)
+# =============================================================================
+# Per-brand credentials from developer.twitter.com
+TWITTER_SCTY_API_KEY=...
+TWITTER_SCTY_API_SECRET=...
+TWITTER_SCTY_ACCESS_TOKEN=...
+TWITTER_SCTY_ACCESS_SECRET=...
+
+TWITTER_GIVECARE_API_KEY=...
+TWITTER_GIVECARE_API_SECRET=...
+TWITTER_GIVECARE_ACCESS_TOKEN=...
+TWITTER_GIVECARE_ACCESS_SECRET=...
+
+# =============================================================================
+# LINKEDIN: OAuth 2.0
+# =============================================================================
+LINKEDIN_CLIENT_ID=...
+LINKEDIN_CLIENT_SECRET=...
+LINKEDIN_SCTY_ORG_ID=...            # From linkedin.com/company/XXX
+LINKEDIN_GIVECARE_ORG_ID=...
+LINKEDIN_SCTY_ACCESS_TOKEN=...      # Expires ~60 days
+LINKEDIN_GIVECARE_ACCESS_TOKEN=...
+
+# =============================================================================
+# FACEBOOK: Graph API v21.0
+# =============================================================================
+FACEBOOK_APP_ID=...
+FACEBOOK_APP_SECRET=...
+FACEBOOK_SCTY_PAGE_ID=...
+FACEBOOK_SCTY_PAGE_ACCESS_TOKEN=... # Expires ~60 days
+FACEBOOK_GIVECARE_PAGE_ID=...
+FACEBOOK_GIVECARE_PAGE_ACCESS_TOKEN=...
+
+# =============================================================================
+# INSTAGRAM: Platform API (separate from Facebook OAuth)
+# =============================================================================
+INSTAGRAM_APP_ID=...
+INSTAGRAM_APP_SECRET=...
+INSTAGRAM_SCTY_USER_ID=...
+INSTAGRAM_SCTY_ACCESS_TOKEN=...     # Expires ~60 days
+INSTAGRAM_GIVECARE_USER_ID=...
+INSTAGRAM_GIVECARE_ACCESS_TOKEN=...
+
+# =============================================================================
+# THREADS: Threads API
+# =============================================================================
+THREADS_APP_ID=...
+THREADS_APP_SECRET=...
+THREADS_SCTY_USER_ID=...
+THREADS_SCTY_ACCESS_TOKEN=...       # Expires ~60 days
+THREADS_GIVECARE_USER_ID=...
+THREADS_GIVECARE_ACCESS_TOKEN=...
+
+# =============================================================================
+# YOUTUBE: Google OAuth 2.0
+# =============================================================================
+YOUTUBE_CLIENT_ID=...               # Google Cloud Console
+YOUTUBE_CLIENT_SECRET=...
+YOUTUBE_SCTY_CHANNEL_ID=...
+YOUTUBE_SCTY_ACCESS_TOKEN=...       # Expires ~1 hour (auto-refreshed)
+YOUTUBE_SCTY_REFRESH_TOKEN=...      # Used to get new access tokens
+YOUTUBE_GIVECARE_CHANNEL_ID=...
+YOUTUBE_GIVECARE_ACCESS_TOKEN=...
+YOUTUBE_GIVECARE_REFRESH_TOKEN=...
+
+# =============================================================================
+# OPTIONAL: Additional Services
+# =============================================================================
+COMPOSIO_API_KEY=...                # Alternative posting (text-only)
+MODAL_TOKEN_ID=...                  # Serverless compute
+MODAL_TOKEN_SECRET=...
+SLACK_BOT_TOKEN=...                 # Approval notifications
 ```
 
-### Environment Variables (Required)
+## Social Platform Setup
+
+### Twitter Setup
+1. Create app at developer.twitter.com (one per brand)
+2. Enable OAuth 1.0a with "Read and write" permissions
+3. Generate Access Token and Secret
+4. Add credentials to `.env`
+
+### LinkedIn Setup
+1. Create app at linkedin.com/developers (one shared app)
+2. Request "Community Management API" access
+3. Add `http://localhost:3333/callback` to redirect URLs
+4. Run `cd agent && npx tsx linkedin-auth.ts` for each brand
+5. Add org IDs and tokens to `.env`
+
+### Facebook Setup
+1. Create app at developers.facebook.com
+2. Add "Facebook Login" and "Pages API" products
+3. Add `pages_show_list`, `pages_read_engagement`, `pages_manage_posts` permissions
+4. Run `cd agent && npx tsx facebook-auth.ts`
+5. Add Page IDs and tokens to `.env`
+
+### Instagram Setup (Platform API)
+1. Create separate app at developers.facebook.com for Instagram
+2. Add "Instagram Platform API" product (NOT "Instagram Basic Display")
+3. Add Instagram accounts as "Instagram Testers" in app settings
+4. Accept invitations at instagram.com/accounts/manage_access/
+5. Set up ngrok: `ngrok http 3335` (Instagram requires HTTPS callback)
+6. Add redirect URI to app settings (e.g., `https://xxxx.ngrok-free.app/callback`)
+7. Run `cd agent && npx tsx instagram-auth.ts`
+8. Add User IDs and tokens to `.env`
+
+### Threads Setup
+1. Create app at developers.facebook.com
+2. Add "Threads API" product
+3. Add Threads accounts as "Threads Testers" in app settings
+4. Accept invitations at threads.net → Settings → Account → Website permissions → Invites
+5. Use same ngrok tunnel as Instagram
+6. Run `cd agent && npx tsx threads-auth.ts`
+7. Add User IDs and tokens to `.env`
+
+### YouTube Setup
+1. Create project at console.cloud.google.com
+2. Enable "YouTube Data API v3"
+3. Create OAuth 2.0 credentials (Web application)
+4. Add `http://localhost:3335/callback` to redirect URIs
+5. Add test users if app is "Internal" (or set to "External")
+6. Run `cd agent && npx tsx youtube-auth.ts`
+7. Add Channel IDs and tokens to `.env`
+
+## Test Posting
+
 ```bash
-# ✅ Azure OpenAI (Working)
-AZURE_OPENAI_API_KEY=your_azure_key
-AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
-AZURE_OPENAI_DEFAULT_MODEL=gpt-4.5-preview
-AZURE_OPENAI_API_VERSION=2025-01-01-preview
+cd agent
 
-# ✅ SerpAPI (Working) - NOTE: SerpAPI.com not Serper.dev
-SERP_API_KEY=your_serpapi_key
+# Twitter
+npx tsx test-twitter-direct.ts scty
+npx tsx test-twitter-direct.ts givecare
 
-# ✅ Replicate (Working)
-REPLICATE_API_TOKEN=your_replicate_token
+# LinkedIn
+npx tsx test-linkedin-direct.ts scty
+npx tsx test-linkedin-direct.ts givecare
 
-# Optional Approval Workflows
-TELEGRAM_BOT_TOKEN=your_telegram_bot
-SLACK_BOT_TOKEN=your_slack_bot
-SLACK_CHANNEL_ID=your_channel_id
+# Facebook
+npx tsx test-facebook-direct.ts scty
+npx tsx test-facebook-direct.ts givecare
+
+# Instagram (requires image URL)
+npx tsx test-instagram-direct.ts scty
+npx tsx test-instagram-direct.ts givecare
+
+# Threads (text or text+image)
+npx tsx test-threads-direct.ts scty
+npx tsx test-threads-direct.ts givecare
+
+# YouTube (requires video file)
+npx tsx test-youtube-direct.ts givecare ./video.mp4 --short --dry-run
+npx tsx test-youtube-direct.ts scty ./video.mp4
 ```
 
-### Best Practices
-- **Brand Consistency**: All content must align with brand YAML
-- **Quality Control**: Human approval required before posting
-- **API Error Handling**: Log failures but continue pipeline
-- **Content Archive**: Keep all generated content for analysis
-- **Structured Data**: Use Pydantic models for all agent responses
-- **Simplified Architecture**: Avoid over-engineering, focus on working features
+## Token Expiration
 
-### Common Issues & Solutions
+| Platform | Access Token Lifetime | Refresh Method |
+|----------|----------------------|----------------|
+| Twitter | Never expires | N/A (OAuth 1.0a) |
+| LinkedIn | ~60 days | Re-run linkedin-auth.ts |
+| Facebook | ~60 days | Re-run facebook-auth.ts |
+| Instagram | ~60 days | Re-run instagram-auth.ts |
+| Threads | ~60 days | Re-run threads-auth.ts |
+| YouTube | ~1 hour | Auto-refresh via refresh token |
 
-#### SerpAPI 403 Error
-- **Problem**: Wrong service (Serper.dev vs SerpAPI.com)
-- **Solution**: Use `SERP_API_KEY` with SerpAPI.com endpoint
+## Tech Stack
 
-#### Azure OpenAI Model Error
-- **Problem**: Wrong model parameter name
-- **Solution**: Use `azure_deployment` not `model` in AzureOpenAI()
-
-#### Agno API Error
-- **Problem**: Using deprecated `.generate()` method
-- **Solution**: Use `.arun()` method for all agent calls
-
-### Current Status (January 2025)
-✅ **Working**: Story discovery, content generation, image generation, approval workflows
-✅ **Simplified**: 60% fewer files, consolidated functionality
-✅ **Quality**: 0.79/1.0 Twitter, 0.71/1.0 LinkedIn content scores
-⚠️ **Future**: Composio social posting (currently dry-run mode)
-
-### Next Priorities
-1. Composio integration for actual social posting
-2. Docker deployment optimization
-3. Multi-brand configuration support
-4. Performance analytics dashboard
-
-## Claude Code Integration
-
-### Available Scripts
-The project uses standard CLI commands via `uv run main.py` with various flags. No custom Claude Code commands currently configured.
-
-### Development Tips
-- Always test with `--no-stories --no-image` first to isolate issues
-- Check `output/content/` for generated content JSON files
-- Use single quotes in Python one-liners to avoid shell escaping
-- Monitor logs for API call success/failure patterns
+- **Framework**: TanStack Start (React fullstack)
+- **AI**: Gemini 2.5 Flash Lite (copy + images), Replicate (video)
+- **Social APIs**:
+  - Twitter (OAuth 1.0a, v1.1 media + v2)
+  - LinkedIn (OAuth 2.0, v2/ugcPosts)
+  - Facebook (Graph API v21.0)
+  - Instagram (Platform API via graph.instagram.com)
+  - Threads (Threads API via graph.threads.net)
+  - YouTube (Data API v3 with resumable uploads)
+- **Styling**: Tailwind CSS

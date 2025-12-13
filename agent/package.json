@@ -1,0 +1,28 @@
+{
+  "name": "phantom-loom-agent",
+  "version": "1.0.0",
+  "description": "Background content pipeline agents",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "pipeline": "tsx src/cli.ts pipeline",
+    "monitor": "tsx src/cli.ts monitor",
+    "post": "tsx src/cli.ts post",
+    "auth": "tsx src/cli.ts auth"
+  },
+  "dependencies": {
+    "@composio/core": "^0.2.6",
+    "@google/genai": "^0.14.0",
+    "dotenv": "^16.4.7",
+    "js-yaml": "^4.1.0",
+    "open": "^11.0.0",
+    "rss-parser": "^3.13.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.18.12",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

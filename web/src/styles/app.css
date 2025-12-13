@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --border: 0 0% 90%;
+    --ring: 0 0% 0%;
+  }
+
+  .dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 65%;
+    --border: 0 0% 20%;
+    --ring: 0 0% 100%;
+  }
+
+  * {
+    @apply border-neutral-200 dark:border-neutral-800;
+  }
+
+  html {
+    @apply antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    scrollbar-gutter: stable;
+  }
+
+  html,
+  body {
+    @apply bg-white text-black dark:bg-black dark:text-white;
+  }
+
+  body {
+    @apply min-h-screen;
+  }
+
+  .using-mouse * {
+    outline: none !important;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-medium transition-all duration-200;
+    @apply border border-black bg-black text-white;
+    @apply hover:bg-white hover:text-black;
+    @apply disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-black disabled:hover:text-white;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-medium transition-all duration-200;
+    @apply border border-black bg-transparent text-black;
+    @apply hover:bg-black hover:text-white;
+    @apply dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-black;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium transition-all duration-200;
+    @apply text-neutral-600 hover:text-black;
+    @apply dark:text-neutral-400 dark:hover:text-white;
+  }
+
+  .input {
+    @apply w-full px-4 py-3 text-base transition-all duration-200;
+    @apply bg-transparent border border-neutral-300 dark:border-neutral-700;
+    @apply placeholder:text-neutral-400 dark:placeholder:text-neutral-600;
+    @apply focus:outline-none focus:border-black dark:focus:border-white;
+    @apply resize-none;
+  }
+
+  .card {
+    @apply border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black;
+  }
+
+  .spinner {
+    @apply w-8 h-8 border-2 border-neutral-200 dark:border-neutral-800 border-t-black dark:border-t-white rounded-full animate-spin;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
