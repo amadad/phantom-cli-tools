@@ -3,6 +3,8 @@ node_modules/
 
 # Environment
 .env
+.dev.vars
+.wrangler/
 
 # System files
 .DS_Store
@@ -28,3 +30,5 @@ output/state/*
 
 # Archive
 _archive
+
+.env.local

@@ -1,0 +1,764 @@
+{
+  "brand": "givecare",
+  "lastUpdated": "2024-12-13",
+  "influencers": [
+    {
+      "id": "chris-punsalan",
+      "name": "Chris Punsalan",
+      "type": "personal_caregiver",
+      "description": "Filipino-American sharing caregiving journey for grandmother with Alzheimer's; 1.1M followers",
+      "handles": [
+        { "platform": "instagram", "username": "chrispunsalan", "url": "https://www.instagram.com/chrispunsalan/", "followers": 1100000 }
+      ],
+      "content": { "themes": ["grief", "community", "self_care"], "aesthetic": "raw, authentic, emotional" },
+      "strategy": { "relevanceScore": 9, "partnershipPotential": "high", "notes": "Massive reach, authentic voice, Alzheimer's focus" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://influencers.feedspot.com/caregiving_instagram_influencers/"]
+    },
+    {
+      "id": "phyllis-ann",
+      "name": "Phyllis Ann",
+      "type": "personal_caregiver",
+      "description": "100+ year old with Alzheimer's; daughter shares her story and nonprofit support for caregivers",
+      "handles": [
+        { "platform": "instagram", "username": "phyllisann922", "url": "https://www.instagram.com/phyllisann922/" }
+      ],
+      "content": { "themes": ["community", "grief", "advocacy"], "aesthetic": "heartwarming, family-focused" },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "high", "notes": "Unique angle with centenarian subject, nonprofit tie-in" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://influencers.feedspot.com/caregiving_instagram_influencers/"]
+    },
+    {
+      "id": "dr-natali-edmonds",
+      "name": "Dr. Natali Edmonds",
+      "type": "expert",
+      "description": "Geropsychologist offering support for dementia family caregivers. Also runs Dementia Careblazers YouTube channel.",
+      "handles": [
+        { "platform": "instagram", "username": "dr.natali.edmonds", "url": "https://www.instagram.com/dr.natali.edmonds/" },
+        { "platform": "youtube", "username": "DementiaCareblazers", "url": "https://www.youtube.com/@DementiaCareblazers" }
+      ],
+      "content": { "themes": ["education", "tips", "self_care"], "aesthetic": "professional, warm" },
+      "strategy": { "relevanceScore": 9, "partnershipPotential": "high", "notes": "Clinical credibility, dementia specialist, YouTube presence" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://influencers.feedspot.com/caregiving_instagram_influencers/", "https://go.careblazers.com/survivalguide"]
+    },
+    {
+      "id": "jessica-guthrie",
+      "name": "Jessica C. Guthrie",
+      "type": "advocate",
+      "description": "Millennial caregiver advocating for work-life balance in Alzheimer's care",
+      "handles": [
+        { "platform": "instagram", "username": "careercaregivingcollide", "url": "https://www.instagram.com/careercaregivingcollide/" }
+      ],
+      "content": { "themes": ["burnout", "self_care", "advocacy"], "aesthetic": "relatable, millennial" },
+      "strategy": { "relevanceScore": 9, "partnershipPotential": "high", "notes": "Millennial voice, work-life balance angle - strong GiveCare alignment" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://influencers.feedspot.com/alzheimer_instagram_influencers/"]
+    },
+    {
+      "id": "robert-love",
+      "name": "Robert W.B. Love",
+      "type": "expert",
+      "description": "Neuroscientist focused on Alzheimer's prevention and science-based tips",
+      "handles": [
+        { "platform": "instagram", "username": "robertwblove", "url": "https://www.instagram.com/robertwblove/" }
+      ],
+      "content": { "themes": ["education", "tips"], "aesthetic": "scientific, professional" },
+      "strategy": { "relevanceScore": 6, "partnershipPotential": "medium", "notes": "Science angle, prevention focus" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://influencers.feedspot.com/alzheimer_instagram_influencers/"]
+    },
+    {
+      "id": "teepa-snow",
+      "name": "Teepa Snow",
+      "type": "expert",
+      "description": "Occupational therapist with viral TikTok videos on dementia caregiving techniques. Positive Approach to Care method.",
+      "handles": [
+        { "platform": "tiktok", "username": "teepasnow", "url": "https://www.tiktok.com/@teepasnow" },
+        { "platform": "website", "username": "positiveapproach", "url": "https://positiveapproach.com" },
+        { "platform": "youtube", "username": "TeepaSnow", "url": "https://www.youtube.com/@TeepaSnow" }
+      ],
+      "content": { "themes": ["education", "tips"], "aesthetic": "instructional, empathetic, practical" },
+      "strategy": { "relevanceScore": 10, "partnershipPotential": "high", "notes": "Viral reach, practical techniques, highly credible, global training" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://www.today.com/health/teepa-snow-s-dementia-caregiving-tips-go-viral-tiktok-t239071"]
+    },
+    {
+      "id": "pamela-wilson",
+      "name": "Pamela D. Wilson",
+      "type": "coach",
+      "description": "Caregiving expert, speaker, author offering tips, consultations, and resources. Host of The Caring Generation podcast.",
+      "handles": [
+        { "platform": "youtube", "username": "PamelaDWilsonCaregivingExpert", "url": "https://www.youtube.com/@PamelaDWilsonCaregivingExpert" },
+        { "platform": "website", "username": "pameladwilson", "url": "https://pameladwilson.com/" },
+        { "platform": "podcast", "username": "the-caring-generation", "url": "https://pameladwilson.com/about-the-caring-generation/" }
+      ],
+      "content": { "themes": ["education", "tips", "burnout", "self_care"], "aesthetic": "professional, warm, authoritative" },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "medium", "notes": "Established authority, podcast host, consultation business" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://pameladwilson.com/"]
+    },
+    {
+      "id": "jnette-yates",
+      "name": "Jnette Yates",
+      "type": "coach",
+      "description": "Self-care coach providing tips for caregiver well-being and burnout prevention",
+      "handles": [
+        { "platform": "youtube", "username": "TheSelf-Caregiver", "url": "https://www.youtube.com/@TheSelf-Caregiver" }
+      ],
+      "content": { "themes": ["self_care", "burnout"], "aesthetic": "supportive, coaching" },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "high", "notes": "Self-care focus aligns perfectly with GiveCare mission" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": []
+    },
+    {
+      "id": "denise-dee-lovely",
+      "name": "Denise (Dee Lovely Life)",
+      "type": "personal_caregiver",
+      "description": "Navajo caregiver and YouTuber sharing vlogs on caregiving, homemaking, and inspiration",
+      "handles": [
+        { "platform": "youtube", "username": "DeeLovelyLife", "url": "https://www.youtube.com/@DeeLovelyLife" }
+      ],
+      "content": { "themes": ["community", "self_care"], "aesthetic": "vlog, lifestyle, authentic" },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Diverse voice, lifestyle angle, Navajo representation" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://www.caregivercalifornia.org/2022/12/14/caregiver-spotlight-denise-2/"]
+    },
+    {
+      "id": "jacquelyn-revere",
+      "name": "Jacquelyn Revere (Mom of My Mom)",
+      "type": "personal_caregiver",
+      "description": "TikTok creator sharing caregiving journey for her mother, building morale through humorous and relatable content",
+      "handles": [
+        { "platform": "tiktok", "username": "momofmymom", "url": "https://www.tiktok.com/@momofmymom" }
+      ],
+      "content": { "themes": ["humor", "community"], "aesthetic": "humorous, relatable" },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "high", "notes": "Humor angle differentiates, AARP featured" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://www.aarp.org/caregiving/life-balance/info-2025/jacquelyn-joyce-revere-momofmymom-tiktok.html"]
+    },
+    {
+      "id": "sherri-snelling",
+      "name": "Sherri Snelling",
+      "type": "expert",
+      "description": "Founder/CEO of Caregiving Club, corporate gerontologist authoring on caregiver support and wellness in the care economy",
+      "handles": [
+        { "platform": "website", "username": "caregivingclub", "url": "https://caregivingclub.com/" }
+      ],
+      "content": { "themes": ["education", "advocacy"], "aesthetic": "corporate, professional" },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Corporate focus, B2B angle" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://caregivingclub.com/the-experts/"]
+    },
+    {
+      "id": "lance-slatton",
+      "name": "Lance A. Slatton",
+      "type": "coach",
+      "description": "Host of All Home Care Matters podcast and Conscious Caregiving, advocating for senior health and dementia care",
+      "handles": [
+        { "platform": "website", "username": "lanceaslatton", "url": "https://lanceaslatton.com/" },
+        { "platform": "podcast", "username": "all-home-care-matters", "url": "https://lanceaslatton.com/all-home-care-matters/" },
+        { "platform": "podcast", "username": "caregivers-journal", "url": "https://thecaregiversjournalpodcast.com/" }
+      ],
+      "content": { "themes": ["education", "tips"], "aesthetic": "professional, informative" },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Podcast host, home care focus" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://lanceaslatton.com/"]
+    },
+    {
+      "id": "debra-kostiw",
+      "name": "Debra Kostiw",
+      "type": "expert",
+      "description": "Dementia educator on TikTok with 400K+ followers sharing real-life tips for handling Alzheimer's mood swings and patient interactions",
+      "handles": [
+        { "platform": "tiktok", "username": "debrakostiw", "url": "https://www.tiktok.com/@debrakostiw", "followers": 400000 },
+        { "platform": "linkedin", "username": "debra-kostiw-cmds-685b521b", "url": "https://www.linkedin.com/in/debra-kostiw-cmds-685b521b/" }
+      ],
+      "content": { "themes": ["education", "tips"], "aesthetic": "practical, gentle" },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "high", "notes": "Large TikTok following, practical dementia tips" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://www.mmm-online.com/home/channel/tiktok-shaping-caregiving-narratives-alzheimers-dementia/"]
+    },
+    {
+      "id": "josh-and-betty",
+      "name": "Josh and Betty",
+      "type": "personal_caregiver",
+      "description": "TikTok duo documenting Betty's Alzheimer's journey, including emotional moments and hospice updates. Millions of likes.",
+      "handles": [
+        { "platform": "tiktok", "username": "joshandbetty", "url": "https://www.tiktok.com/@joshandbetty" }
+      ],
+      "content": { "themes": ["grief", "community"], "aesthetic": "emotional, documentary" },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "medium", "notes": "Viral emotional content, hospice journey" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://www.mmm-online.com/home/channel/tiktok-shaping-caregiving-narratives-alzheimers-dementia/"]
+    },
+    {
+      "id": "cory-jeanguenat",
+      "name": "Cory Jeanguenat",
+      "type": "personal_caregiver",
+      "description": "Creator raising dementia awareness through family stories, music therapy, and caregiving tips on TikTok and YouTube",
+      "handles": [
+        { "platform": "tiktok", "username": "coryjeanguenat", "url": "https://www.tiktok.com/@coryjeanguenat" },
+        { "platform": "youtube", "username": "CoryJeanguenat", "url": "https://www.youtube.com/@CoryJeanguenat" }
+      ],
+      "content": { "themes": ["community", "tips"], "aesthetic": "family-focused, music therapy" },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Music therapy angle unique" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://www.tiktok.com/discover/cory-jeanguenat"]
+    },
+    {
+      "id": "patti-lafleur",
+      "name": "Patti LaFleur (CarepartnerPatti)",
+      "type": "personal_caregiver",
+      "description": "Former kindergarten teacher and care partner sharing dementia activities, art therapy, grief resources after mother's 2022 passing",
+      "handles": [
+        { "platform": "tiktok", "username": "carepartnerpatti", "url": "https://www.tiktok.com/@carepartnerpatti" },
+        { "platform": "instagram", "username": "carepartnerpatti", "url": "https://www.instagram.com/carepartnerpatti/" }
+      ],
+      "content": { "themes": ["grief", "self_care", "tips"], "aesthetic": "warm, therapeutic" },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "high", "notes": "Art therapy focus, grief journey, younger-onset families" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://empoweredus.org/episodes/when-caregiving-ends"]
+    },
+    {
+      "id": "lori-la-bey",
+      "name": "Lori La Bey",
+      "type": "expert",
+      "description": "Founder of Alzheimer's Speaks, top influencer and keynote speaker. Radio, podcast, and global connections for dementia families.",
+      "handles": [
+        { "platform": "website", "username": "alzheimersspeaks", "url": "https://alzheimersspeaks.com/" },
+        { "platform": "podcast", "username": "alzheimers-speaks", "url": "https://podcasts.apple.com/us/podcast/alzheimers-speaks/id986940432" },
+        { "platform": "pinterest", "username": "alzspeaks", "url": "https://www.pinterest.com/alzspeaks/" }
+      ],
+      "content": { "themes": ["advocacy", "education", "community"], "aesthetic": "professional, global reach" },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "high", "notes": "Established platform, global network, keynote speaker" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://alzheimersspeaks.com/"]
+    },
+    {
+      "id": "denise-brown-hhc",
+      "name": "Denise Brown (Happy Healthy Caregiver)",
+      "type": "coach",
+      "description": "Happy Healthy Caregiver offering practical advice, Instagram tips, and support. Self-care workshops, books, social media challenges.",
+      "handles": [
+        { "platform": "website", "username": "happyhealthycaregiver", "url": "https://www.happyhealthycaregiver.com" },
+        { "platform": "instagram", "username": "happyhealthycaregiver", "url": "https://www.instagram.com/happyhealthycaregiver/" },
+        { "platform": "facebook", "username": "HappyHealthyCaregiver", "url": "https://www.facebook.com/HappyHealthyCaregiver" },
+        { "platform": "podcast", "username": "happyhealthycaregiver", "url": "https://happyhealthycaregiver.com/podcast/" }
+      ],
+      "content": { "themes": ["self_care", "burnout", "tips"], "aesthetic": "supportive, practical" },
+      "strategy": { "relevanceScore": 9, "partnershipPotential": "high", "notes": "Strong self-care brand alignment, podcast, active community" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://www.happyhealthycaregiver.com"]
+    },
+    {
+      "id": "lizette-cloete",
+      "name": "Lizette Cloete (Think Different Dementia)",
+      "type": "coach",
+      "description": "Occupational therapist offering personalized dementia caregiver support, coaching, and Christian-focused resources",
+      "handles": [
+        { "platform": "website", "username": "thinkdifferentdementia", "url": "https://www.thinkdifferentdementia.com/" },
+        { "platform": "youtube", "username": "christiandementiacaregiving", "url": "https://www.youtube.com/@christiandementiacaregiving" },
+        { "platform": "instagram", "username": "thinkdifferentdementia", "url": "https://www.instagram.com/thinkdifferentdementia/" }
+      ],
+      "content": { "themes": ["education", "self_care"], "aesthetic": "faith-based, supportive" },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Christian niche, OT expertise" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://www.thinkdifferentdementia.com/"]
+    },
+    {
+      "id": "elizabeth-miller",
+      "name": "Elizabeth Miller (CCC)",
+      "type": "coach",
+      "description": "Founder of Happy Healthy Caregiver, LLC; caregiver self-care keynote speaker, coach, podcast host, and author",
+      "handles": [
+        { "platform": "linkedin", "username": "elizabethbmiller", "url": "https://www.linkedin.com/in/elizabethbmiller" },
+        { "platform": "instagram", "username": "elizabethbmiller", "url": "https://www.instagram.com/elizabethbmiller/" }
+      ],
+      "content": { "themes": ["self_care", "burnout"], "aesthetic": "professional, keynote" },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "high", "notes": "Keynote speaker, self-care focus" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://influencers.feedspot.com/caregiving_instagram_influencers/"]
+    },
+    {
+      "id": "susanne-white",
+      "name": "Susanne White",
+      "type": "coach",
+      "description": "Founder of Caregiver Warrior; bestselling author of 'Self-Care for Caregivers,' keynote speaker empowering caregivers worldwide",
+      "handles": [
+        { "platform": "linkedin", "username": "susannewhite", "url": "https://www.linkedin.com/in/susannewhite" },
+        { "platform": "instagram", "username": "caregiverwarrior", "url": "https://www.instagram.com/caregiverwarrior/" }
+      ],
+      "content": { "themes": ["self_care", "burnout", "community"], "aesthetic": "empowering, warrior branding" },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "high", "notes": "Bestselling author, strong personal brand" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://influencers.feedspot.com/caregiving_instagram_influencers/"]
+    },
+    {
+      "id": "matthew-cauli",
+      "name": "Matthew Cauli (The Dedicated Caregiver)",
+      "type": "advocate",
+      "description": "Full-time caregiver consultant, advocate, speaker raising awareness about caregiving challenges via social media",
+      "handles": [
+        { "platform": "linkedin", "username": "matthew-cauli-2816241b", "url": "https://www.linkedin.com/in/matthew-cauli-2816241b" },
+        { "platform": "instagram", "username": "thededicatedcaregiver", "url": "https://www.instagram.com/thededicatedcaregiver/" }
+      ],
+      "content": { "themes": ["advocacy", "community"], "aesthetic": "personal, advocacy" },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Male caregiver voice - underrepresented" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://influencers.feedspot.com/caregiving_instagram_influencers/"]
+    },
+    {
+      "id": "sondra-cradduck",
+      "name": "Sondra Cradduck (Sam)",
+      "type": "expert",
+      "description": "Influencer, speaker, educator, gerontologist; director at The Living Room Senior Care, founder of More Than Heart",
+      "handles": [
+        { "platform": "linkedin", "username": "sondra-sam-cradduck-b485302a6", "url": "https://www.linkedin.com/in/sondra-sam-cradduck-b485302a6" },
+        { "platform": "instagram", "username": "morethanheartcare", "url": "https://www.instagram.com/morethanheartcare/" }
+      ],
+      "content": { "themes": ["education", "community"], "aesthetic": "professional, relationship-focused" },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Gerontologist, training focus" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://influencers.feedspot.com/caregiving_instagram_influencers/"]
+    },
+    {
+      "id": "sheila-warnock",
+      "name": "Sheila Warnock",
+      "type": "expert",
+      "description": "Founder/CEO of ShareTheCaregiving; co-author of 'Share The Care,' offering grassroots models for caregiver support networks",
+      "handles": [
+        { "platform": "linkedin", "username": "sheilawarnock", "url": "https://www.linkedin.com/in/sheilawarnock" },
+        { "platform": "website", "username": "sharethecare", "url": "https://sharethecare.org/" }
+      ],
+      "content": { "themes": ["community", "tips"], "aesthetic": "grassroots, community-building" },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Community model, author" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://www.goinstacare.com/blogs/senior-care-influencers-in-america"]
+    },
+    {
+      "id": "charisma",
+      "name": "Charisma",
+      "type": "personal_caregiver",
+      "description": "Instagram influencer sharing caregiving wisdom and family moments alongside partner Cole, 400K+ followers",
+      "handles": [
+        { "platform": "instagram", "username": "charisma", "url": "https://www.instagram.com/charisma/", "followers": 400000 }
+      ],
+      "content": { "themes": ["community", "self_care"], "aesthetic": "family-focused, relatable" },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "high", "notes": "Large following, relatable content" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://influencers.feedspot.com/caregiving_instagram_influencers/"]
+    },
+    {
+      "id": "carrie-aalberts",
+      "name": "Carrie Aalberts (Dementia Darling)",
+      "type": "coach",
+      "description": "Gerontologist, keynote speaker, podcaster; dementia caregiver cheerleader with 65K+ followers",
+      "handles": [
+        { "platform": "instagram", "username": "dementiadarling", "url": "https://www.instagram.com/dementiadarling/", "followers": 65000 },
+        { "platform": "linkedin", "username": "carrie-aalberts-ms-74b868169", "url": "https://www.linkedin.com/in/carrie-aalberts-ms-74b868169" },
+        { "platform": "podcast", "username": "dementiadarling", "url": "https://dementiadarling.com/podcast" }
+      ],
+      "content": { "themes": ["education", "community"], "aesthetic": "cheerful, supportive" },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "high", "notes": "Gerontologist, podcast, keynote speaker" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://influencers.feedspot.com/caregiving_instagram_influencers/"]
+    },
+    {
+      "id": "kris-mccabe",
+      "name": "Kris McCabe (Life With Grams)",
+      "type": "personal_caregiver",
+      "description": "Full-time caregiver for grandmother with Alzheimer's, nearly 500K TikTok followers, focusing on mental wellness",
+      "handles": [
+        { "platform": "tiktok", "username": "lifewithgrams", "url": "https://www.tiktok.com/@lifewithgrams", "followers": 500000 },
+        { "platform": "instagram", "username": "lifewithgrams", "url": "https://www.instagram.com/lifewithgrams/" }
+      ],
+      "content": { "themes": ["community", "self_care", "humor"], "aesthetic": "loving, humorous" },
+      "strategy": { "relevanceScore": 9, "partnershipPotential": "high", "notes": "Large TikTok following, authentic, Caring Across featured" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://caringacross.org/our-stories/"]
+    },
+    {
+      "id": "penny-smith",
+      "name": "Penny Smith BSN",
+      "type": "expert",
+      "description": "Nationally certified hospice nurse, TikTok influencer with 660K followers educating on end-of-life care",
+      "handles": [
+        { "platform": "tiktok", "username": "pennysmithbsn", "url": "https://www.tiktok.com/@pennysmithbsn", "followers": 660000 },
+        { "platform": "linkedin", "username": "penny-smith-bsn-rn-chpn-819207115", "url": "https://www.linkedin.com/in/penny-smith-bsn-rn-chpn-819207115" }
+      ],
+      "content": { "themes": ["education", "grief"], "aesthetic": "clinical, compassionate" },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "high", "notes": "Hospice expertise, large following, end-of-life focus" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://www.linkedin.com/in/penny-smith-bsn-rn-chpn-819207115"]
+    },
+    {
+      "id": "rocco-forgione",
+      "name": "Rocco Forgione (RainbowDads)",
+      "type": "personal_caregiver",
+      "description": "Full-time caregiver and parenting activist sharing queer family experiences, 800K+ TikTok followers",
+      "handles": [
+        { "platform": "tiktok", "username": "rainbowdads", "url": "https://www.tiktok.com/@rainbowdads", "followers": 800000 },
+        { "platform": "instagram", "username": "rainbowdads", "url": "https://www.instagram.com/rainbowdads/" },
+        { "platform": "linkedin", "username": "rocco-forgione-73a760238", "url": "https://www.linkedin.com/in/rocco-forgione-73a760238" }
+      ],
+      "content": { "themes": ["community", "advocacy"], "aesthetic": "diverse, family-focused" },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "LGBTQ+ representation, large following" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": []
+    },
+    {
+      "id": "nicole-lusardi",
+      "name": "Nicole Lusardi",
+      "type": "personal_caregiver",
+      "description": "Social media influencer with 335K TikTok followers documenting life as mother to nonspeaking autistic child",
+      "handles": [
+        { "platform": "tiktok", "username": "nicolelusardi", "url": "https://www.tiktok.com/@nicolelusardi", "followers": 335000 },
+        { "platform": "instagram", "username": "nicolelusardi", "url": "https://www.instagram.com/nicolelusardi/" },
+        { "platform": "linkedin", "username": "nicole-lusardi-056a0710", "url": "https://www.linkedin.com/in/nicole-lusardi-056a0710" }
+      ],
+      "content": { "themes": ["advocacy", "community"], "aesthetic": "authentic, awareness" },
+      "strategy": { "relevanceScore": 6, "partnershipPotential": "medium", "notes": "Autism caregiving - adjacent space" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": []
+    },
+    {
+      "id": "coco-cuenco",
+      "name": "Coco Cuenco",
+      "type": "personal_caregiver",
+      "description": "Creator turned caregiver for mother post-stroke, sharing ICU updates, rehab progress, wheelchair accessibility tips",
+      "handles": [
+        { "platform": "instagram", "username": "cococuenco", "url": "https://www.instagram.com/cococuenco/" }
+      ],
+      "content": { "themes": ["community", "tips"], "aesthetic": "creator-quality, accessibility" },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Stroke caregiving, accessibility focus" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://chrissyrutherford.com/fwdjoy/becoming-a-caregiver-coco-cuenco"]
+    },
+    {
+      "id": "yosimar-reyes",
+      "name": "Yosimar Reyes",
+      "type": "personal_caregiver",
+      "description": "Artist and poet creating TikTok content about caregiving for 89-year-old grandmother, joyful moments focus",
+      "handles": [
+        { "platform": "tiktok", "username": "yosimarreyes", "url": "https://www.tiktok.com/@yosimarreyes" }
+      ],
+      "content": { "themes": ["community", "humor"], "aesthetic": "artistic, joyful" },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Artist angle, joy-focused (counter to burnout narrative)" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://www.independent.co.uk/life-style/carefluencers-elderly-caregiver-tiktok-b2522973.html"]
+    },
+    {
+      "id": "tena-scallan",
+      "name": "Tena Scallan (The Ultimate Caregiver)",
+      "type": "coach",
+      "description": "Caregiver expert and blogger with 25+ years experience, offering solutions for planning, healing, and earning while caregiving",
+      "handles": [
+        { "platform": "linkedin", "username": "theultimatecaregiver", "url": "https://www.linkedin.com/in/theultimatecaregiver" },
+        { "platform": "website", "username": "theultimatecaregiver", "url": "https://theultimatecaregiver.com/" }
+      ],
+      "content": { "themes": ["tips", "self_care"], "aesthetic": "practical, experienced" },
+      "strategy": { "relevanceScore": 6, "partnershipPotential": "low", "notes": "Long experience, blogging focus" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": []
+    },
+    {
+      "id": "julien-raynaud",
+      "name": "Julien Raynaud (Alzheimer Facts)",
+      "type": "advocate",
+      "description": "French social educator sharing Alzheimer's facts, caregiver testimonies, professional insights on Instagram",
+      "handles": [
+        { "platform": "instagram", "username": "alzheimerfacts", "url": "https://www.instagram.com/alzheimerfacts/" },
+        { "platform": "linkedin", "username": "julien-raynaud-011a8321a", "url": "https://www.linkedin.com/in/julien-raynaud-011a8321a" }
+      ],
+      "content": { "themes": ["education", "advocacy"], "aesthetic": "educational, international" },
+      "strategy": { "relevanceScore": 6, "partnershipPotential": "low", "notes": "French/international focus" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://influencers.feedspot.com/caregiving_instagram_influencers/"]
+    },
+    {
+      "id": "carol-bradley-bursack",
+      "name": "Carol Bradley Bursack (Minding Our Elders)",
+      "type": "expert",
+      "description": "Certified dementia support specialist and author providing caregiver resources from experience caring for multiple family members",
+      "handles": [
+        { "platform": "linkedin", "username": "mindingourelders", "url": "https://www.linkedin.com/in/mindingourelders" },
+        { "platform": "website", "username": "mindingourelders", "url": "https://mindingourelders.com/" }
+      ],
+      "content": { "themes": ["education", "tips"], "aesthetic": "experienced, supportive" },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Author, multi-generational caregiving experience" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://influencers.feedspot.com/caregiving_instagram_influencers/"]
+    },
+    {
+      "id": "norman-mcnamara",
+      "name": "Norman Mc Namara (Purple Angel)",
+      "type": "advocate",
+      "description": "Founder of global Purple Angel dementia awareness initiative, sharing personal dementia experience via social media and music therapy",
+      "handles": [
+        { "platform": "linkedin", "username": "norman-mc-namara-3437ab25", "url": "https://www.linkedin.com/in/norman-mc-namara-3437ab25" },
+        { "platform": "website", "username": "purpleangel-global", "url": "http://www.purpleangel-global.com/" }
+      ],
+      "content": { "themes": ["advocacy", "community"], "aesthetic": "global campaign, awareness" },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Global awareness campaign, music therapy" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["http://www.purpleangel-global.com/"]
+    },
+    {
+      "id": "beth-britton",
+      "name": "Beth Britton (D4Dementia)",
+      "type": "expert",
+      "description": "Award-winning content creator, author, consultant with 19 years caregiving experience improving health and social care systems",
+      "handles": [
+        { "platform": "linkedin", "username": "beth-britton-bethyb1886", "url": "https://www.linkedin.com/in/beth-britton-bethyb1886" },
+        { "platform": "instagram", "username": "d4dementia", "url": "https://www.instagram.com/d4dementia/" },
+        { "platform": "website", "username": "d4dementia", "url": "https://www.d4dementia.com/" }
+      ],
+      "content": { "themes": ["advocacy", "education"], "aesthetic": "professional, campaigning" },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "UK-based, systems change focus" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://influencers.feedspot.com/caregiving_instagram_influencers/"]
+    },
+    {
+      "id": "jayne-connery",
+      "name": "Jayne Connery (CCFTV)",
+      "type": "advocate",
+      "description": "Founder of Care Campaign for the Vulnerable, advocating for safety tech and transparency in dementia care homes, supporting 30K+ families",
+      "handles": [
+        { "platform": "linkedin", "username": "jayne-connery-92376758", "url": "https://www.linkedin.com/in/jayne-connery-92376758" },
+        { "platform": "instagram", "username": "ccftv_uk", "url": "https://www.instagram.com/ccftv_uk/" },
+        { "platform": "tiktok", "username": "ccftv_uk", "url": "https://www.tiktok.com/@ccftv_uk" }
+      ],
+      "content": { "themes": ["advocacy", "tech"], "aesthetic": "campaign, safety-focused" },
+      "strategy": { "relevanceScore": 6, "partnershipPotential": "low", "notes": "UK-based, care home monitoring focus" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://influencers.feedspot.com/caregiving_instagram_influencers/"]
+    },
+    {
+      "id": "ashley-stevens",
+      "name": "Ashley S. (Aging & Living!)",
+      "type": "advocate",
+      "description": "Aging influencer, blogger, advocate focusing on ageism, dementia, caregiving, and diversity",
+      "handles": [
+        { "platform": "linkedin", "username": "ashley-stevens", "url": "https://www.linkedin.com/in/ashley-stevens" },
+        { "platform": "instagram", "username": "agingandliving", "url": "https://www.instagram.com/agingandliving/" }
+      ],
+      "content": { "themes": ["advocacy", "community"], "aesthetic": "diverse, inclusive" },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Diversity focus, ageism advocacy" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://influencers.feedspot.com/caregiving_instagram_influencers/"]
+    },
+    {
+      "id": "mara-botnick",
+      "name": "Mara Botnick (The Geriatric Dietitian)",
+      "type": "expert",
+      "description": "Registered dietitian specializing in nutrition for seniors, sharing meal ideas, supplement advice for mobility issues",
+      "handles": [
+        { "platform": "instagram", "username": "thegeriatricdietitian", "url": "https://www.instagram.com/thegeriatricdietitian/" },
+        { "platform": "website", "username": "thegeriatricdietitian", "url": "https://thegeriatricdietitian.com/" }
+      ],
+      "content": { "themes": ["tips", "education"], "aesthetic": "clinical, practical" },
+      "strategy": { "relevanceScore": 6, "partnershipPotential": "medium", "notes": "Nutrition niche, practical focus" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": []
+    }
+  ],
+  "organizations": [
+    {
+      "id": "caring-across-generations",
+      "name": "Caring Across Generations",
+      "type": "organization",
+      "description": "Initiative with Care Influencer Program to partner with influencers for advocacy and support",
+      "handles": [
+        { "platform": "website", "username": "caringacross", "url": "https://caringacross.org/care-influencer/" }
+      ],
+      "content": { "themes": ["advocacy", "community"] },
+      "strategy": { "relevanceScore": 10, "partnershipPotential": "high", "notes": "KEY PARTNER - Access to influencer network" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://caringacross.org/care-influencer/"]
+    },
+    {
+      "id": "rosalynn-carter-institute",
+      "name": "Rosalynn Carter Institute",
+      "type": "organization",
+      "description": "Organization engaging leaders to support family caregivers through policy and solutions",
+      "handles": [
+        { "platform": "website", "username": "rosalynncarter", "url": "https://rosalynncarter.org/" }
+      ],
+      "content": { "themes": ["advocacy", "education"] },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Policy/institutional focus, credibility partner" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://rosalynncarter.org/"]
+    },
+    {
+      "id": "leezas-care-connection",
+      "name": "Leeza's Care Connection",
+      "type": "organization",
+      "description": "Resource hub with tips, webinars, and support for new and experienced caregivers",
+      "handles": [
+        { "platform": "website", "username": "leezascareconnection", "url": "https://leezascareconnection.org/" }
+      ],
+      "content": { "themes": ["education", "tips", "community"] },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Resource library, content syndication potential" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://leezascareconnection.org/"]
+    },
+    {
+      "id": "caregiver-action-network",
+      "name": "Caregiver Action Network",
+      "type": "organization",
+      "description": "Nonprofit offering free toolkits, support groups, and awareness campaigns for 53 million U.S. family caregivers",
+      "handles": [
+        { "platform": "website", "username": "caregiveraction", "url": "https://caregiveraction.org/" }
+      ],
+      "content": { "themes": ["advocacy", "community", "education"] },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "high", "notes": "Policy advocacy, toolkits, large network" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://caregiveraction.org/"]
+    },
+    {
+      "id": "caregiving-com",
+      "name": "Caregiving.com",
+      "type": "organization",
+      "description": "Comprehensive resource site by Gary Barg with articles, forums, and tools for family caregivers",
+      "handles": [
+        { "platform": "website", "username": "caregiving", "url": "https://caregiving.com/" }
+      ],
+      "content": { "themes": ["education", "community", "tips"] },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Established resource site, forums" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://caregiving.com/"]
+    },
+    {
+      "id": "next-avenue",
+      "name": "Next Avenue Caregiving",
+      "type": "media",
+      "description": "PBS-affiliated platform with articles and videos focusing on policy, personal stories for midlife caregivers",
+      "handles": [
+        { "platform": "website", "username": "nextavenue", "url": "https://www.nextavenue.org/caregiving/" }
+      ],
+      "content": { "themes": ["education", "advocacy"] },
+      "strategy": { "relevanceScore": 6, "partnershipPotential": "medium", "notes": "PBS affiliation, content syndication" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://www.nextavenue.org/"]
+    },
+    {
+      "id": "caring-com",
+      "name": "Caring.com",
+      "type": "organization",
+      "description": "Network connecting caregivers with expert influencers for webinars, blogs on senior care options",
+      "handles": [
+        { "platform": "website", "username": "caring", "url": "https://caring.com/" }
+      ],
+      "content": { "themes": ["education", "tips"] },
+      "strategy": { "relevanceScore": 6, "partnershipPotential": "medium", "notes": "Senior care marketplace, webinars" },
+      "discoveredAt": "2024-12-13",
+      "discoveredVia": "manual",
+      "sources": ["https://caring.com/"]
+    }
+  ],
+  "insights": {
+    "topThemes": [
+      { "theme": "education", "count": 22 },
+      { "theme": "self_care", "count": 18 },
+      { "theme": "community", "count": 17 },
+      { "theme": "advocacy", "count": 15 },
+      { "theme": "tips", "count": 14 },
+      { "theme": "burnout", "count": 8 },
+      { "theme": "grief", "count": 6 },
+      { "theme": "humor", "count": 4 }
+    ],
+    "platformBreakdown": [
+      { "platform": "instagram", "count": 28 },
+      { "platform": "tiktok", "count": 15 },
+      { "platform": "linkedin", "count": 18 },
+      { "platform": "youtube", "count": 8 },
+      { "platform": "website", "count": 20 },
+      { "platform": "podcast", "count": 6 }
+    ],
+    "aestheticClusters": [
+      "raw_authentic: iPhone content, real moments, emotional (Chris Punsalan, Kris McCabe, Josh & Betty)",
+      "professional_warm: Polished but approachable, expert positioning (Dr. Natali, Pamela Wilson, Carrie Aalberts)",
+      "instructional: Educational focus, technique-driven (Teepa Snow, Debra Kostiw)",
+      "humorous_relatable: Joy and humor in caregiving (Jacquelyn Revere, Yosimar Reyes)",
+      "advocacy_campaign: Policy and awareness focused (Lori La Bey, Norman Mc Namara)"
+    ],
+    "gaps": [
+      "Male caregiver voices (only Matthew Cauli, Robert Love prominent)",
+      "Gen-Z representation (most are Millennials or older)",
+      "Tech-forward content (caregiving apps, smart home, etc.)",
+      "Financial/legal planning content",
+      "High-design aesthetic (most content is lo-fi)",
+      "Non-dementia caregiving (cancer, disability, etc.)"
+    ],
+    "keyPartnershipOpportunities": [
+      "Caring Across Generations - Care Influencer Program access",
+      "Chris Punsalan - 1.1M followers, authentic voice",
+      "Kris McCabe (Life With Grams) - 500K TikTok, mental wellness focus",
+      "Teepa Snow - Viral reach, practical techniques, global training",
+      "Penny Smith - 660K TikTok, end-of-life expertise",
+      "Denise Brown (Happy Healthy Caregiver) - Strong self-care alignment",
+      "Jessica Guthrie - Millennial work-life balance, perfect GiveCare fit"
+    ],
+    "tierList": {
+      "tier1_must_engage": [
+        "Chris Punsalan", "Teepa Snow", "Kris McCabe", "Penny Smith",
+        "Denise Brown", "Jessica Guthrie", "Caring Across Generations"
+      ],
+      "tier2_high_value": [
+        "Dr. Natali Edmonds", "Rocco Forgione", "Debra Kostiw", "Carrie Aalberts",
+        "Susanne White", "Elizabeth Miller", "Patti LaFleur", "Lori La Bey"
+      ],
+      "tier3_watch": [
+        "Jacquelyn Revere", "Josh & Betty", "Charisma", "Cory Jeanguenat",
+        "Pamela Wilson", "Lance Slatton", "Yosimar Reyes"
+      ]
+    }
+  }
+}

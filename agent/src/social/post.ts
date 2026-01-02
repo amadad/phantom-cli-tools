@@ -1,10 +1,21 @@
 /**
- * Social media posting agent
- * Handles posting to Twitter and LinkedIn
+ * @deprecated This file uses Composio stubs that never worked.
+ * Use the direct API implementations instead:
+ * - twitter-direct.ts
+ * - linkedin-direct.ts
+ * - facebook-direct.ts
+ * - instagram-direct.ts
+ * - threads-direct.ts
+ * - youtube-direct.ts
+ *
+ * This file is kept for backwards compatibility but all functions
+ * return success: false to avoid false positives.
  */
 
 import type { ContentItem, QueueItem } from '../types'
 import { updateQueueItem, getByStage } from '../queue'
+
+console.warn('[DEPRECATED] agent/src/social/post.ts is deprecated. Use *-direct.ts implementations.')
 
 export interface PostResult {
   platform: 'twitter' | 'linkedin'
@@ -31,13 +42,11 @@ async function postToTwitter(
   if (process.env.COMPOSIO_API_KEY) {
     try {
       // Composio posting would go here
-      // For now, log and return dry run
       console.log('[post] Would post to Twitter via Composio')
       return {
         platform: 'twitter',
-        success: true,
-        postUrl: 'https://twitter.com/placeholder',
-        postedAt: new Date().toISOString()
+        success: false,
+        error: 'Composio integration not implemented - use twitter-direct.ts instead'
       }
     } catch (error) {
       return {
@@ -48,13 +57,12 @@ async function postToTwitter(
     }
   }
 
-  // Dry run mode
-  console.log('[post] Twitter dry run (no COMPOSIO_API_KEY)')
+  // No credentials - return failure (not false positive)
+  console.warn('[post] Twitter: no COMPOSIO_API_KEY - use twitter-direct.ts for actual posting')
   return {
     platform: 'twitter',
-    success: true,
-    postUrl: '',
-    postedAt: new Date().toISOString()
+    success: false,
+    error: 'Twitter posting not configured - use direct API (twitter-direct.ts)'
   }
 }
 
@@ -78,9 +86,8 @@ async function postToLinkedIn(
       console.log('[post] Would post to LinkedIn via Composio')
       return {
         platform: 'linkedin',
-        success: true,
-        postUrl: 'https://linkedin.com/placeholder',
-        postedAt: new Date().toISOString()
+        success: false,
+        error: 'Composio integration not implemented - use linkedin-direct.ts instead'
       }
     } catch (error) {
       return {
@@ -91,13 +98,12 @@ async function postToLinkedIn(
     }
   }
 
-  // Dry run mode
-  console.log('[post] LinkedIn dry run (no COMPOSIO_API_KEY)')
+  // No credentials - return failure (not false positive)
+  console.warn('[post] LinkedIn: no COMPOSIO_API_KEY - use linkedin-direct.ts for actual posting')
   return {
     platform: 'linkedin',
-    success: true,
-    postUrl: '',
-    postedAt: new Date().toISOString()
+    success: false,
+    error: 'LinkedIn posting not configured - use direct API (linkedin-direct.ts)'
   }
 }
 

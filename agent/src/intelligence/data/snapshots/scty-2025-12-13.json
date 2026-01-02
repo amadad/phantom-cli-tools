@@ -1,0 +1,287 @@
+{
+  "brand": "scty",
+  "timestamp": "2025-12-13T14:06:35.044Z",
+  "dateKey": "2025-12-13",
+  "totals": {
+    "influencers": 16,
+    "organizations": 7,
+    "totalFollowers": 0,
+    "avgRelevanceScore": 7.9
+  },
+  "platforms": [
+    {
+      "platform": "twitter",
+      "count": 18,
+      "totalFollowers": 0
+    },
+    {
+      "platform": "website",
+      "count": 18,
+      "totalFollowers": 0
+    },
+    {
+      "platform": "substack",
+      "count": 9,
+      "totalFollowers": 0
+    },
+    {
+      "platform": "linkedin",
+      "count": 7,
+      "totalFollowers": 0
+    },
+    {
+      "platform": "youtube",
+      "count": 4,
+      "totalFollowers": 0
+    },
+    {
+      "platform": "github",
+      "count": 2,
+      "totalFollowers": 0
+    }
+  ],
+  "themes": [
+    {
+      "theme": "enterprise",
+      "count": 4,
+      "percentage": 17
+    },
+    {
+      "theme": "ai_engineering",
+      "count": 4,
+      "percentage": 17
+    },
+    {
+      "theme": "building_in_public",
+      "count": 4,
+      "percentage": 17
+    },
+    {
+      "theme": "ai_marketing",
+      "count": 3,
+      "percentage": 13
+    },
+    {
+      "theme": "agents",
+      "count": 3,
+      "percentage": 13
+    },
+    {
+      "theme": "strategy",
+      "count": 3,
+      "percentage": 13
+    },
+    {
+      "theme": "creativity",
+      "count": 2,
+      "percentage": 9
+    },
+    {
+      "theme": "practical_ai",
+      "count": 2,
+      "percentage": 9
+    },
+    {
+      "theme": "indie_hacking",
+      "count": 2,
+      "percentage": 9
+    },
+    {
+      "theme": "implementation",
+      "count": 2,
+      "percentage": 9
+    },
+    {
+      "theme": "design_ai",
+      "count": 2,
+      "percentage": 9
+    },
+    {
+      "theme": "human_centered_ai",
+      "count": 2,
+      "percentage": 9
+    },
+    {
+      "theme": "health_tech",
+      "count": 2,
+      "percentage": 9
+    },
+    {
+      "theme": "enterprise_ai",
+      "count": 2,
+      "percentage": 9
+    },
+    {
+      "theme": "transformation",
+      "count": 2,
+      "percentage": 9
+    },
+    {
+      "theme": "agency_transformation",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "ai_adoption",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "productivity",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "ai_products",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "shipping",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "llm_tools",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "open_source",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "llm_ops",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "research",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "digital_health",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "ai_healthcare",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "ai_tools",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "growth",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "ai_futures",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "tech_trends",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "ai_analysis",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "ml_ops",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "data",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "product",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "ai_product",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "design_process",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "sprints",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "ai_design",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "agency_growth",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "agency",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "guidelines",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "responsible_ai",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "healthcare",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "makers",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "ai_trends",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "startups",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "ai_ethics",
+      "count": 1,
+      "percentage": 4
+    },
+    {
+      "theme": "governance",
+      "count": 1,
+      "percentage": 4
+    }
+  ],
+  "topInfluencers": [],
+  "newAdditions": []
+}

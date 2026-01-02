@@ -1,0 +1,159 @@
+{
+  "brand": "givecare",
+  "timestamp": "2025-12-13T13:18:34.410Z",
+  "dateKey": "2025-12-13",
+  "totals": {
+    "influencers": 40,
+    "organizations": 7,
+    "totalFollowers": 4260000,
+    "avgRelevanceScore": 7.5
+  },
+  "platforms": [
+    {
+      "platform": "instagram",
+      "count": 23,
+      "totalFollowers": 1565000
+    },
+    {
+      "platform": "website",
+      "count": 20,
+      "totalFollowers": 0
+    },
+    {
+      "platform": "linkedin",
+      "count": 17,
+      "totalFollowers": 0
+    },
+    {
+      "platform": "tiktok",
+      "count": 12,
+      "totalFollowers": 2695000
+    },
+    {
+      "platform": "youtube",
+      "count": 7,
+      "totalFollowers": 0
+    },
+    {
+      "platform": "podcast",
+      "count": 6,
+      "totalFollowers": 0
+    },
+    {
+      "platform": "pinterest",
+      "count": 1,
+      "totalFollowers": 0
+    },
+    {
+      "platform": "facebook",
+      "count": 1,
+      "totalFollowers": 0
+    }
+  ],
+  "themes": [
+    {
+      "theme": "community",
+      "count": 24,
+      "percentage": 51
+    },
+    {
+      "theme": "education",
+      "count": 22,
+      "percentage": 47
+    },
+    {
+      "theme": "tips",
+      "count": 17,
+      "percentage": 36
+    },
+    {
+      "theme": "advocacy",
+      "count": 16,
+      "percentage": 34
+    },
+    {
+      "theme": "self_care",
+      "count": 14,
+      "percentage": 30
+    },
+    {
+      "theme": "burnout",
+      "count": 6,
+      "percentage": 13
+    },
+    {
+      "theme": "grief",
+      "count": 5,
+      "percentage": 11
+    },
+    {
+      "theme": "humor",
+      "count": 3,
+      "percentage": 6
+    },
+    {
+      "theme": "tech",
+      "count": 1,
+      "percentage": 2
+    }
+  ],
+  "topInfluencers": [
+    {
+      "id": "chris-punsalan",
+      "name": "Chris Punsalan",
+      "followers": 1100000,
+      "platform": "instagram",
+      "relevanceScore": 9
+    },
+    {
+      "id": "rocco-forgione",
+      "name": "Rocco Forgione (RainbowDads)",
+      "followers": 800000,
+      "platform": "tiktok",
+      "relevanceScore": 7
+    },
+    {
+      "id": "penny-smith",
+      "name": "Penny Smith BSN",
+      "followers": 660000,
+      "platform": "tiktok",
+      "relevanceScore": 8
+    },
+    {
+      "id": "kris-mccabe",
+      "name": "Kris McCabe (Life With Grams)",
+      "followers": 500000,
+      "platform": "tiktok",
+      "relevanceScore": 9
+    },
+    {
+      "id": "debra-kostiw",
+      "name": "Debra Kostiw",
+      "followers": 400000,
+      "platform": "tiktok",
+      "relevanceScore": 8
+    },
+    {
+      "id": "charisma",
+      "name": "Charisma",
+      "followers": 400000,
+      "platform": "instagram",
+      "relevanceScore": 8
+    },
+    {
+      "id": "nicole-lusardi",
+      "name": "Nicole Lusardi",
+      "followers": 335000,
+      "platform": "tiktok",
+      "relevanceScore": 6
+    },
+    {
+      "id": "carrie-aalberts",
+      "name": "Carrie Aalberts (Dementia Darling)",
+      "followers": 65000,
+      "platform": "instagram",
+      "relevanceScore": 8
+    }
+  ],
+  "newAdditions": []
+}

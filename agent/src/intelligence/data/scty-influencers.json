@@ -1,0 +1,356 @@
+{
+  "brand": "scty",
+  "lastUpdated": "2024-12-13",
+  "focus": "AI studio - incubates products, experiments, consulting for agencies and health tech",
+  "model": {
+    "experiments": ["PARAsight", "open-source tools"],
+    "incubations": ["GiveCare"],
+    "consulting": ["agency AI transformation", "health tech"]
+  },
+  "competitors": ["Alephic", "10x", "Palantir Forward Deployed", "McKinsey QuantumBlack"],
+  "influencers": [
+    {
+      "id": "noah-brier",
+      "name": "Noah Brier",
+      "type": "thought_leader",
+      "description": "Founder of BRXND, exploring AI x marketing/creativity intersection. Former Percolate founder.",
+      "handles": [
+        { "platform": "twitter", "username": "heyitsnoah", "url": "https://twitter.com/heyitsnoah" },
+        { "platform": "substack", "username": "brxnd", "url": "https://newsletter.brxnd.ai/" },
+        { "platform": "linkedin", "username": "noahbrier", "url": "https://linkedin.com/in/noahbrier" }
+      ],
+      "content": { "themes": ["ai_marketing", "creativity", "agency_transformation"] },
+      "strategy": { "relevanceScore": 9, "partnershipPotential": "high", "notes": "Direct competitor/collaborator space. BRXND events are industry gathering point." }
+    },
+    {
+      "id": "ethan-mollick",
+      "name": "Ethan Mollick",
+      "type": "academic",
+      "description": "Wharton professor, author of 'Co-Intelligence'. Practical AI adoption research.",
+      "handles": [
+        { "platform": "twitter", "username": "emollick", "url": "https://twitter.com/emollick" },
+        { "platform": "substack", "username": "oneusefulthing", "url": "https://www.oneusefulthing.org/" },
+        { "platform": "linkedin", "username": "emollick", "url": "https://linkedin.com/in/emollick" }
+      ],
+      "content": { "themes": ["ai_adoption", "productivity", "enterprise"] },
+      "strategy": { "relevanceScore": 9, "partnershipPotential": "high", "notes": "Most practical voice on AI adoption. Highly influential with enterprise decision makers." }
+    },
+    {
+      "id": "swyx",
+      "name": "Shawn Wang (swyx)",
+      "type": "builder",
+      "description": "AI Engineer, Latent Space podcast. AI engineering community leader.",
+      "handles": [
+        { "platform": "twitter", "username": "swyx", "url": "https://twitter.com/swyx" },
+        { "platform": "substack", "username": "latentspace", "url": "https://www.latent.space/" },
+        { "platform": "youtube", "username": "swyxTV", "url": "https://youtube.com/@swyxTV" }
+      ],
+      "content": { "themes": ["ai_engineering", "agents", "practical_ai", "building_in_public"] },
+      "strategy": { "relevanceScore": 9, "partnershipPotential": "high", "notes": "Latent Space is the AI engineering podcast. Strong community." }
+    },
+    {
+      "id": "pieter-levels",
+      "name": "Pieter Levels",
+      "type": "builder",
+      "description": "Indie hacker, ships AI products constantly. Nomad List, Photo AI, etc. Building in public icon.",
+      "handles": [
+        { "platform": "twitter", "username": "levelsio", "url": "https://twitter.com/levelsio" },
+        { "platform": "youtube", "username": "levelsio", "url": "https://youtube.com/@levelsio" },
+        { "platform": "website", "username": "levels", "url": "https://levels.io/" }
+      ],
+      "content": { "themes": ["indie_hacking", "building_in_public", "ai_products", "shipping"] },
+      "strategy": { "relevanceScore": 9, "partnershipPotential": "low", "notes": "Ultimate builder-in-public. Inspiration for experiment velocity. Not partnership but alignment." }
+    },
+    {
+      "id": "simon-willison",
+      "name": "Simon Willison",
+      "type": "builder",
+      "description": "Creator of Datasette, LLM tools. Practical AI engineering voice.",
+      "handles": [
+        { "platform": "twitter", "username": "simonw", "url": "https://twitter.com/simonw" },
+        { "platform": "website", "username": "simonwillison", "url": "https://simonwillison.net/" },
+        { "platform": "github", "username": "simonw", "url": "https://github.com/simonw" }
+      ],
+      "content": { "themes": ["ai_engineering", "llm_tools", "practical_ai", "open_source"] },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "medium", "notes": "Technical credibility. Good for engineering-led transformation narratives." }
+    },
+    {
+      "id": "hamel-husain",
+      "name": "Hamel Husain",
+      "type": "builder",
+      "description": "AI consultant, former GitHub. Practical LLM implementation expertise.",
+      "handles": [
+        { "platform": "twitter", "username": "HamelHusain", "url": "https://twitter.com/HamelHusain" },
+        { "platform": "website", "username": "hamel", "url": "https://hamel.dev/" },
+        { "platform": "github", "username": "hamelsmu", "url": "https://github.com/hamelsmu" }
+      ],
+      "content": { "themes": ["llm_ops", "ai_engineering", "implementation"] },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "high", "notes": "Deep technical credibility on LLM implementation." }
+    },
+    {
+      "id": "victor-dibia",
+      "name": "Victor Dibia",
+      "type": "builder",
+      "description": "Microsoft Research. Design + AI intersection, human-centered AI.",
+      "handles": [
+        { "platform": "twitter", "username": "victordibia", "url": "https://twitter.com/victordibia" },
+        { "platform": "substack", "username": "victordibia", "url": "https://newsletter.victordibia.com/" },
+        { "platform": "website", "username": "victordibia", "url": "https://victordibia.com/" }
+      ],
+      "content": { "themes": ["design_ai", "human_centered_ai", "research"] },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "medium", "notes": "Design + AI focus aligns with SCTY differentiator." }
+    },
+    {
+      "id": "christina-farr",
+      "name": "Christina Farr",
+      "type": "journalist",
+      "description": "Health tech journalist. Second Opinion newsletter. Former CNBC.",
+      "handles": [
+        { "platform": "twitter", "username": "chrikiniki", "url": "https://twitter.com/chrikiniki" },
+        { "platform": "substack", "username": "secondopinion", "url": "https://secondopinionmedia.substack.com/" }
+      ],
+      "content": { "themes": ["health_tech", "digital_health", "ai_healthcare"] },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "medium", "notes": "Key voice for health tech vertical. Good for visibility." }
+    },
+    {
+      "id": "sabrina-ramonov",
+      "name": "Sabrina Ramonov",
+      "type": "builder",
+      "description": "AI content creator, 1M+ followers. Building in public, AI tools.",
+      "handles": [
+        { "platform": "twitter", "username": "sababorovnov", "url": "https://twitter.com/SabsAbornovs" },
+        { "platform": "website", "username": "sabrina", "url": "https://www.sabrina.dev/" }
+      ],
+      "content": { "themes": ["ai_tools", "building_in_public", "growth"] },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Large audience, building in public. Good for visibility." }
+    },
+    {
+      "id": "amy-webb",
+      "name": "Amy Webb",
+      "type": "futurist",
+      "description": "CEO Future Today Institute. Strategic foresight, AI futures, speaks at major conferences.",
+      "handles": [
+        { "platform": "twitter", "username": "amywebb", "url": "https://twitter.com/amywebb" },
+        { "platform": "linkedin", "username": "amywebb", "url": "https://linkedin.com/in/amywebb" },
+        { "platform": "website", "username": "amywebb", "url": "https://amywebb.io/" }
+      ],
+      "content": { "themes": ["ai_futures", "strategy", "enterprise"] },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "medium", "notes": "High-profile futurist. Annual tech trends report is widely cited." }
+    },
+    {
+      "id": "ben-evans",
+      "name": "Benedict Evans",
+      "type": "analyst",
+      "description": "Independent tech analyst, former a16z. Annual presentation on tech trends.",
+      "handles": [
+        { "platform": "twitter", "username": "benedictevans", "url": "https://twitter.com/benedictevans" },
+        { "platform": "substack", "username": "benedictevans", "url": "https://www.ben-evans.com/" },
+        { "platform": "linkedin", "username": "benedictevans", "url": "https://linkedin.com/in/benedictevans" }
+      ],
+      "content": { "themes": ["tech_trends", "ai_analysis", "strategy"] },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "low", "notes": "Influential but not directly in consulting space. Good for thought leadership alignment." }
+    },
+    {
+      "id": "gradient-flow",
+      "name": "Gradient Flow (Ben Lorica)",
+      "type": "analyst",
+      "description": "AI/ML industry analysis. Enterprise AI deployment insights.",
+      "handles": [
+        { "platform": "twitter", "username": "bigdata", "url": "https://twitter.com/bigdata" },
+        { "platform": "substack", "username": "gradientflow", "url": "https://gradientflow.substack.com/" },
+        { "platform": "website", "username": "gradientflow", "url": "https://gradientflow.com/" }
+      ],
+      "content": { "themes": ["enterprise_ai", "ml_ops", "data"] },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "medium", "notes": "Strong enterprise AI deployment coverage." }
+    },
+    {
+      "id": "josh-bersin",
+      "name": "Josh Bersin",
+      "type": "analyst",
+      "description": "HR/enterprise AI analyst. Podcast on enterprise AI agents and transformation.",
+      "handles": [
+        { "platform": "twitter", "username": "josh_bersin", "url": "https://twitter.com/josh_bersin" },
+        { "platform": "linkedin", "username": "bersin", "url": "https://linkedin.com/in/bersin" },
+        { "platform": "website", "username": "joshbersin", "url": "https://joshbersin.com/" }
+      ],
+      "content": { "themes": ["enterprise_ai", "transformation", "agents"] },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Enterprise HR focus but strong AI agents coverage." }
+    },
+    {
+      "id": "lenny-rachitsky",
+      "name": "Lenny Rachitsky",
+      "type": "thought_leader",
+      "description": "Product management newsletter/podcast. Covers AI in product development.",
+      "handles": [
+        { "platform": "twitter", "username": "lennysan", "url": "https://twitter.com/lennysan" },
+        { "platform": "substack", "username": "lennysnewsletter", "url": "https://www.lennysnewsletter.com/" },
+        { "platform": "youtube", "username": "LennysPodcast", "url": "https://youtube.com/@LennysPodcast" }
+      ],
+      "content": { "themes": ["product", "ai_product", "strategy"] },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Massive PM audience. Good for product-led AI transformation narratives." }
+    },
+    {
+      "id": "jake-knapp",
+      "name": "Jake Knapp",
+      "type": "thought_leader",
+      "description": "Creator of Design Sprint, author. Now exploring AI + design process.",
+      "handles": [
+        { "platform": "twitter", "username": "jakek", "url": "https://twitter.com/jakek" },
+        { "platform": "website", "username": "jakeknapp", "url": "https://jakeknapp.com/" },
+        { "platform": "linkedin", "username": "jakeknapp", "url": "https://linkedin.com/in/jakeknapp" }
+      ],
+      "content": { "themes": ["design_process", "sprints", "ai_design"] },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Design Sprint methodology creator. Relevant for design-informed AI work." }
+    },
+    {
+      "id": "rebekah-radice",
+      "name": "Rebekah Radice",
+      "type": "agency_leader",
+      "description": "Agency growth strategist, AI adoption for marketing agencies.",
+      "handles": [
+        { "platform": "twitter", "username": "RebekahRadice", "url": "https://twitter.com/RebekahRadice" },
+        { "platform": "linkedin", "username": "rebekahradice", "url": "https://linkedin.com/in/rebekahradice" }
+      ],
+      "content": { "themes": ["agency_growth", "ai_marketing", "transformation"] },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Agency audience. Speaks to agency transformation directly." }
+    }
+  ],
+  "organizations": [
+    {
+      "id": "brxnd",
+      "name": "BRXND",
+      "type": "community",
+      "description": "AI x marketing/creativity community. Events, newsletter, research.",
+      "handles": [
+        { "platform": "website", "username": "brxnd", "url": "https://brxnd.ai/" },
+        { "platform": "substack", "username": "brxnd", "url": "https://newsletter.brxnd.ai/" }
+      ],
+      "content": { "themes": ["ai_marketing", "creativity", "agency"] },
+      "strategy": { "relevanceScore": 9, "partnershipPotential": "high", "notes": "Key community for agency AI transformation." }
+    },
+    {
+      "id": "latent-space",
+      "name": "Latent Space",
+      "type": "media",
+      "description": "AI engineering podcast and community by swyx and Alessio.",
+      "handles": [
+        { "platform": "website", "username": "latentspace", "url": "https://www.latent.space/" },
+        { "platform": "youtube", "username": "LatentSpaceTV", "url": "https://youtube.com/@LatentSpaceTV" }
+      ],
+      "content": { "themes": ["ai_engineering", "agents", "implementation"] },
+      "strategy": { "relevanceScore": 9, "partnershipPotential": "high", "notes": "Premier AI engineering podcast. Technical credibility." }
+    },
+    {
+      "id": "google-pair",
+      "name": "Google PAIR",
+      "type": "research",
+      "description": "People + AI Research. Human-centered AI design guidelines.",
+      "handles": [
+        { "platform": "website", "username": "pair", "url": "https://pair.withgoogle.com/" }
+      ],
+      "content": { "themes": ["human_centered_ai", "design_ai", "guidelines"] },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "low", "notes": "Reference for design-informed AI approach. Credibility source." }
+    },
+    {
+      "id": "coalition-health-ai",
+      "name": "Coalition for Health AI",
+      "type": "nonprofit",
+      "description": "Guidelines for responsible AI in healthcare.",
+      "handles": [
+        { "platform": "website", "username": "chai", "url": "https://www.chai.org/" },
+        { "platform": "website", "username": "coalitionforhealthai", "url": "https://coalitionforhealthai.org/" }
+      ],
+      "content": { "themes": ["health_tech", "responsible_ai", "healthcare"] },
+      "strategy": { "relevanceScore": 8, "partnershipPotential": "medium", "notes": "Key for health tech vertical. Responsible AI positioning." }
+    },
+    {
+      "id": "bip-combinator",
+      "name": "Build in Public Community",
+      "type": "community",
+      "description": "Indie makers building in public. Curated group chats, accountability.",
+      "handles": [
+        { "platform": "website", "username": "bipcombinator", "url": "https://www.bipcombinator.com/" },
+        { "platform": "website", "username": "buildinpublic", "url": "https://publiclab.co/building-in-public" }
+      ],
+      "content": { "themes": ["building_in_public", "indie_hacking", "makers"] },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "medium", "notes": "Community for experiment shipping. Accountability and visibility." }
+    },
+    {
+      "id": "a16z-ai",
+      "name": "a16z AI",
+      "type": "vc",
+      "description": "Andreessen Horowitz AI team. Publish extensively on AI trends/implementation.",
+      "handles": [
+        { "platform": "website", "username": "a16z", "url": "https://a16z.com/ai/" },
+        { "platform": "twitter", "username": "a16z", "url": "https://twitter.com/a16z" }
+      ],
+      "content": { "themes": ["ai_trends", "startups", "enterprise"] },
+      "strategy": { "relevanceScore": 7, "partnershipPotential": "low", "notes": "Thought leadership source. Not direct partnership but good for positioning." }
+    },
+    {
+      "id": "partnership-ai",
+      "name": "Partnership on AI",
+      "type": "nonprofit",
+      "description": "Multi-stakeholder AI ethics and governance organization.",
+      "handles": [
+        { "platform": "website", "username": "partnershiponai", "url": "https://partnershiponai.org/" },
+        { "platform": "twitter", "username": "PartsOnAI", "url": "https://twitter.com/PartsonAI" }
+      ],
+      "content": { "themes": ["ai_ethics", "governance", "enterprise"] },
+      "strategy": { "relevanceScore": 6, "partnershipPotential": "medium", "notes": "Good for responsible AI positioning." }
+    }
+  ],
+  "insights": {
+    "topThemes": [
+      { "theme": "ai_engineering", "count": 7 },
+      { "theme": "building_in_public", "count": 5 },
+      { "theme": "enterprise_ai", "count": 5 },
+      { "theme": "design_ai", "count": 4 },
+      { "theme": "health_tech", "count": 3 },
+      { "theme": "agents", "count": 3 }
+    ],
+    "platformBreakdown": [
+      { "platform": "twitter", "count": 16 },
+      { "platform": "substack", "count": 10 },
+      { "platform": "linkedin", "count": 8 },
+      { "platform": "website", "count": 18 },
+      { "platform": "youtube", "count": 5 },
+      { "platform": "github", "count": 3 }
+    ],
+    "gaps": [
+      "More health tech AI builder voices",
+      "Agency ops/workflow AI (not just strategy)",
+      "Design engineering practitioners (not just researchers)",
+      "Mid-market enterprise focus",
+      "Implementation case studies"
+    ],
+    "keyPartnershipOpportunities": [
+      "BRXND - Direct community for agency AI transformation",
+      "Latent Space - Technical credibility for AI engineering",
+      "Ethan Mollick - Academic credibility for enterprise adoption",
+      "Noah Brier - Agency/marketing AI intersection",
+      "Coalition for Health AI - Health tech vertical credibility",
+      "Build in Public community - Experiment shipping visibility"
+    ],
+    "competitorPositioning": {
+      "alephic": "Forward-deployed AI engineering for startups",
+      "10x": "Product/engineering talent for scale-ups",
+      "mckinsey_qb": "Enterprise AI transformation at scale",
+      "scty_differentiation": "Design-informed AI studio. Incubates products (GiveCare), ships experiments, consulting for agencies/health tech. Strategy-through-build."
+    }
+  },
+  "searchStrategy": {
+    "weekly": [
+      "building in public AI indie hacker",
+      "AI engineer shipping products",
+      "AI product studio venture",
+      "design engineering AI"
+    ],
+    "monthly": [
+      "agency AI transformation",
+      "digital health AI startup",
+      "open source LLM tools",
+      "responsible AI implementation"
+    ]
+  }
+}

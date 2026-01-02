@@ -6,6 +6,61 @@ import { createServerFn } from '@tanstack/react-start'
 import type { GenerationResult, PlatformContent } from './types'
 
 /**
+ * Get relevant hook patterns from hook bank for a topic
+ */
+async function getHooksForTopic(topic: string, brand: string): Promise<{
+  hook?: string
+  amplified?: string
+  category?: string
+} | null> {
+  const { existsSync, readFileSync } = await import('fs')
+  const { join } = await import('path')
+
+  const hookBankPath = join(process.cwd(), '..', 'agent', 'src', 'intelligence', 'data', `${brand}-hooks.json`)
+
+  if (!existsSync(hookBankPath)) {
+    return null
+  }
+
+  try {
+    const bank = JSON.parse(readFileSync(hookBankPath, 'utf-8'))
+    const hooks = bank.hooks || []
+
+    if (hooks.length === 0) return null
+
+    const topicLower = topic.toLowerCase()
+
+    // Find hooks matching topic themes
+    let matches = hooks.filter((h: any) =>
+      h.themes?.some((t: string) => topicLower.includes(t.toLowerCase())) ||
+      h.original?.toLowerCase().includes(topicLower.slice(0, 20))
+    )
+
+    // If no theme matches, get highest multiplier hooks
+    if (matches.length === 0) {
+      matches = hooks.filter((h: any) => h.multiplier >= 50)
+    }
+
+    if (matches.length === 0) return null
+
+    // Sort by multiplier desc, least used first
+    matches.sort((a: any, b: any) => {
+      if (b.multiplier !== a.multiplier) return b.multiplier - a.multiplier
+      return (a.usedCount || 0) - (b.usedCount || 0)
+    })
+
+    const best = matches[0]
+    return {
+      hook: best.original,
+      amplified: best.amplified,
+      category: best.category
+    }
+  } catch {
+    return null
+  }
+}
+
+/**
  * Generate content for a topic - runs on server
  */
 export const generateContentFn = createServerFn({ method: 'POST' })
@@ -15,8 +70,16 @@ export const generateContentFn = createServerFn({ method: 'POST' })
     const { config } = await import('dotenv')
     const { join } = await import('path')
     const { GoogleGenAI } = await import('@google/genai')
-    const { loadBrand, getBrandVisualStyle, buildImagePrompt, buildVoiceContext } = await import('./brand')
-    const { generateImage } = await import('./image')
+    const {
+      loadBrand,
+      getBrandVisualStyle,
+      buildImagePrompt,
+      buildVoiceContext,
+      selectReferenceStyle,
+      getAbsoluteReferenceImagePaths,
+      buildImagePromptWithStyleContext
+    } = await import('./brand')
+    const { generateImage, generateImageWithReferences } = await import('./image')
 
     // Load env from project root
     config({ path: join(process.cwd(), '..', '.env') })
@@ -37,6 +100,12 @@ export const generateContentFn = createServerFn({ method: 'POST' })
     // Get visual style
     const visualStyle = getBrandVisualStyle(brand)
 
+    // Get proven hooks from hook bank
+    const hookPattern = await getHooksForTopic(topic, brandName)
+    if (hookPattern) {
+      console.log(`[generate] Using hook pattern: "${hookPattern.hook?.slice(0, 50)}..." (${hookPattern.category})`)
+    }
+
     // Generate copy with Gemini
     console.log(`[generate] Generating copy...`)
     const voiceContext = buildVoiceContext(brand)
@@ -51,10 +120,21 @@ export const generateContentFn = createServerFn({ method: 'POST' })
       ? Object.entries(imageDirection.scene_templates).map(([k, v]) => `  ${k}: "${v}"`).join('\n')
       : ''
 
+    // Build hook guidance if we have a proven pattern
+    const hookGuidance = hookPattern ? `
+=== PROVEN HOOK PATTERN (use this structure) ===
+Category: ${hookPattern.category}
+Example hook: "${hookPattern.hook}"
+${hookPattern.amplified ? `Amplified version: "${hookPattern.amplified}"` : ''}
+
+Use this hook STRUCTURE (not exact words) to open your content. Make it specific to the topic.
+=== END HOOK PATTERN ===
+` : ''
+
     const prompt = `You are a social media copywriter and art director. Generate content for this topic.
 
 TOPIC: ${topic}
-
+${hookGuidance}
 BRAND VOICE:
 ${voiceContext}
 
@@ -105,7 +185,7 @@ Respond in this exact JSON format:
 }`
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-lite',
+      model: 'gemini-3-flash-preview',
       contents: prompt
     })
 
@@ -170,11 +250,38 @@ Respond in this exact JSON format:
 
     console.log(`[generate] Copy done (Twitter: ${twitterContent.characterCount} chars)`)
 
-    // Generate image
+    // Generate image with reference style transfer
     console.log(`[generate] Generating image...`)
     console.log(`[generate] Image description: ${imageDescription}`)
-    const imagePrompt = buildImagePrompt(imageDescription, brand, visualStyle)
-    const image = await generateImage(imagePrompt, { aspectRatio: '1:1' })
+
+    // Select reference style based on topic and image description
+    const referenceStyle = selectReferenceStyle(topic, imageDescription, brand)
+
+    let image
+    let imagePrompt: string
+
+    if (referenceStyle && brand.visual.reference_styles) {
+      // Get absolute paths to reference images
+      const referenceImagePaths = await getAbsoluteReferenceImagePaths(referenceStyle, brandName)
+
+      // Build prompt with style transfer context
+      imagePrompt = buildImagePromptWithStyleContext(imageDescription, brand, visualStyle, referenceStyle)
+
+      console.log(`[generate] Using reference style: ${referenceStyle.name} (${referenceImagePaths.length} images)`)
+
+      // Generate with reference images
+      const imageGenConfig = brand.visual.image_generation
+      image = await generateImageWithReferences(imagePrompt, referenceImagePaths, {
+        aspectRatio: (imageGenConfig?.default_aspect_ratio || '1:1') as any,
+        resolution: imageGenConfig?.default_resolution || '2K',
+        modelConfig: imageGenConfig
+      })
+    } else {
+      // Fallback to text-only generation
+      console.log(`[generate] No reference styles available, using text-only generation`)
+      imagePrompt = buildImagePrompt(imageDescription, brand, visualStyle)
+      image = await generateImage(imagePrompt, { aspectRatio: '1:1' })
+    }
 
     if (!image) {
       throw new Error('Image generation failed')
@@ -285,7 +392,7 @@ Respond in this exact JSON format:
 }`
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-lite',
+      model: 'gemini-3-flash-preview',
       contents: prompt
     })
 
