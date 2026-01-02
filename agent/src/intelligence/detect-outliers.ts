@@ -235,9 +235,11 @@ export function processPostsForOutliers(
 
 /**
  * Scan influencer database for posts and detect outliers
+ * @param maxAgeDays - Only consider posts from the last N days (default: 7)
  */
-function scanInfluencerPosts(brand: string): number {
+function scanInfluencerPosts(brand: string, maxAgeDays: number = 7): number {
   const influencerDbPath = join(__dirname, 'data', `${brand}-influencers.json`)
+  const ageCutoff = Date.now() - maxAgeDays * 24 * 60 * 60 * 1000
 
   if (!existsSync(influencerDbPath)) {
     console.log('  No influencer database found')
@@ -257,6 +259,12 @@ function scanInfluencerPosts(brand: string): number {
       if (!posts || !medianViews || posts.length === 0) continue
 
       for (const post of posts) {
+        // Skip posts older than cutoff
+        const postDate = new Date(post.postedAt || 0).getTime()
+        if (postDate < ageCutoff) {
+          continue
+        }
+
         const views = post.views || post.likes * 10
 
         // Build ContentPost
@@ -301,7 +309,7 @@ async function main() {
     : undefined
   const maxAgeDays = maxAgeDaysArg
     ? parseInt(maxAgeDaysArg.split('=')[1])
-    : undefined  // No default age limit
+    : 7  // Default: only last 7 days (per viral playbook)
 
   console.log(`\n${'='.repeat(60)}`)
   console.log(`OUTLIER DETECTION: ${brand.toUpperCase()}`)
@@ -309,8 +317,8 @@ async function main() {
 
   // Scan influencer posts if requested or if no outlier DB exists
   if (doScan) {
-    console.log('\nScanning influencer posts for outliers...')
-    const found = scanInfluencerPosts(brand)
+    console.log(`\nScanning influencer posts for outliers (max ${maxAgeDays} days old)...`)
+    const found = scanInfluencerPosts(brand, maxAgeDays)
     console.log(`\nFound ${found} new outliers`)
   }
 
