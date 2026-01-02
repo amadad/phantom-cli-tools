@@ -102,11 +102,16 @@ async function enrichInstagram(
   const results = new Map<string, any>()
 
   try {
+    // Use profile scraper with posts included (not posts-only mode)
     const run = await client.actor(ACTORS.instagram).call({
       usernames,
       resultsLimit: usernames.length,
-      // Include recent posts for outlier detection
-      ...(includePosts && { resultsType: 'posts', maxPosts: 20 })
+      // Request posts to be included with profile data
+      addParentData: true,
+      ...(includePosts && {
+        resultsType: 'details',  // Full profile with posts
+        postsCount: 20           // Number of recent posts to fetch
+      })
     })
 
     const { items } = await client.dataset(run.defaultDatasetId).listItems()
@@ -286,6 +291,13 @@ function updateDatabase(
       // Update verified status
       if (data.verified !== undefined && !dryRun) {
         handle.verified = data.verified
+      }
+
+      // Update recent posts for viral detection
+      if (data.recentPosts && data.recentPosts.length > 0 && !dryRun) {
+        handle.recentPosts = data.recentPosts
+        handle.medianViews = data.medianViews
+        console.log(`    + ${data.recentPosts.length} posts captured (median: ${data.medianViews?.toLocaleString() || 'N/A'} views)`)
       }
     }
 

@@ -233,6 +233,60 @@ export function processPostsForOutliers(
   return newOutliers
 }
 
+/**
+ * Scan influencer database for posts and detect outliers
+ */
+function scanInfluencerPosts(brand: string): number {
+  const influencerDbPath = join(__dirname, 'data', `${brand}-influencers.json`)
+
+  if (!existsSync(influencerDbPath)) {
+    console.log('  No influencer database found')
+    return 0
+  }
+
+  const influencerDb = JSON.parse(readFileSync(influencerDbPath, 'utf-8'))
+  const allInfluencers = [...(influencerDb.influencers || []), ...(influencerDb.organizations || [])]
+
+  let newOutliers = 0
+
+  for (const influencer of allInfluencers) {
+    for (const handle of influencer.handles || []) {
+      const posts = handle.recentPosts
+      const medianViews = handle.medianViews
+
+      if (!posts || !medianViews || posts.length === 0) continue
+
+      for (const post of posts) {
+        const views = post.views || post.likes * 10
+
+        // Build ContentPost
+        const contentPost: ContentPost = {
+          id: post.id || `${handle.username}-${Date.now()}`,
+          url: post.url || `https://instagram.com/p/${post.id}`,
+          platform: handle.platform,
+          authorUsername: handle.username,
+          authorFollowers: handle.followers || 0,
+          views,
+          likes: post.likes || 0,
+          comments: post.comments || 0,
+          shares: post.shares,
+          caption: post.caption || '',
+          postedAt: post.postedAt || new Date().toISOString(),
+          scrapedAt: new Date().toISOString()
+        }
+
+        const outlier = addOutlier(brand, contentPost, medianViews)
+        if (outlier) {
+          newOutliers++
+          console.log(`  [${outlier.multiplier}x] @${handle.username}: ${views.toLocaleString()} views (median: ${medianViews.toLocaleString()})`)
+        }
+      }
+    }
+  }
+
+  return newOutliers
+}
+
 // CLI
 async function main() {
   const args = process.argv.slice(2)
@@ -240,17 +294,25 @@ async function main() {
   const minMultiplierArg = args.find(a => a.startsWith('--min-multiplier='))
   const maxAgeDaysArg = args.find(a => a.startsWith('--max-age-days='))
   const unanalyzedOnly = args.includes('--unanalyzed')
+  const doScan = args.includes('--scan') || !existsSync(getOutlierDbPath(brand))
 
   const minMultiplier = minMultiplierArg
     ? parseInt(minMultiplierArg.split('=')[1]) as OutlierTier
     : undefined
   const maxAgeDays = maxAgeDaysArg
     ? parseInt(maxAgeDaysArg.split('=')[1])
-    : 3
+    : undefined  // No default age limit
 
   console.log(`\n${'='.repeat(60)}`)
   console.log(`OUTLIER DETECTION: ${brand.toUpperCase()}`)
   console.log(`${'='.repeat(60)}`)
+
+  // Scan influencer posts if requested or if no outlier DB exists
+  if (doScan) {
+    console.log('\nScanning influencer posts for outliers...')
+    const found = scanInfluencerPosts(brand)
+    console.log(`\nFound ${found} new outliers`)
+  }
 
   const db = loadOutlierDb(brand)
   console.log(`\nDatabase stats:`)
@@ -267,7 +329,7 @@ async function main() {
 
   if (outliers.length === 0) {
     console.log('\nNo outliers found matching criteria.')
-    console.log('\nTo add outliers, run enrich-apify.ts with --include-posts flag')
+    console.log('\nTo add outliers, run: npx tsx enrich-apify.ts givecare --include-posts')
     return
   }
 
@@ -288,6 +350,7 @@ async function main() {
   if (unanalyzed.length > 0) {
     console.log(`\n${'─'.repeat(60)}`)
     console.log(`PRIORITY: Analyze these ${unanalyzed.length} outliers next`)
+    console.log(`Run: npx tsx extract-hooks.ts ${brand}`)
     console.log(`${'─'.repeat(60)}`)
     for (const o of unanalyzed.slice(0, 5)) {
       console.log(`  [${o.multiplier}x] ${o.post.url}`)

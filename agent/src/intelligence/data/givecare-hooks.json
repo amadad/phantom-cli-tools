@@ -1,0 +1,138 @@
+{
+  "brand": "givecare",
+  "lastUpdated": "2026-01-02T13:37:33.716Z",
+  "hooks": [
+    {
+      "original": "Remember us?",
+      "amplified": "Do you remember the iconic duo/moment/trend? Let's see if you REALLY remember! ",
+      "category": "question",
+      "multiplier": 100,
+      "platform": "instagram",
+      "sourceUrl": "https://www.instagram.com/p/CvsroOsMTQa/",
+      "themes": [
+        "nostalgia",
+        "pop culture",
+        "social trends",
+        "throwback",
+        "relationships"
+      ],
+      "id": "hook-1767361037497-ln6c50",
+      "createdAt": "2026-01-02T13:37:17.497Z",
+      "usedCount": 0
+    },
+    {
+      "original": "Bless my family! They are my everything and I’m not giving up!",
+      "amplified": "I will sacrifice everything to protect my family, even if it costs me my own life. I will NEVER give up on them!",
+      "category": "story",
+      "multiplier": 100,
+      "platform": "instagram",
+      "sourceUrl": "https://www.instagram.com/p/DG3Ooyxx_C-/",
+      "themes": [
+        "family",
+        "relationships",
+        "mental health",
+        "struggle",
+        "resilience"
+      ],
+      "id": "hook-1767361040392-69jpkf",
+      "createdAt": "2026-01-02T13:37:20.392Z",
+      "usedCount": 0
+    },
+    {
+      "original": "this was the last video I was able to film with my Grandma 🥲👵🏼",
+      "amplified": "This is the ONLY video I have left of my Grandma before she passed away. Watch until the end. 💔",
+      "category": "story",
+      "multiplier": 100,
+      "platform": "instagram",
+      "sourceUrl": "https://www.instagram.com/p/C_iwXnEy_uO/",
+      "themes": [
+        "grief",
+        "family",
+        "legacy",
+        "loss",
+        "grandparents"
+      ],
+      "id": "hook-1767361042946-clnbw8",
+      "createdAt": "2026-01-02T13:37:22.946Z",
+      "usedCount": 0
+    },
+    {
+      "multiplier": 100,
+      "platform": "instagram",
+      "sourceUrl": "https://www.instagram.com/p/DPsMPPAja5l/",
+      "themes": [],
+      "id": "hook-1767361045749-inttf3",
+      "createdAt": "2026-01-02T13:37:25.749Z",
+      "usedCount": 0
+    },
+    {
+      "original": "Today is my birthday and @thatkidforge came through with the birthday vibes like no one else could!!!",
+      "amplified": "On my birthday, @thatkidforge made my wildest dreams come true!",
+      "category": "story",
+      "multiplier": 50,
+      "platform": "instagram",
+      "sourceUrl": "https://www.instagram.com/p/DPPsl61Dn7p/",
+      "themes": [
+        "birthday",
+        "relationships",
+        "gratitude",
+        "celebration",
+        "friendship"
+      ],
+      "id": "hook-1767361048025-ei6g11",
+      "createdAt": "2026-01-02T13:37:28.025Z",
+      "usedCount": 0
+    },
+    {
+      "original": "Do you want me to tell you about my mom?",
+      "amplified": "Do you want to hear the devastating reality of my mother's battle with Alzheimer's?",
+      "category": "question",
+      "multiplier": 50,
+      "platform": "instagram",
+      "sourceUrl": "https://www.instagram.com/p/C3ljWxzx9RA/",
+      "themes": [
+        "Alzheimer's Disease",
+        "Caregiving",
+        "Family Relationships",
+        "Chronic Illness",
+        "Hope"
+      ],
+      "id": "hook-1767361051063-ou3o76",
+      "createdAt": "2026-01-02T13:37:31.063Z",
+      "usedCount": 0
+    },
+    {
+      "original": "So this week’s been rough with all the news going around.",
+      "amplified": "The world is falling apart, but at least I have my son's jokes to keep me sane.",
+      "category": "story",
+      "multiplier": 50,
+      "platform": "instagram",
+      "sourceUrl": "https://www.instagram.com/p/DNT2REWOGcc/",
+      "themes": [
+        "family dynamics",
+        "lgbtq+",
+        "relationships",
+        "humor",
+        "current events"
+      ],
+      "id": "hook-1767361053715-cjk3yt",
+      "createdAt": "2026-01-02T13:37:33.715Z",
+      "usedCount": 0
+    }
+  ],
+  "stats": {
+    "totalHooks": 7,
+    "byCategory": {
+      "curiosity": 0,
+      "controversy": 0,
+      "transformation": 0,
+      "secret": 0,
+      "listicle": 0,
+      "story": 4,
+      "question": 2,
+      "statistic": 0,
+      "undefined": null
+    },
+    "avgMultiplier": 78.57142857142857
+  }
+}
