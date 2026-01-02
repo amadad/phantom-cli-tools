@@ -14,7 +14,10 @@
   "dependencies": {
     "@composio/core": "^0.2.6",
     "@google/genai": "^0.14.0",
+    "@imgly/background-removal-node": "^1.4.5",
+    "apify-client": "^2.11.0",
     "dotenv": "^16.4.7",
+    "exa-js": "^1.4.10",
     "js-yaml": "^4.1.0",
     "open": "^11.0.0",
     "rss-parser": "^3.13.0"

@@ -1,0 +1,15 @@
+# GiveCare Content Calendar
+
+brand: givecare
+frequency: daily
+platforms: [instagram, threads, linkedin]
+
+# Monthly themes (awareness months that fit GiveCare's mission)
+# Months without a theme = regular posting, topics from intel/hooks
+themes:
+  february: "structural gaps"           # Black History Month angle
+  may: "caregiver mental health"        # Mental Health Awareness Month
+  june: "male caregivers"               # Men's Health Month
+  september: "alzheimer's caregiving"   # World Alzheimer's Month
+  november: "invisible labor"           # National Family Caregivers Month
+  december: "care as rights"            # Universal Human Rights Month

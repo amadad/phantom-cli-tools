@@ -24,6 +24,10 @@ output/articles/*
 output/content/*
 output/queue/*
 output/state/*
+output/intel/*
+
+# Convex generated
+convex/_generated/
 
 # Logs
 *.log

@@ -1,0 +1,17 @@
+{
+  "name": "phantom-loom",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "intel": "cd agent && npx tsx src/cli.ts intel",
+    "gen": "cd agent && npx tsx src/cli.ts gen",
+    "post": "cd agent && npx tsx src/cli.ts post",
+    "queue": "cd agent && npx tsx src/cli.ts queue",
+    "sync:brands": "npx tsx scripts/sync-brands.ts",
+    "upload:refs": "npx tsx scripts/upload-references.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

@@ -2,14 +2,291 @@
 name: "GiveCare"
 url: "https://givecareapp.com"
 
-# Voice - How we write
+# Voice - How we write (FOUNDER VOICE, not influencer)
 voice:
-  tone: "Warm, honest, and empowering"
-  style: "Conversational, human-first, avoids jargon"
+  tone: "Founder building tools, not wellness influencer"
+  style: "Specific, substantive, action-oriented - like a builder shipping product"
+
+  # Core voice rules
   rules:
-    - "Use second-person 'you' to speak directly to caregivers"
-    - "Keep sentences short and clear (15-20 words max)"
-    - "Show empathy and understanding in every post"
+    - "Write as founder/builder, not inspirational coach"
+    - "Be SPECIFIC - mention real tools, assessments, benchmarks, events"
+    - "NO empty affirmations ('You're allowed to...', 'Your peace matters')"
+    - "NO dramatic one-word lines for emotional effect"
+    - "Reference real GiveCare things: SMS assistant, assessments, AI safety"
+    - "End with action: link, DM invitation, or question"
+    - "Use ➡ arrows for lists, 🩶 for feature announcements"
+
+  # =============================================================================
+  # WRITING SYSTEM: Stabilize cognition under load. Preserve human trace.
+  # USE FOR: thought, observation, reflection posts (NOT announcements/events)
+  # For announcements/events/products, use the frames section with CTAs
+  # =============================================================================
+  writing_system:
+    goal: "Stabilize cognition under load. Preserve human trace. Avoid LLM polish."
+    applies_to: ["thought", "observation", "reflection", "insight"]  # Not for announcements
+
+    # Core philosophical rules
+    core_rules:
+      - "Contain before persuade"
+      - "No moral pressure"
+      - "Systems over individuals"
+      - "Responsibility without blame"
+      - "Leave residue (uneven, partial, human)"
+
+    # Primary engines - rotate between these approaches
+    engines:
+      diagnostic:
+        description: "symptoms → structure → stop"
+        use_for: ["problems", "struggles", "pain points", "what's wrong"]
+      procedural:
+        description: "sequence, failure points"
+        use_for: ["how-to", "process", "steps", "workflows"]
+      accretion:
+        description: "stack observations, no thesis"
+        use_for: ["reflections", "observations", "what I noticed"]
+      boundaries:
+        description: "this does not… / this will not…"
+        use_for: ["limits", "expectations", "what we won't do"]
+
+    # Structural patterns (pick one per post)
+    structures:
+      - name: "observation_x3"
+        pattern: "Observation → Observation → Observation → stop"
+        description: "Three concrete observations, no conclusion"
+      - name: "consequence_rewind"
+        pattern: "Consequence → rewind → hidden decision"
+        description: "Show result, then trace back to the invisible choice"
+      - name: "symptom_list"
+        pattern: "Symptom list → common misdiagnosis → actual cause"
+        description: "Name what people see, what they think causes it, what actually does"
+      - name: "counterfactual"
+        pattern: "Counterfactual → return"
+        description: "Imagine alternative, return to reality with new clarity"
+
+    # Language constraints
+    language:
+      prefer:
+        - "Concrete nouns"
+        - "Operational verbs"
+        - "Technical plainness"
+      limit:
+        - "Abstract virtues"
+        - "Adverbs"
+        - "Because chains"
+      # Term replacements - use operational language
+      replacements:
+        burnout: "signal degradation"
+        care: "load, continuity"
+        support: "containment, context"
+        empathy: "predictability"
+        self-care: "load management"
+        boundaries: "capacity limits"
+        overwhelm: "system overload"
+        exhaustion: "depletion state"
+        resilience: "recovery protocols"
+
+    # Trauma-informed constraints
+    trauma_informed:
+      - "Normalize confusion"
+      - "Preserve choice"
+      - "No urgency theater"
+      - "No resilience framing"
+      - "No toxic positivity"
+      - "Acknowledge the hard thing before anything else"
+
+    # Human stylings - include 1-2 per piece for authenticity
+    human_markers:
+      - "Asymmetric emphasis"
+      - "Mild imprecision"
+      - "Private shorthand"
+      - "One awkward line"
+      - "Single ellipsis (optional)"
+      - "Unbalanced paragraphs"
+      - "One raw emotion word"
+      - "Self-interruption"
+      - "Specific irrelevant detail"
+      - "Off-center ending"
+
+    # Metaphor rules
+    metaphor_rules:
+      - "One procedural metaphor max per piece"
+      - "Apply once, then abandon"
+      - "No extended metaphors"
+      - "No poetic abstractions"
+
+    # Ending constraints
+    endings:
+      avoid:
+        - "Call to action endings"
+        - "Inspirational wrap-ups"
+        - "Everything will be okay"
+        - "You've got this"
+      prefer:
+        - "Stop after the observation"
+        - "Question that sits (not rhetorical)"
+        - "Incomplete thought that opens"
+        - "Return to the specific"
+
+  # NEVER say these things
+  avoid_phrases:
+    - "You're allowed to"
+    - "It's okay to"
+    - "Your peace matters"
+    - "You can't pour from an empty cup"
+    - "Self-care isn't selfish"
+    - "You matter"
+    - "Give yourself grace"
+    - "You deserve"
+
+  # Content frames - different post types
+  frames:
+    announcement:
+      description: "Releasing something new"
+      structure: |
+        Opening line stating what's released
+
+        🩶 Feature 1: description
+        🩶 Feature 2: description
+
+        Our goal: [specific outcome]
+
+        ➡ Link to thing
+        ➡ Link to code/docs
+      example: |
+        Today we're releasing two preprints to close out National Family Caregivers Month
+
+        🩶 GiveCare: an SMS-first AI assistant that turns any phone into 24/7 caregiver support
+        🩶 InvisibleBench: the first benchmark for longitudinal AI safety in caregiving
+
+        Our goal: make every caregiving interaction safer for families, clinicians, and the AI ecosystem itself.
+
+        ➡ Free assessments: givecareapp.com/assessment
+        ➡ Code + instruments: [link]
+
+    weekly_update:
+      description: "What I'm working on this week"
+      structure: |
+        Observation or theme connecting the week
+
+        This week:
+        ➡ Thing 1
+        ➡ Thing 2
+        ➡ Thing 3
+
+        If you're [relevant]—DM me.
+      example: |
+        Some weeks feel like a cross-section of a bigger shift.
+        Caregiving, aging, AI, policy, and safety—once treated as separate domains—aren't quite converging yet.
+
+        But they need to. This week:
+
+        ➡ Heading to FamTech.org event on The Future of Work & Care
+        ➡ Flying to Atlanta for AgeTech Connect Summit
+        ➡ Finalizing GiveCare updates (including open source SDOH)
+
+        If you're in NYC or ATL and want to talk care systems, DM me.
+
+    event:
+      description: "Speaking or attending something"
+      structure: |
+        Bold claim or framing statement
+
+        [Name], founder of GiveCare, will [speak/attend] at [Event]
+
+        Talk title: [Title]
+        Date/time/location details
+
+        ➡ Apply/register link
+
+        More context about the event or talk
+      example: |
+        Every major women's-health disparity has a shadow variable no one models: caregiving load. Once you surface that variable, the outcomes stop looking mysterious.
+
+        Ali Madad, founder of GiveCare, will speak at the HITLAB Fall Summit 2025.
+
+        His talk, Invisible Care, Visible Health: Reframing Family Caregiving as a Core Women's Health Issue, will run December 3, 2025, 11:40-12:00 ET.
+
+        ➡ Apply here: [link]
+
+    partnership:
+      description: "Announcing a collaboration"
+      structure: |
+        What [Partner] does (1-2 sentences crediting their work)
+
+        We're partnering/collaborating to [specific goal]
+
+        [Optional: why this matters]
+      example: |
+        Mike George at Soaring Families has turned 30+ years of hands-on caregiving into a practical training program that helps families build and manage a reliable care team at home.
+
+        We're looking forward to partnering—pairing their "build your care circle" approach with GiveCare's SMS self-care and assessments.
+
+        We need more folks doing real, useful work like this.
+
+    thought:
+      description: "Observation or reflection - USES WRITING SYSTEM, no CTAs"
+      use_writing_system: true
+      structure: |
+        USE ONE ENGINE:
+        - diagnostic: symptoms → structure → stop
+        - procedural: sequence, failure points
+        - accretion: stack observations, no thesis
+        - boundaries: "this does not… / this will not…"
+
+        USE ONE STRUCTURE:
+        - observation_x3: Three observations, then stop
+        - consequence_rewind: Result → trace back → hidden decision
+        - symptom_list: What people see → misdiagnosis → actual cause
+        - counterfactual: Imagine alternative → return
+
+        NO CTA at end. Stop after the observation.
+        Include 1-2 human markers (asymmetric emphasis, mild imprecision, one raw word)
+      example: |
+        Three things happen when you hit signal degradation:
+        The small tasks multiply. The response time lengthens. The things you used to do automatically now require conscious effort.
+
+        People call it burnout. Which isn't wrong, but it's imprecise.
+
+        What's actually happening: the feedback loop between load and recovery has broken. You're running on depleted reserves. The system is telling you something, but you can't hear it over the noise of the next task.
+
+        Nobody teaches you to read these signals. We teach resilience instead... which is another way of saying: ignore them longer.
+      example_accretion: |
+        My father forgot my name on Tuesday.
+        He remembered the exact route he walked to school in 1962.
+        He asked me three times if I'd eaten.
+
+        The specialist called it "expected progression."
+        The insurance form had a checkbox.
+        The care plan remained unchanged.
+
+        I made dinner. We didn't talk about it.
+      example_boundaries: |
+        This tool will not tell you everything is going to be okay.
+        It will not remind you to "practice self-care."
+        It will not send motivational quotes at 7am.
+
+        What it will do: track the load. Surface the patterns. Give you data when the fog sets in.
+
+        Whether you act on it—that remains yours.
+
+  # Topic areas GiveCare covers
+  topics:
+    - category: "product"
+      keywords: ["assessment", "SMS", "tool", "feature", "release", "update"]
+      cta: "➡ Try it: givecareapp.com/assessment"
+    - category: "research"
+      keywords: ["benchmark", "paper", "preprint", "safety", "longitudinal", "SDOH"]
+      cta: "➡ Code + data: github.com/givecare"
+    - category: "events"
+      keywords: ["summit", "conference", "speaking", "panel", "workshop"]
+      cta: "➡ Register/Apply: [link]"
+    - category: "partnerships"
+      keywords: ["partner", "collaborate", "working with", "joining"]
+      cta: null
+    - category: "community"
+      keywords: ["death cafe", "caregivers month", "advocacy", "hill day"]
+      cta: "➡ Join us: [link]"
 
 # Visual Style - How we look
 visual:
@@ -19,53 +296,242 @@ visual:
     accent: "#FFE8D6"     # Cream
 
   # Core visual identity
-  style: "Documentary photography, soft natural lighting, authentic moments"
-  mood: "peaceful, reflective, resilient, empathetic"
+  style: "Bold editorial photography, high contrast, modern graphic design, fashion-forward"
+  mood: "empowered, fierce, unapologetic, renewed, whole"
 
-  # What to avoid
+  # What to avoid - NO CLICHÉ OLD PERSON IMAGERY
   avoid:
-    - "stock photography poses"
+    - "elderly hands holding tea"
+    - "grandma in rocking chair"
+    - "soft focus nostalgic scenes"
     - "clinical/hospital settings"
-    - "artificial smiles"
-    - "corporate headshots"
-    - "busy or cluttered backgrounds"
-    - "harsh lighting"
-    - "oversaturated colors"
+    - "stock photography martyrdom"
+    - "sad caregiver looking exhausted"
+    - "pastel watercolors"
+    - "gentle sunsets with inspirational quotes"
+    - "anyone looking defeated or pitiful"
+    - "multigenerational hand-holding"
 
   # DETAILED IMAGE GENERATION GUIDELINES
   image_direction:
-    # Subject types that work
+    # Subject types that work - MODERN, EMPOWERING, NOT CLICHÉ
     subjects:
-      - "Hands: weathered hands holding younger hands, hands preparing food, hands arranging flowers, hands writing notes"
-      - "Moments: person gazing out window with morning light, someone tending a small garden, quiet tea/coffee moment alone"
-      - "Spaces: sunlit kitchen corner, cozy reading nook, peaceful bedroom with soft linens, home office with plants"
-      - "Nature: single flower in soft focus, morning dew on leaves, sunset through curtains, path through quiet garden"
-      - "Objects: well-worn journal and pen, steaming cup of tea, family photos on shelf, comfortable armchair"
+      - "Self: bold portraits, confident poses, moments of personal power and reclaiming identity"
+      - "Energy: dynamic movement, stretching, yoga, running, dance - bodies in motion"
+      - "Boundaries: graphic elements, bold lines, protective spaces, personal territory"
+      - "Rest: luxurious sleep, spa moments, massage, floating, deep relaxation (not grandma napping)"
+      - "Nature: wild landscapes, ocean, mountains, forests - expansive and freeing, not garden flowers"
+      - "Abstract: bold colors, geometric patterns, organic textures, emotional landscapes"
 
     # Camera and technical style
     technique:
-      - "Shallow depth of field (f/1.8-2.8) - subject sharp, background soft"
-      - "Natural window light, soft and directional"
-      - "Slightly desaturated, warm color grade"
-      - "Eye-level or slightly above perspective"
-      - "Negative space for text overlay"
-      - "35mm or 50mm lens feel"
+      - "High contrast, bold lighting - not soft and faded"
+      - "Dramatic angles - low angle for power, overhead for intimacy"
+      - "Rich saturated colors OR striking black and white"
+      - "Modern editorial photography aesthetic"
+      - "Graphic design integration - text, shapes, bold composition"
+      - "Fashion/beauty photography influence"
 
     # Emotional keywords to inject
     emotions:
-      - "quiet strength"
-      - "tender resilience"
-      - "peaceful solitude"
-      - "gentle hope"
-      - "earned rest"
+      - "fierce self-love"
+      - "unapologetic rest"
+      - "radical boundaries"
+      - "reclaimed energy"
+      - "bold renewal"
 
     # Specific scene templates
     scene_templates:
-      self_care: "Close-up of weathered but elegant hands wrapped around a warm mug, morning light streaming through gauze curtains, shallow depth of field, muted warm tones"
-      connection: "Two people's hands gently touching over a kitchen table, soft overhead light, family photos blurred in background, intimate and warm"
-      rest: "Empty comfortable armchair by a window, soft afternoon light, a closed book and reading glasses on the armrest, peaceful and inviting"
-      nature: "Single wildflower in a simple vase on a windowsill, golden hour light, soft focus background of a quiet room"
-      reflection: "Person seen from behind, looking out a rain-spotted window, natural light creating a silhouette, contemplative mood"
+      self_care: "Bold portrait of person in moment of self-care - face mask, bath, meditation - high contrast lighting, rich colors, unapologetic luxury"
+      burnout: "Abstract organic texture representing exhaustion transforming into renewal, bold green or teal tones, growth emerging from chaos"
+      boundaries: "Graphic modernist composition with bold geometric shapes, strong colors, clear divisions of space - visual metaphor for setting limits"
+      rest: "Person fully surrendered to rest - luxurious bedding, golden light, complete relaxation - this is earned, not lazy"
+      energy: "Dynamic movement captured - yoga pose, dance, stretch - body reclaiming its power, dramatic lighting"
+      renewal: "Retro-modern botanical illustration style - growth, bloom, transformation - vintage warmth with contemporary edge"
+
+  # =============================================================================
+  # BRAND DESIGN SYSTEM
+  # Three treatments that mix: Illustration, Photo, Typography
+  # Logo placement varies per composition
+  # =============================================================================
+
+  design_system:
+    # PRIMARY: Vintage flat illustration (vessels, hands, plants)
+    illustration:
+      style_description: |
+        VINTAGE FLAT ILLUSTRATION:
+        - Dark chocolate brown background (#54340E)
+        - Flat color palette: lilac/lavender, lime green, coral pink, warm orange
+        - Simplified silhouette shapes: vessels, pottery, hands, plants, botanical forms
+        - NO gradients, NO shading - pure flat color fills
+        - Vintage 1950s-1970s cookbook/poster aesthetic
+        - Playful arrangement of shapes, hand-crafted screen-printed look
+      reference: "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_06_style02.png"
+      use_for: ["nurture", "grow", "cup", "fill", "garden", "harvest", "rest", "self-care"]
+
+    # SECONDARY: Photo with duotone/color treatment
+    photo_treatment:
+      style_description: |
+        DUOTONE PHOTO TREATMENT:
+        - Apply duotone effect: shadows in dark brown (#54340E), highlights in warm orange (#FF9F1C)
+        - OR: High contrast black & white with orange color accent overlay
+        - Grain texture overlay for vintage feel
+        - Subject: hands, faces in close-up, objects (cups, plants, fabric)
+        - Cropped dramatically - not full body shots
+        - Editorial/fashion photography base with graphic treatment applied
+      reference: "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_01_beauty.jpg"
+      use_for: ["identity", "self", "portrait", "beauty", "face", "body", "skin", "you"]
+
+    # TERTIARY: Bold typography compositions
+    typography:
+      style_description: |
+        EDITORIAL TYPOGRAPHY POSTER:
+        - Dark maroon/burgundy background (#4A1515 or #54340E)
+        - Mixed serif fonts: elegant + display + decorative
+        - Colors: warm orange (#FF9F1C) and coral pink (#E86B6B) on dark
+        - Decorative elements: asterisks *, arrows →, symbols ™®©
+        - Typography IS the visual - words as graphic design
+        - Fashion/editorial magazine aesthetic
+        - Message-driven: the words ARE the art
+      reference: "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_02_typography.jpg"
+      use_for: ["boundaries", "permission", "allowed", "say", "no", "yes", "words", "message", "mantra"]
+
+    # Logo placement options
+    logo_positions:
+      - "bottom-right"
+      - "bottom-left"
+      - "top-right"
+      - "integrated"  # woven into the composition
+      - "centered-bottom"
+
+    # Composition types
+    compositions:
+      - type: "illustration_full"
+        description: "Full illustration, logo in corner"
+        weight: 40
+
+      - type: "illustration_with_type"
+        description: "Illustration with bold text overlay"
+        weight: 20
+
+      - type: "photo_duotone"
+        description: "Treated photo with logo"
+        weight: 15
+
+      - type: "photo_with_illustration"
+        description: "Duotone photo with illustration elements overlaid"
+        weight: 10
+
+      - type: "typography_poster"
+        description: "Typography-driven, words as the visual"
+        weight: 15
+
+  # Legacy reference_styles (for backward compatibility)
+  reference_styles:
+    - name: "editorial_typography"
+      description: "Bold typographic poster with mixed serif fonts"
+      style_description: |
+        EXACT STYLE TO MATCH:
+        - Dark maroon/burgundy background (#4A1515 or similar deep red-brown)
+        - Centered typography composition using mixed serif fonts
+        - Color palette: warm orange (#FF9F1C) and coral pink (#E86B6B) text on dark background
+        - Decorative typographic elements: asterisks, arrows (→), trademark symbols (™®©)
+        - Elegant serif typefaces mixed with display fonts
+        - NO IMAGES - pure typography as the visual
+        - Clean negative space around text blocks
+        - Fashion/editorial magazine aesthetic
+      images:
+        - "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_02_typography.jpg"
+      mood_keywords: ["boundaries", "message", "statement", "permission", "no", "yes", "words", "mantra", "affirmation", "say", "speak", "voice", "allowed"]
+
+    - name: "japanese_modernist"
+      description: "Yusaku Kamekura-style flat geometric poster"
+      style_description: |
+        EXACT STYLE TO MATCH:
+        - Bold flat colors with NO gradients (red, yellow, blue, black, white)
+        - Geometric symbolic imagery (eyes, circles, abstract forms)
+        - Japanese modernist poster aesthetic (1960s-1990s)
+        - Clean vector-like shapes with hard edges
+        - Strong color blocking and contrast
+        - Minimal detail, maximum impact
+        - Small text elements at bottom if any
+        - Think: Yusaku Kamekura, Ikko Tanaka, Swiss International Style
+      images:
+        - "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_04_modernist.jpg"
+      mood_keywords: ["clarity", "vision", "focus", "see", "awareness", "perspective", "insight", "truth", "recognize", "eye", "watch", "observe", "notice"]
+
+    - name: "vintage_flat_illustration"
+      description: "Retro flat-color illustration with limited palette"
+      style_description: |
+        EXACT STYLE TO MATCH:
+        - Dark brown/chocolate background (#54340E or similar)
+        - Limited flat color palette: lilac/lavender, lime green, pink on brown
+        - Simplified silhouette shapes (vessels, pottery, organic forms)
+        - NO gradients, NO shading - pure flat color fills
+        - Vintage 1950s-1970s illustration aesthetic
+        - Playful arrangement of shapes
+        - Hand-crafted, screen-printed look
+        - Think: vintage cookbook illustrations, mid-century modern design
+      images:
+        - "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_06_style02.png"
+      mood_keywords: ["nourish", "feed", "food", "harvest", "grow", "cultivate", "tend", "garden", "fruit", "bloom", "cup", "fill", "vessel", "container", "hold"]
+
+    - name: "organic_cellular"
+      description: "Abstract organic texture pattern"
+      style_description: |
+        EXACT STYLE TO MATCH:
+        - Close-up microscopic/cellular texture pattern
+        - Warm earthy color palette (oranges, browns, creams)
+        - Organic blob-like or cellular shapes
+        - Abstract biological/geological texture
+        - NO recognizable objects or figures
+        - Fills entire frame edge-to-edge
+        - Think: cross-section of fruit, cells under microscope, tree bark patterns
+      images:
+        - "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_03_organic.jpg"
+      mood_keywords: ["burnout", "exhaustion", "renewal", "growth", "empty", "whole", "energy", "depleted", "restore", "heal", "recover", "transform", "change"]
+
+    - name: "bold_portrait"
+      description: "High-contrast editorial beauty portrait"
+      style_description: |
+        EXACT STYLE TO MATCH:
+        - High-contrast dramatic portrait photography
+        - Bold lighting with strong shadows
+        - Warm color grading (orange/amber tones)
+        - Fashion editorial aesthetic
+        - Confident, empowered subject
+        - Rich saturated colors OR striking black and white
+        - Modern beauty/fashion photography influence
+      images:
+        - "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_01_beauty.jpg"
+      mood_keywords: ["self-care", "beauty", "identity", "portrait", "confidence", "radical", "self-love", "face", "skin", "glow", "radiant", "shine"]
+
+    - name: "retro_botanical"
+      description: "Vintage botanical illustration style"
+      style_description: |
+        EXACT STYLE TO MATCH:
+        - Vintage botanical illustration aesthetic
+        - Warm earthy color palette with pops of color
+        - Hand-drawn illustration quality
+        - Botanical elements: plants, flowers, fruits, leaves
+        - Vintage cookbook or seed catalog aesthetic
+        - Decorative borders or frames optional
+        - Think: 1960s cookbook illustrations, botanical prints
+      images:
+        - "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_05_retro.jpg"
+      mood_keywords: ["nature", "plant", "flower", "leaf", "organic", "natural", "earth", "root", "seed", "sprout", "green", "life"]
+
+  # Image generation model configuration
+  image_generation:
+    primary_model: "gemini-3-pro-image-preview"
+    fallback_model: "gemini-2.5-flash-image"
+    default_aspect_ratio: "1:1"
+    default_resolution: "2K"
+    max_reference_images: 6
+    # Brand watermark configuration
+    logo_url: "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/logo.png"
+    logo_text: "GiveCare"
+    logo_style: "Bold sans-serif text 'GiveCare' in warm orange #FF9F1C, positioned subtly in corner"
 
 # Platforms
 platforms:
@@ -92,13 +558,71 @@ platforms:
     description_max_chars: 5000
     style: "Educational, warm"
 
-# Topics we cover
+# =============================================================================
+# GUARDRAILS - Quality gates for content evaluation
+# =============================================================================
+guardrails:
+  # What we actively pursue in our content
+  pursue:
+    voice:
+      - "Founder/builder perspective - shipping real tools"
+      - "Specific and substantive - mentions real things"
+      - "Action-oriented - ends with link, DM, or question"
+      - "Acknowledges struggle before offering hope"
+    visual:
+      - "Graphic design aesthetic (illustration, typography, texture)"
+      - "Bold colors from brand palette"
+      - "Editorial/fashion influence"
+      - "Unexpected visual metaphors"
+
+  # What we actively reject
+  reject:
+    voice:
+      - "Generic wellness influencer tone"
+      - "Empty affirmations without substance"
+      - "Dramatic one-word lines for effect"
+      - "Toxic positivity or guilt-based messaging"
+    visual:
+      - "Stock photography aesthetics"
+      - "Photorealistic AI-generated people"
+      - "Soft focus inspirational imagery"
+      - "Clinical or hospital settings"
+
+  # Hard stops - content FAILS if these are present
+  never:
+    phrases:
+      - "You're allowed to"
+      - "It's okay to"
+      - "Your peace matters"
+      - "You can't pour from an empty cup"
+      - "Self-care isn't selfish"
+      - "Give yourself grace"
+      - "You deserve"
+      - "You matter"
+      - "You got this"
+    visual_elements:
+      - "elderly hands holding tea"
+      - "grandma in rocking chair"
+      - "sad caregiver looking exhausted"
+      - "multigenerational hand-holding"
+      - "person smiling at camera"
+
+  # Evaluation thresholds
+  thresholds:
+    min_specificity_score: 0.6  # Must mention real things
+    max_cliche_score: 0.3       # Low tolerance for generic content
+    require_cta: true           # Must have call to action
+
+# Topics we cover - YOU CAN'T POUR FROM AN EMPTY CUP
 topics:
-  - "caregiver burnout and self-care"
-  - "navigating healthcare systems"
-  - "building support networks"
-  - "caregiver wellness"
-  - "balancing work and caregiving"
+  - "burnout recovery and prevention"
+  - "setting boundaries without guilt"
+  - "radical self-care as survival"
+  - "reclaiming your identity beyond caregiving"
+  - "filling your cup first"
+  - "permission to rest"
+  - "becoming whole again"
+  - "energy management and renewal"
 
 # Social handles
 handles:

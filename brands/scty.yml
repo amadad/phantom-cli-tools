@@ -4,40 +4,193 @@ url: "https://scty.org"
 
 # Voice - How we write
 voice:
-  tone: "Bold, innovative, and thought-provoking"
-  style: "Direct, tech-forward, visionary"
+  tone: "Bold, innovative, thought-provoking"
+  style: "Direct, tech-forward, no fluff"
   rules:
     - "Speak with authority about technology and society"
-    - "Balance technical insight with accessibility"
     - "Challenge conventional thinking"
+    - "Balance technical depth with clarity"
+    - "No corporate speak"
 
-# Visual Style - How we look
+# Visual Style - MONOCHROME BRUTALIST SYSTEM
 visual:
   palette:
-    primary: "#1A1A2E"    # Deep navy
-    secondary: "#16213E"  # Dark blue
-    accent: "#0F3460"     # Electric blue
-    highlight: "#E94560"  # Vibrant red
-  style: "Futuristic, abstract, digital art, high contrast"
-  mood: "innovative, cutting-edge, transformative, bold"
+    primary: "#000000"      # Black
+    secondary: "#FAFAFA"    # Off-white
+    accent: "#1A1A1A"       # Near-black
+
+  style: "Monochrome brutalist, experimental graphic design, archival, imperfect, intentional"
+  mood: "bold, raw, systematic, experimental"
+
+  # What to avoid
   avoid:
+    - "color"
+    - "realistic imagery"
+    - "readable text unless explicitly enabled"
+    - "shadows or lighting realism"
+    - "gradients"
     - "stock photography"
     - "generic tech imagery"
-    - "dated design elements"
-    - "overly corporate"
+    - "corporate design"
+    - "decorative elements"
+    - "soft aesthetics"
+
+  # =============================================================================
+  # MODULAR VISUAL PROMPT SYSTEM
+  # MONOCHROME ABSTRACT / TYPO-GEOMETRIC / GESTURAL HYBRID
+  # =============================================================================
+  prompt_system:
+    # Core aesthetic constraints (always applied)
+    core_aesthetic:
+      - "Monochrome only (black on off-white or white on black)"
+      - "High contrast"
+      - "Brutalist, modernist, experimental graphic design"
+      - "Feels archival, printed, imperfect, intentional"
+
+    # SUBJECT variable options
+    subject_types:
+      abstract: "abstract form, non-representational mark"
+      letterform: "letterform as shape, not readable text"
+      symbol: "symbol, logo, or identity mark"
+      grid: "warp grid, modular grid system"
+      mass: "visual mass, typographic structure"
+
+    # FORM_MODE toggles (combinable)
+    form_modes:
+      geometric: "geometric modular forms (circles, quarter-circles, rectangles, grids)"
+      typographic: "distorted typographic structures (illegible, deconstructed, stretched)"
+      gestural: "organic gestural marks (ink blots, brush strokes, calligraphic masses)"
+      halftone: "halftone erosion / scanline interference"
+      techno: "techno geometric, digital grid structures, warp distortion"
+      bleed: "soft bleed edges"
+      vector: "hard vector cuts"
+
+    # TEXTURE_MODE options (combinable)
+    texture_modes:
+      risograph: "risograph grain"
+      photocopy: "photocopy noise"
+      halftone: "halftone dots"
+      scanline: "scanline banding"
+      ink_bleed: "ink bleed"
+      spray: "spray or airbrush diffusion"
+      paper: "paper grain visible"
+      future: "digital artifacts, glitch patterns"
+
+    # EDGE_STYLE options
+    edge_styles:
+      sharp: "razor-sharp vector edges"
+      torn: "torn paper edges"
+      bleed: "fuzzy ink bleed"
+      eroded: "partially eroded contours"
+      sharp_eroded: "sharp with minor erosion"
+
+    # TYPE_BEHAVIOR options
+    type_behaviors:
+      shapes: "letterforms as shapes, not readable text"
+      fragmented: "characters fragmented into primitives"
+      misaligned: "misaligned baselines"
+      rotated: "rotated 90° / 180°"
+      cropped: "cropped aggressively by frame"
+
+    # BACKGROUND options
+    backgrounds:
+      paper: "raw paper off-white"
+      black: "solid black"
+      textured_white: "lightly textured white"
+
+    # OUTPUT_INTENT options
+    output_intents:
+      poster: "poster"
+      brand_mark: "brand mark exploration"
+      editorial: "editorial graphic"
+      identity: "identity system component"
+      generative: "generative art base"
+      social: "social media post"
+
+    # Composition rules (always applied)
+    composition:
+      - "Central or stacked composition"
+      - "Asymmetrical balance"
+      - "Strong negative space"
+      - "Visual rhythm through repetition and variation"
+      - "No literal symmetry unless specified"
+
+    # Depth rules (always applied)
+    depth:
+      - "Flat graphic plane with implied depth"
+      - "Overlapping shapes"
+      - "Masked layers"
+      - "Transparency through pattern density, not opacity"
+
+  # =============================================================================
+  # REFERENCE STYLES - Mapped to form/texture combinations
+  # =============================================================================
+  reference_styles:
+    - name: "beauty_portrait"
+      description: "High-contrast portraiture, dramatic lighting, fashion influence"
+      images:
+        - "styles/ref_01_beauty.jpg"
+      mood_keywords: ["portrait", "face", "human", "bold", "dramatic", "striking"]
+      form_mode: "gestural"
+      texture_mode: "halftone"
+      edge_style: "sharp_eroded"
+
+    - name: "typography_system"
+      description: "Bold typography, editorial design, typographic structures"
+      images:
+        - "styles/ref_02_typography.jpg"
+      mood_keywords: ["type", "text", "typography", "message", "statement", "words", "letterform"]
+      form_mode: "typographic"
+      texture_mode: "photocopy"
+      edge_style: "sharp"
+
+    - name: "organic_texture"
+      description: "Organic gestural forms, growth patterns, biological abstraction"
+      images:
+        - "styles/ref_03_organic.jpg"
+      mood_keywords: ["organic", "growth", "nature", "texture", "flow", "biological"]
+      form_mode: "gestural"
+      texture_mode: "risograph + ink_bleed"
+      edge_style: "bleed"
+
+    - name: "modernist_graphic"
+      description: "Bold geometric, flat color blocks, Japanese modernist poster"
+      images:
+        - "styles/ref_04_modernist.jpg"
+      mood_keywords: ["geometric", "modern", "poster", "graphic", "bold", "flat"]
+      form_mode: "geometric"
+      texture_mode: "halftone"
+      edge_style: "sharp"
+
+    - name: "retro_illustration"
+      description: "Vintage illustration, warm palette, botanical/organic forms"
+      images:
+        - "styles/ref_05_retro.jpg"
+      mood_keywords: ["retro", "vintage", "illustration", "warm", "botanical"]
+      form_mode: "geometric + gestural"
+      texture_mode: "paper + risograph"
+      edge_style: "sharp_eroded"
+
+  # Image generation model configuration
+  image_generation:
+    primary_model: "gemini-3-pro-image-preview"
+    fallback_model: "gemini-2.5-flash-image"
+    default_aspect_ratio: "1:1"
+    default_resolution: "2K"
+    max_reference_images: 6
 
 # Platforms
 platforms:
   twitter:
     max_chars: 280
-    hashtags: 3
+    hashtags: 2
   linkedin:
     max_chars: 3000
-    hashtags: 5
+    hashtags: 3
   facebook:
     max_chars: 63206
-    hashtags: 3
-    style: "Community-focused, tech insights"
+    hashtags: 2
+    style: "Tech insights, community"
   instagram:
     max_chars: 2200
     hashtags: 5
@@ -45,19 +198,20 @@ platforms:
   threads:
     max_chars: 500
     hashtags: 2
-    style: "Quick takes, conversation starters"
+    style: "Quick takes"
   youtube:
     title_max_chars: 100
     description_max_chars: 5000
-    style: "Deep dives, future-forward"
+    style: "Deep dives"
 
 # Topics we cover
 topics:
   - "AI and society"
   - "digital transformation"
   - "tech ethics"
-  - "innovation trends"
+  - "innovation"
   - "future of work"
+  - "generative systems"
 
 # Social handles
 handles:
