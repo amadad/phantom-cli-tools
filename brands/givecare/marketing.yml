@@ -1,0 +1,424 @@
+# GiveCare Marketing Configuration
+# Extends: docs/marketing-framework.md
+# Voice source: brands/givecare.yml
+
+brand: givecare
+tagline: "Tools for caregivers, built by caregivers"
+
+# =============================================================================
+# AUDIENCE
+# =============================================================================
+audience:
+  primary:
+    - "Family caregivers (sandwich generation, 35-55)"
+    - "Adult children caring for aging parents"
+    - "Spousal caregivers"
+  secondary:
+    - "Health systems and care coordinators"
+    - "Employers with caregiver benefits"
+    - "Researchers in aging/caregiving"
+
+  # Psychographics
+  state:
+    - "Exhausted but resilient"
+    - "Information-seeking but overwhelmed"
+    - "Isolated, craving community"
+    - "Skeptical of 'self-care' messaging"
+
+  # Where they are
+  platforms:
+    primary: ["linkedin", "twitter"]
+    secondary: ["facebook", "instagram"]
+    emerging: ["threads"]
+
+  # When they're online
+  timing:
+    peak_hours: ["6-8am", "9-11pm"]  # Before/after caregiving duties
+    best_days: ["sunday", "monday", "wednesday"]
+    avoid: ["friday_afternoon"]  # Decision fatigue peak
+
+# =============================================================================
+# HEARTBEAT CADENCE (Adapted for caregiver audience)
+# =============================================================================
+cadence:
+  # A) Launch Events - Aligned with caregiving calendar
+  launch_events:
+    frequency: "2x/year"
+    timing:
+      - event: "National Family Caregivers Month"
+        month: "november"
+        type: "launch_week"
+        description: "Major product + research releases"
+      - event: "Caregiver Action Day"
+        month: "april"
+        type: "mini_launch_week"
+        description: "Policy + advocacy focus"
+
+    format:
+      days: 5
+      structure:
+        day_1: "Research/data release (preprint, benchmark)"
+        day_2: "Product feature launch"
+        day_3: "Partnership announcement"
+        day_4: "Community story/interview"
+        day_5: "Open source release or roadmap"
+
+  # B) Mini-Launches
+  mini_launches:
+    frequency: "4-5x/year"
+    triggers:
+      - "New assessment released"
+      - "Partnership signed"
+      - "Research published"
+      - "Major feature shipped"
+      - "Conference speaking"
+    format: "Blog post + social thread + email"
+
+  # C) Changelog
+  changelog:
+    frequency: "1x/month"
+    format: "Email digest + blog post"
+    tone: "Builder shipping updates, not marketing"
+    template: |
+      This month we shipped:
+      - [Feature 1]: [One-line description]
+      - [Feature 2]: [One-line description]
+
+      Coming next: [Preview]
+
+      Try it: [Link]
+
+  # D) Blog
+  blog:
+    frequency: "2x/month"
+    types:
+      research:
+        description: "Preprints, benchmarks, data releases"
+        frequency: "1x/month"
+        cta: "Code + data link"
+      product:
+        description: "Feature deep-dives, how-tos"
+        frequency: "1x/month"
+        cta: "Try it link"
+      philosophy:
+        description: "Approach to caregiving, AI safety, systems thinking"
+        frequency: "1x/quarter"
+        cta: null  # Thought pieces, no hard CTA
+
+  # E) Stories
+  stories:
+    frequency: "1-2x/month"
+    types:
+      caregiver_journey:
+        description: "Longitudinal narrative, real family"
+        format: "Written or video"
+        constraints:
+          - "No martyrdom framing"
+          - "Systems focus, not individual heroism"
+          - "Include what tools/support helped"
+      partner_spotlight:
+        description: "Organizations we work with"
+        format: "Q&A or profile"
+        constraints:
+          - "Lead with their work, not ours"
+          - "Genuine respect, not promotional"
+
+  # F) Social
+  social:
+    frequency: "3-4x/week"  # Lower than Resend—caregivers aren't scrolling constantly
+    planning_horizon: "1 week"
+
+    platforms:
+      linkedin:
+        frequency: "3x/week"
+        best_times: ["7am", "12pm", "8pm"]
+        content_mix:
+          founder_perspective: 40
+          product_updates: 25
+          research_insights: 20
+          community_reposts: 15
+
+      twitter:
+        frequency: "4x/week"
+        best_times: ["7am", "9pm"]
+        content_mix:
+          founder_perspective: 35
+          product_updates: 20
+          research_insights: 25
+          threads: 10
+          community_engagement: 10
+
+      facebook:
+        frequency: "2x/week"
+        content_mix:
+          community_focused: 50
+          product_updates: 30
+          stories: 20
+
+      instagram:
+        frequency: "2x/week"
+        content_mix:
+          visual_first: 60
+          stories: 25
+          reels: 15
+        constraints:
+          - "Bold visuals from brand system"
+          - "No stock photography"
+          - "Minimal text overlay"
+
+# =============================================================================
+# CONTENT TYPES (Brand-Specific)
+# =============================================================================
+content_types:
+  # Announcement format
+  announcement:
+    structure: |
+      Opening line stating what's released
+
+      Feature 1: description
+      Feature 2: description
+
+      Our goal: [specific outcome]
+
+      Link to thing
+      Link to code/docs
+    constraints:
+      - "Lead with the thing, not the journey"
+      - "Include working link"
+      - "Mention real features, not vague benefits"
+
+  # Weekly update format
+  weekly_update:
+    structure: |
+      Observation or theme connecting the week
+
+      This week:
+      - Thing 1
+      - Thing 2
+      - Thing 3
+
+      If you're [relevant]—DM me.
+    constraints:
+      - "Specific activities, not vague plans"
+      - "Include at least one event or meeting"
+      - "End with invitation, not demand"
+
+  # Event promotion
+  event:
+    structure: |
+      Bold claim or framing statement
+
+      [Name], founder of GiveCare, will [speak/attend] at [Event]
+
+      Talk title: [Title]
+      Date/time/location details
+
+      Apply/register link
+
+      More context about the event or talk
+    constraints:
+      - "Lead with insight, not announcement"
+      - "Include specific date/time"
+      - "Working registration link"
+
+  # Thought post (uses writing_system from brand.yml)
+  thought:
+    use_writing_system: true
+    structure: "See brands/givecare.yml writing_system"
+    constraints:
+      - "NO call to action"
+      - "Stop after observation"
+      - "Include 1-2 human markers"
+      - "Use operational language (load, not burnout)"
+
+  # Partnership
+  partnership:
+    structure: |
+      What [Partner] does (1-2 sentences crediting their work)
+
+      We're partnering/collaborating to [specific goal]
+
+      [Optional: why this matters]
+    constraints:
+      - "Partner first, us second"
+      - "Genuine respect for their work"
+      - "Specific collaboration goal"
+
+# =============================================================================
+# EMAIL
+# =============================================================================
+email:
+  newsletter:
+    frequency: "monthly"
+    name: "The Caregiver's Toolkit"
+    segments:
+      active_users: "Product updates, tips"
+      researchers: "Preprints, benchmarks, data"
+      health_systems: "Enterprise features, case studies"
+
+    template:
+      subject_line_patterns:
+        - "This month: [feature] + [resource]"
+        - "[Number] updates from GiveCare"
+        - "New: [specific thing]"
+
+      sections:
+        - "What we shipped"
+        - "What we learned"
+        - "What's coming"
+        - "One resource worth reading"
+
+    constraints:
+      - "No guilt-based subject lines"
+      - "No 'You haven't visited us lately'"
+      - "Respect the inbox"
+
+  transactional:
+    welcome:
+      subject: "Your GiveCare assessment is ready"
+      tone: "Warm, direct, immediately useful"
+
+    weekly_check_in:
+      subject: "Quick check-in"
+      tone: "Brief, non-intrusive, optional"
+
+# =============================================================================
+# VIDEO
+# =============================================================================
+video:
+  frequency: "2-4x/month"
+
+  types:
+    subject_education:
+      frequency: "1x/month"
+      topics:
+        - "Understanding caregiver burnout (operationally)"
+        - "How care systems fail families"
+        - "AI safety in longitudinal caregiving"
+      format: "4-7 min explainer"
+      platform: "youtube"
+
+    product_education:
+      frequency: "1x/month"
+      topics:
+        - "How to use GiveCare assessments"
+        - "Setting up SMS check-ins"
+        - "Reading your caregiver load report"
+      format: "2-4 min tutorial"
+      platform: "youtube + linkedin"
+
+    culture:
+      frequency: "1-2x/month"
+      topics:
+        - "Founder updates (what we're building)"
+        - "Caregiver interviews"
+        - "Death cafe conversations"
+        - "Conference talks (recorded)"
+      format: "Variable (2-20 min)"
+      platform: "youtube + twitter clips"
+
+  constraints:
+    - "Quality over quantity"
+    - "120 views from caregivers > 20k from random"
+    - "No toxic positivity"
+    - "Real people, real situations"
+
+# =============================================================================
+# VOICE CONSTRAINTS (Specific to GiveCare)
+# =============================================================================
+voice:
+  # Reference brands/givecare.yml for full voice system
+  source: "brands/givecare.yml"
+
+  summary:
+    do:
+      - "Write as founder/builder shipping tools"
+      - "Be specific (mention real features, events, data)"
+      - "Acknowledge struggle before offering help"
+      - "End with action (link, DM, question)"
+      - "Use operational language"
+
+    dont:
+      - "Generic wellness influencer tone"
+      - "Empty affirmations"
+      - "Dramatic one-word lines"
+      - "Toxic positivity"
+      - "Guilt-based messaging"
+
+  banned_phrases:
+    - "You're allowed to"
+    - "It's okay to"
+    - "Your peace matters"
+    - "You can't pour from an empty cup"
+    - "Self-care isn't selfish"
+    - "Give yourself grace"
+    - "You deserve"
+    - "You matter"
+    - "You got this"
+
+# =============================================================================
+# METRICS
+# =============================================================================
+metrics:
+  # What we track
+  meaningful:
+    - "Assessment completions"
+    - "SMS engagement rate"
+    - "Caregiver-to-caregiver referrals"
+    - "Newsletter open rate by segment"
+    - "Content-to-signup path"
+    - "LinkedIn engagement from health systems"
+
+  # What we ignore
+  vanity:
+    - "Raw follower count"
+    - "Impressions without context"
+    - "Shares from outside ICP"
+    - "Video views without retention data"
+
+# =============================================================================
+# CALENDAR INTEGRATION
+# =============================================================================
+calendar:
+  # Industry moments to leverage
+  moments:
+    - name: "National Family Caregivers Month"
+      month: 11
+      priority: "highest"
+      content: "Launch week, research release"
+
+    - name: "Caregiver Action Day"
+      month: 4
+      priority: "high"
+      content: "Policy content, advocacy"
+
+    - name: "World Alzheimer's Day"
+      date: "09-21"
+      priority: "medium"
+      content: "Dementia caregiver focus"
+
+    - name: "Mental Health Awareness Month"
+      month: 5
+      priority: "medium"
+      content: "Caregiver mental health angle"
+
+    - name: "Mother's Day / Father's Day"
+      dates: ["may-second-sunday", "june-third-sunday"]
+      priority: "medium"
+      content: "Intergenerational caregiving"
+      constraints:
+        - "Not sappy"
+        - "Acknowledge complexity"
+
+  # Conference circuit
+  conferences:
+    - name: "AgeTech Connect Summit"
+      typical_month: "november"
+      priority: "high"
+
+    - name: "HITLAB Summit"
+      typical_month: "december"
+      priority: "high"
+
+    - name: "FamTech events"
+      priority: "medium"

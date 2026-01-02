@@ -1,0 +1,481 @@
+# SCTY Marketing Configuration
+# Extends: docs/marketing-framework.md
+# Voice source: brands/scty.yml
+
+brand: scty
+tagline: "Technology meets society"
+
+# =============================================================================
+# AUDIENCE
+# =============================================================================
+audience:
+  primary:
+    - "Tech founders and builders"
+    - "Product leaders at growth-stage companies"
+    - "AI/ML practitioners thinking about impact"
+  secondary:
+    - "Tech investors (ethical/impact focus)"
+    - "Policy makers in tech regulation"
+    - "Researchers in tech ethics, HCI, AI safety"
+  tertiary:
+    - "Designers working on AI products"
+    - "Journalists covering tech/society"
+
+  # Psychographics
+  state:
+    - "Intellectually curious, time-constrained"
+    - "Skeptical of hype, drawn to substance"
+    - "Building fast, questioning impact"
+    - "Seeking frameworks, not platitudes"
+
+  # Where they are
+  platforms:
+    primary: ["twitter", "linkedin"]
+    secondary: ["threads"]
+    emerging: ["bluesky"]
+    deprioritized: ["facebook", "instagram"]  # Visual platform, but audience isn't there
+
+  # When they're online
+  timing:
+    peak_hours: ["7-9am", "12-1pm", "6-8pm"]
+    best_days: ["tuesday", "wednesday", "thursday"]
+    news_responsive: true  # Jump on breaking tech news
+
+# =============================================================================
+# HEARTBEAT CADENCE (Tech audience rhythm)
+# =============================================================================
+cadence:
+  # A) Launch Events - Aligned with tech calendar
+  launch_events:
+    frequency: "2-3x/year"
+    timing:
+      - event: "Major product/research drop"
+        timing: "Avoid major tech conferences (gets buried)"
+        type: "launch_week"
+      - event: "End of year retrospective"
+        month: "december"
+        type: "essay_series"
+
+    format:
+      days: 5
+      structure:
+        day_1: "Big announcement / thesis"
+        day_2: "Technical deep-dive"
+        day_3: "Framework or methodology"
+        day_4: "Case study or application"
+        day_5: "Open source / tools release"
+
+  # B) Mini-Launches
+  mini_launches:
+    frequency: "5-6x/year"
+    triggers:
+      - "Essay published"
+      - "Framework released"
+      - "Tool shipped"
+      - "Conference talk"
+      - "Podcast appearance"
+      - "Major collaboration"
+    format: "Thread + blog + newsletter mention"
+
+  # C) Changelog
+  changelog:
+    frequency: "2x/month"
+    format: "Thread or short blog"
+    tone: "Building in public, no fluff"
+    template: |
+      What we shipped:
+      - [Thing 1]
+      - [Thing 2]
+
+      What we're thinking about:
+      - [Question or problem]
+
+      What's next:
+      - [Preview]
+
+  # D) Blog
+  blog:
+    frequency: "2-3x/month"
+    types:
+      essays:
+        description: "Long-form thinking on tech/society"
+        frequency: "1-2x/month"
+        length: "1500-3000 words"
+        cta: null  # Thought pieces stand alone
+
+      frameworks:
+        description: "Mental models, decision frameworks"
+        frequency: "1x/month"
+        length: "800-1500 words"
+        cta: "Apply it / try it"
+
+      case_studies:
+        description: "Applied examples of principles"
+        frequency: "1x/quarter"
+        cta: "Work with us"
+
+      contrarian:
+        description: "Challenge conventional tech wisdom"
+        frequency: "1x/quarter"
+        constraints:
+          - "Must have substance, not just hot takes"
+          - "Acknowledge counterarguments"
+          - "Propose alternative, don't just criticize"
+
+  # E) Stories
+  stories:
+    frequency: "1x/month"
+    types:
+      transformation_narrative:
+        description: "How an org changed their approach"
+        format: "Written case study"
+        constraints:
+          - "Systems focus, not hero worship"
+          - "Include failures and learnings"
+          - "Specific outcomes, not vague impact"
+
+      builder_spotlight:
+        description: "People doing interesting work"
+        format: "Interview or profile"
+        constraints:
+          - "Their work, not ours"
+          - "Technical depth appreciated"
+
+  # F) Social
+  social:
+    frequency: "daily"  # Tech audience expects high frequency
+    planning_horizon: "1 week base, reactive layer on top"
+    reactive_capacity: "30%"  # Reserve for breaking news, discourse
+
+    platforms:
+      twitter:
+        frequency: "1-2x/day"
+        best_times: ["8am", "12pm", "6pm"]
+        content_mix:
+          original_thinking: 40
+          commentary_on_news: 25
+          threads: 15
+          engagement_with_others: 15
+          promotion: 5
+        thread_frequency: "2x/week"
+
+      linkedin:
+        frequency: "4-5x/week"
+        best_times: ["7am", "12pm"]
+        content_mix:
+          essays_and_insights: 45
+          frameworks: 25
+          commentary: 20
+          company_updates: 10
+        constraints:
+          - "More professional framing"
+          - "Less shitposting"
+          - "Same substance, different wrapper"
+
+      threads:
+        frequency: "3x/week"
+        content_mix:
+          quick_takes: 50
+          cross_posts: 30
+          engagement: 20
+        constraints:
+          - "More casual than Twitter"
+          - "Shorter posts"
+
+# =============================================================================
+# CONTENT TYPES (Brand-Specific)
+# =============================================================================
+content_types:
+  # Thesis post
+  thesis:
+    structure: |
+      Provocative opening claim
+
+      Why the conventional view is wrong/incomplete
+
+      The actual dynamic at play
+
+      Implications
+
+      [Optional: What to do about it]
+    constraints:
+      - "Lead with insight, not context"
+      - "One core idea per post"
+      - "Specific examples, not abstractions"
+
+  # Framework post
+  framework:
+    structure: |
+      Problem statement (what people get wrong)
+
+      The framework:
+      - Dimension 1
+      - Dimension 2
+      - Dimension 3
+
+      How to apply it
+
+      [Link to longer piece if exists]
+    constraints:
+      - "Actionable, not academic"
+      - "Visual if possible (2x2, spectrum, etc.)"
+
+  # Commentary (reactive)
+  commentary:
+    structure: |
+      [Quote or reference to news/discourse]
+
+      What this actually means
+
+      The bigger pattern
+
+      [Optional: prediction or implication]
+    constraints:
+      - "Add insight, don't just amplify"
+      - "Respect the original, even when disagreeing"
+      - "Avoid pile-ons"
+
+  # Thread
+  thread:
+    structure: |
+      Hook (provocative or surprising)
+
+      Context (brief)
+
+      Core content (3-7 tweets)
+
+      Landing (synthesis or CTA)
+    constraints:
+      - "Each tweet must standalone"
+      - "Number tweets for threading"
+      - "End with synthesis, not promo"
+
+  # Announcement
+  announcement:
+    structure: |
+      What we made / did
+
+      Why it matters (one sentence)
+
+      Key details (bullets)
+
+      Link
+    constraints:
+      - "Substance over hype"
+      - "Technical details welcome"
+      - "No "excited to announce""
+
+# =============================================================================
+# EMAIL
+# =============================================================================
+email:
+  newsletter:
+    frequency: "bi-weekly"
+    name: "SCTY Dispatch"
+    segments:
+      general: "Essays, frameworks, commentary"
+      technical: "Deep dives, code, methods"
+      executive: "Summaries, implications"
+
+    template:
+      subject_line_patterns:
+        - "[Topic]: [Provocative angle]"
+        - "The [thing] problem"
+        - "Why [conventional wisdom] is wrong"
+        - "[Number] things about [topic]"
+
+      sections:
+        - "Main essay or insight"
+        - "What we're reading"
+        - "What we shipped"
+        - "[Optional] Upcoming"
+
+    constraints:
+      - "No "hope you're doing well""
+      - "Get to the point immediately"
+      - "Substance in the email, not just links"
+
+# =============================================================================
+# VIDEO
+# =============================================================================
+video:
+  frequency: "4-6x/month"
+
+  types:
+    deep_dives:
+      frequency: "2x/month"
+      topics:
+        - "Tech/society intersections"
+        - "Framework explanations"
+        - "Industry analysis"
+      format: "5-15 min"
+      platform: "youtube"
+
+    quick_takes:
+      frequency: "2x/week"
+      topics:
+        - "News commentary"
+        - "Quick frameworks"
+        - "Hot takes with substance"
+      format: "60-90 seconds"
+      platform: "twitter, linkedin, threads"
+
+    conversations:
+      frequency: "2x/month"
+      topics:
+        - "Interviews with builders"
+        - "Debate-style discussions"
+        - "Founder conversations"
+      format: "20-45 min"
+      platform: "youtube, clips to social"
+
+  constraints:
+    - "Substance over production value"
+    - "Technical depth welcome"
+    - "No corporate polish"
+    - "Raw > slick"
+
+# =============================================================================
+# VOICE CONSTRAINTS (Specific to SCTY)
+# =============================================================================
+voice:
+  source: "brands/scty.yml"
+
+  summary:
+    do:
+      - "Speak with authority about technology and society"
+      - "Challenge conventional thinking"
+      - "Balance technical depth with clarity"
+      - "Be direct, no hedging"
+      - "Take positions"
+
+    dont:
+      - "Corporate speak"
+      - "Vague claims"
+      - "Hype without substance"
+      - "Hedging on positions"
+      - "Buzzword soup"
+
+  banned_phrases:
+    - "excited to announce"
+    - "thrilled to share"
+    - "leveraging synergies"
+    - "paradigm shift"
+    - "disruptive innovation"
+    - "thought leadership"  # Don't say it, do it
+    - "best-in-class"
+    - "world-class"
+    - "game-changing"
+    - "revolutionary"
+
+  encouraged_patterns:
+    - "Here's what actually happened:"
+    - "The real question is:"
+    - "This means:"
+    - "What nobody's talking about:"
+    - "The pattern here:"
+
+# =============================================================================
+# METRICS
+# =============================================================================
+metrics:
+  meaningful:
+    - "Essay shares by builders/founders"
+    - "Newsletter replies"
+    - "Thread engagement from ICP"
+    - "Inbound from content"
+    - "Speaking invitations"
+    - "Podcast appearance requests"
+
+  vanity:
+    - "Raw impressions"
+    - "Follower count growth"
+    - "Likes without comments"
+    - "Shares from outside tech"
+
+# =============================================================================
+# CALENDAR INTEGRATION
+# =============================================================================
+calendar:
+  # Industry moments to leverage or avoid
+  moments:
+    leverage:
+      - name: "Major AI announcements (OpenAI, Anthropic, Google)"
+        type: "reactive"
+        response_window: "24 hours"
+        content: "Commentary, implications, contrarian takes"
+
+      - name: "Tech layoffs / industry shifts"
+        type: "reactive"
+        content: "Structural analysis, not hot takes"
+
+      - name: "Policy announcements (AI regulation, antitrust)"
+        type: "reactive"
+        content: "Technical implications, practical impact"
+
+    avoid:
+      - name: "Major product launches (Apple, etc.)"
+        reason: "Gets buried, not our space"
+
+      - name: "Holiday weeks"
+        reason: "Low engagement, save good content"
+
+  # Conference circuit
+  conferences:
+    - name: "NeurIPS / ICML / major AI conferences"
+      priority: "high"
+      content: "Technical commentary, highlights"
+
+    - name: "Tech ethics conferences"
+      priority: "high"
+      content: "Speaking, networking, content"
+
+    - name: "Startup conferences (TC Disrupt, etc.)"
+      priority: "medium"
+      content: "Selective presence"
+
+  # Annual rhythm
+  annual:
+    q1: "Planning content, framework releases"
+    q2: "Building momentum, conference season prep"
+    q3: "Peak conference season, reactive heavy"
+    q4: "Retrospectives, predictions, planning"
+
+# =============================================================================
+# REACTIVE CONTENT PLAYBOOK
+# =============================================================================
+reactive:
+  # When to react
+  triggers:
+    high_priority:
+      - "Major AI model release"
+      - "Tech policy announcement"
+      - "Industry-shaping acquisition"
+      - "Viral discourse in our space"
+
+    medium_priority:
+      - "Interesting startup launch"
+      - "Research paper with implications"
+      - "Notable exec move"
+
+    skip:
+      - "Celebrity tech drama"
+      - "Funding announcements (unless thesis-relevant)"
+      - "Product updates from non-adjacent companies"
+
+  # How to react
+  response_templates:
+    quick_take:
+      timing: "Within 4 hours"
+      format: "1-3 tweets"
+      requirement: "Add insight, don't just summarize"
+
+    analysis:
+      timing: "Within 24 hours"
+      format: "Thread or blog post"
+      requirement: "Framework or pattern identified"
+
+    deep_dive:
+      timing: "Within 1 week"
+      format: "Essay"
+      requirement: "Original research or synthesis"
