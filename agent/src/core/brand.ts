@@ -132,7 +132,7 @@ export function detectFrameType(topic: string): 'announcement' | 'weekly_update'
  * - announcement/event/partnership: Product voice (founder/builder)
  */
 export function buildVoiceContext(brand: BrandProfile, frameType?: string): string {
-  const frames = brand.voice.frames as any
+  const frames = brand.voice.frames
   const frame = frameType && frames ? frames[frameType] : null
 
   // Determine which voice mode to use
@@ -151,7 +151,7 @@ ${brand.voice.rules.map(r => `- ${r}`).join('\n')}`
 
   // Add product-specific rules for announcements/events
   if (isProductVoice) {
-    const productRules = (brand.voice as any).product_rules
+    const productRules = brand.voice.product_rules
     if (productRules) {
       context += `
 
@@ -192,7 +192,7 @@ ${frame.example}`
 
   // Only apply writing_system for "thought" posts
   if (isThoughtVoice) {
-    const ws = brand.voice.writing_system as any
+    const ws = brand.voice.writing_system
     if (ws) {
       context += `
 

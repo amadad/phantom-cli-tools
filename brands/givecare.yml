@@ -435,84 +435,10 @@ visual:
       renewal: "Retro-modern botanical illustration style - growth, bloom, transformation - vintage warmth with contemporary edge"
 
   # =============================================================================
-  # BRAND DESIGN SYSTEM
-  # Three treatments that mix: Illustration, Photo, Typography
-  # Logo placement varies per composition
+  # REFERENCE STYLES
+  # Used by selectReferenceStyle() for mood-based automatic style selection
   # =============================================================================
 
-  design_system:
-    # PRIMARY: Modern editorial illustration
-    illustration:
-      style_description: |
-        MODERN FLAT ILLUSTRATION:
-        - Deep warm background (#1E1B16) or cream (#FDFBF7)
-        - Electric indigo accent (#5046E5) for highlights and focal points
-        - Warm olive-brown (#3D3929) for depth and grounding
-        - Simplified silhouette shapes: vessels, pottery, hands, plants, botanical forms
-        - NO gradients, minimal shading - mostly flat color fills
-        - Contemporary editorial aesthetic with vintage warmth
-        - Clean, intentional composition
-      reference: "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_06_style02.png"
-      use_for: ["nurture", "grow", "cup", "fill", "garden", "harvest", "rest", "self-care"]
-
-    # SECONDARY: Photo with modern treatment
-    photo_treatment:
-      style_description: |
-        MODERN PHOTO TREATMENT:
-        - Apply duotone effect: shadows in deep warm (#1E1B16), highlights in cream (#FDFBF7)
-        - OR: High contrast with electric indigo (#5046E5) accent overlay
-        - Subtle grain texture for editorial feel
-        - Subject: hands, faces in close-up, objects (cups, plants, fabric)
-        - Cropped dramatically - not full body shots
-        - Editorial/fashion photography base with graphic treatment applied
-      reference: "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_01_beauty.jpg"
-      use_for: ["identity", "self", "portrait", "beauty", "face", "body", "skin", "you"]
-
-    # TERTIARY: Bold typography compositions
-    typography:
-      style_description: |
-        EDITORIAL TYPOGRAPHY POSTER:
-        - Deep warm background (#1E1B16) or cream (#FDFBF7)
-        - Mixed serif fonts: elegant + display + decorative
-        - Electric indigo (#5046E5) for key words, cream for body on dark
-        - Decorative elements: asterisks *, arrows →, symbols ™®©
-        - Typography IS the visual - words as graphic design
-        - Modern tech-editorial aesthetic (Arc, Linear vibes)
-        - Message-driven: the words ARE the art
-      reference: "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_02_typography.jpg"
-      use_for: ["boundaries", "permission", "allowed", "say", "no", "yes", "words", "message", "mantra"]
-
-    # Logo placement options
-    logo_positions:
-      - "bottom-right"
-      - "bottom-left"
-      - "top-right"
-      - "integrated"  # woven into the composition
-      - "centered-bottom"
-
-    # Composition types
-    compositions:
-      - type: "illustration_full"
-        description: "Full illustration, logo in corner"
-        weight: 40
-
-      - type: "illustration_with_type"
-        description: "Illustration with bold text overlay"
-        weight: 20
-
-      - type: "photo_duotone"
-        description: "Treated photo with logo"
-        weight: 15
-
-      - type: "photo_with_illustration"
-        description: "Duotone photo with illustration elements overlaid"
-        weight: 10
-
-      - type: "typography_poster"
-        description: "Typography-driven, words as the visual"
-        weight: 15
-
-  # Legacy reference_styles (for backward compatibility)
   reference_styles:
     - name: "editorial_typography"
       description: "Bold typographic poster with mixed serif fonts"

@@ -22,7 +22,8 @@ cd agent && npm install
 npx tsx src/cli.ts intel givecare
 
 # Generate - create content from hooks + theme
-npx tsx src/cli.ts gen givecare "topic"
+npx tsx src/cli.ts gen givecare "topic"       # manual topic
+npx tsx src/cli.ts gen givecare --auto        # uses calendar or hooks
 
 # Post - publish from queue
 npx tsx src/cli.ts post givecare
@@ -219,7 +220,7 @@ LINKEDIN_GIVECARE_ORG_ID=...
 
 `brands/givecare.yml`:
 - `voice` - tone, style, rules, writing_system, avoid_phrases
-- `visual` - palette, style, design_system, reference_styles
+- `visual` - palette, style, reference_styles
 - `platforms` - per-platform settings
 - `guardrails` - pursue, reject, never
 
@@ -227,6 +228,49 @@ LINKEDIN_GIVECARE_ORG_ID=...
 - `frequency` - daily
 - `platforms` - [instagram, threads, linkedin]
 - `themes` - monthly awareness themes
+
+## Template System
+
+Templates render typography-driven images using Satori + Sharp.
+
+| Template | Purpose | Grid |
+|----------|---------|------|
+| `kunz` | Layered typography (Willi Kunz inspired) | A (6-col) + B (5-col) + M (12x12 marks) |
+| `render` | Standard DesignSpec → PNG | Simple vertical stack |
+| `instax-social` | Polaroid aesthetic | Flash photography + bg removal |
+
+### Kunz Grid Reference
+
+```
+A1-A6: Primary 6-column grid (typography alignment)
+B1-B5: Secondary 5-column grid (offset tension)
+M1-M12: Mark grid (12x12 for glyphs/patterns)
+```
+
+### Mark Vocabulary
+
+| Mark | Semantic |
+|------|----------|
+| `*` `†` | Footnote, invisible labor |
+| `+` `×` | Accumulation, growth |
+| `:` `/` `~` | Ratio, transformation |
+| `—` `\|` | Time, duration |
+| `%` `#` | Measurement |
+| `.` `●` `○` | Points, presence |
+
+### Usage
+
+```typescript
+import { renderKunz } from './templates/kunz'
+
+const buffer = await renderKunz({
+  rows: [{ content: "The unsung hours", size: 72, col: "A1" }],
+  marks: [{ glyph: "*", mode: "pattern", col: 9, row: 9, spanCols: 4, spanRows: 4 }],
+  contrast: "loud-quiet",
+  logo: { col: "A1", position: "bottom" },
+  ratio: "1:1"
+})
+```
 
 ## Token Expiration
 

@@ -3,14 +3,18 @@
  *
  * Usage:
  *   gen <brand> "<topic>" [options]
+ *   gen <brand> --auto [options]
  *
  * Options:
+ *   --auto           Use calendar theme or hooks to pick topic
  *   --no-image       Generate copy only, skip image
  *   --save-image     Save image to output/ directory
  */
 
 import { join } from 'path'
 import { generateContent } from '../core/generate'
+import { getMonthlyTheme } from '../core/calendar'
+import { getNextHook, markHookUsed } from '../intelligence/hook-bank'
 
 export interface GenOptions {
   brand: string
@@ -87,8 +91,27 @@ export async function run(args: string[]): Promise<void> {
     topic = quotedMatch[1]
   }
 
+  // Handle --auto: use calendar theme or hooks
+  if (args.includes('--auto') && !topic) {
+    // 1. Try calendar theme
+    const theme = getMonthlyTheme(brand)
+    if (theme) {
+      topic = theme
+      console.log(`[auto] Using calendar theme: ${theme}`)
+    } else {
+      // 2. Fall back to hooks
+      const hook = getNextHook(brand)
+      if (hook) {
+        topic = hook.pattern
+        markHookUsed(brand, hook.id)
+        console.log(`[auto] Using hook: ${hook.pattern.slice(0, 50)}...`)
+      }
+    }
+  }
+
   if (!topic) {
     console.error('Usage: gen <brand> "<topic>" [--no-image] [--save-image]')
+    console.error('       gen <brand> --auto [--no-image] [--save-image]')
     console.error('Example: gen givecare "caregiving burnout"')
     process.exit(1)
   }

@@ -11,9 +11,8 @@
  *   --dry-run                      Show what would be posted
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs'
-import { join } from 'path'
 import { postToAll, getAvailablePlatforms } from '../social'
+import { loadQueue, saveQueue, getQueueItem } from '../queue'
 import type { Platform, Brand, QueueItem } from '../core/types'
 
 export interface PostOptions {
@@ -22,25 +21,6 @@ export interface PostOptions {
   all?: boolean
   queueId?: string
   dryRun?: boolean
-}
-
-/**
- * Load queue
- */
-function loadQueue(): QueueItem[] {
-  const queuePath = join(process.cwd(), '..', 'output', 'queue', 'queue.json')
-  if (!existsSync(queuePath)) {
-    return []
-  }
-  return JSON.parse(readFileSync(queuePath, 'utf-8'))
-}
-
-/**
- * Save queue
- */
-function saveQueue(queue: QueueItem[]): void {
-  const queuePath = join(process.cwd(), '..', 'output', 'queue', 'queue.json')
-  writeFileSync(queuePath, JSON.stringify(queue, null, 2))
 }
 
 /**

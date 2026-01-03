@@ -66,6 +66,19 @@ export interface WritingSystem {
   }
 }
 
+/**
+ * Content frame definition for different post types
+ */
+export interface ContentFrame {
+  description: string
+  structure: string
+  example?: string
+  example_2?: string
+  example_3?: string
+  use_brand_voice?: boolean
+  use_writing_system?: boolean
+}
+
 export interface BrandProfile {
   name: string
   url: string
@@ -73,8 +86,10 @@ export interface BrandProfile {
     tone: string
     style: string
     rules: string[]
+    product_rules?: string[]
     writing_system?: WritingSystem
     avoid_phrases?: string[]
+    frames?: Record<string, ContentFrame>
   }
   visual: {
     palette: {

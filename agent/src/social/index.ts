@@ -32,8 +32,8 @@ export async function postToPlatform(
   try {
     switch (platform) {
       case 'twitter': {
-        const { postTweet } = await import('./twitter-direct')
-        return postTweet(brand, text, imageUrl)
+        const { postToTwitter } = await import('./twitter-direct')
+        return postToTwitter(brand, text, imageUrl)
       }
 
       case 'linkedin': {

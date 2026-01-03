@@ -214,6 +214,25 @@ export function getHookForTopic(
   )
 }
 
+/**
+ * Get the next best hook to use (highest value, least used)
+ * Used when no specific topic is provided
+ */
+export function getNextHook(brand: string): HookPattern | null {
+  const hooks = findHooks(brand, { minMultiplier: 10, limit: 10 })
+
+  if (hooks.length === 0) {
+    return null
+  }
+
+  // Score by value/usage ratio
+  return hooks.reduce((best, h) => {
+    const bestScore = best.viralMultiplier / (best.usedCount + 1)
+    const hScore = h.viralMultiplier / (h.usedCount + 1)
+    return hScore > bestScore ? h : best
+  })
+}
+
 // CLI
 async function main() {
   const args = process.argv.slice(2)
