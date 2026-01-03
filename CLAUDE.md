@@ -84,6 +84,115 @@ Queue is FIFO. Seeded posts before generated.
 | Threads | Threads API | Text + Images |
 | YouTube | Google OAuth | Videos/Shorts |
 
+## Content Formats
+
+Four post format types:
+
+| Format | Description |
+|--------|-------------|
+| `image` | Static singular — 1 image |
+| `carousel` | Static slideshow — multiple images |
+| `video` | Animated singular — 1 video/motion graphic |
+| `video-carousel` | Animated slideshow — multiple videos or mixed |
+
+### Format Support Matrix
+
+| Format | IG | FB | LI | X | Threads | TikTok | YT Shorts |
+|--------|:--:|:--:|:--:|:-:|:-------:|:------:|:---------:|
+| image | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| carousel | ✅ | ✅ | ✅ | ⚠️ | ✅ | ✅ | ❌ |
+| video | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| video-carousel | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ |
+
+### Carousel Limits
+
+| Platform | Max Slides | Notes |
+|----------|:----------:|-------|
+| Instagram | 20 | Images + videos mixed |
+| Facebook | 10 | Images + videos mixed |
+| LinkedIn | 10 | PDF document carousel only |
+| Twitter/X | 4 | Images only, no swipe UI |
+| Threads | 20 | Images + videos mixed |
+| TikTok | 35 | Images only |
+
+### Image Specs
+
+| Platform | Square | Portrait | Landscape |
+|----------|--------|----------|-----------|
+| Instagram | 1080×1080 | 1080×1350 (4:5) | 1080×566 |
+| Facebook | 1080×1080 | 1080×1350 | 1200×630 |
+| LinkedIn | 1080×1080 | 1080×1350 | 1200×628 (1.91:1) |
+| Twitter/X | 1080×1080 | 1080×1350 | 1200×675 (16:9) |
+| Threads | 1080×1080 | 1080×1920 (9:16) | — |
+| TikTok | 1080×1080 | 1080×1920 (9:16) | — |
+
+### Video Specs
+
+| Platform | Format | Max Size | Max Length | Recommended |
+|----------|--------|:--------:|:----------:|-------------|
+| Instagram Reels | MP4/MOV | 4GB | 90s | 1080×1920, 30fps |
+| Instagram Feed | MP4/MOV | 4GB | 60s | 1080×1350, 30fps |
+| Facebook | MP4/MOV | 4GB | 240min | 1080×1920, 30fps |
+| LinkedIn | MP4/MOV | 200MB | 30min | 1920×1080, 30fps |
+| Twitter/X | MP4/MOV | 512MB | 140s | 1280×720, 30fps |
+| Threads | MP4 | — | 5min | 1080×1920, 30fps |
+| TikTok | MP4/MOV | 4GB | 10min | 1080×1920, 30fps |
+| YouTube Shorts | MP4 | — | 60s | 1080×1920, 30fps |
+
+### GIF Support
+
+| Platform | Native GIF | Recommendation |
+|----------|:----------:|----------------|
+| Instagram | ❌ | Export as MP4 |
+| Facebook | ✅ | Native or MP4 |
+| LinkedIn | ✅ | Native or MP4 |
+| Twitter/X | ✅ | Converts to MP4 |
+| Threads | ❌ | Export as MP4 |
+| TikTok | ❌ | Export as MP4 |
+
+**Best practice**: Export all animations as MP4 (H.264) for universal support. 85% of users watch without sound — text-based motion graphics ideal.
+
+## Video Generation Pricing
+
+Using Replicate API with Kling 2.5 Turbo Pro (recommended).
+
+### Per-Video Cost
+
+| Duration | Cost | Notes |
+|----------|------|-------|
+| 5s | $0.35 | $0.07/sec |
+| 10s | $0.70 | Max duration |
+
+### Cost Per Post (All Channels)
+
+| Strategy | Videos | Cost |
+|----------|--------|------|
+| One size, crop/letterbox | 1 | $0.35 |
+| One per aspect ratio | 3 | **$1.05** |
+| One per platform | 7 | $2.45 |
+
+**Recommended**: 3 videos per post ($1.05)
+- 1:1 → Instagram Feed, Facebook, Threads
+- 9:16 → Instagram Reels, TikTok, YouTube Shorts
+- 16:9 → Twitter/X, LinkedIn
+
+### Model Comparison (Replicate)
+
+| Model | Cost/sec | 5s Cost | Quality |
+|-------|----------|---------|---------|
+| Kling 2.5 Turbo Pro | $0.07 | $0.35 | Best |
+| Hailuo 02 | $0.054 | $0.27 | Good |
+| WAN 2.2 | $0.03 | $0.15 | Budget |
+
+### Budget Calculator
+
+| Budget | Posts (3 videos) | Posts (1 video) |
+|--------|------------------|-----------------|
+| $10 | 9 | 28 |
+| $50 | 47 | 142 |
+| $100 | 95 | 285 |
+| $127 | 121 | 363 |
+
 ## Environment Variables
 
 ```bash

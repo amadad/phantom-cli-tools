@@ -25,6 +25,9 @@ output/content/*
 output/queue/*
 output/state/*
 output/intel/*
+output/test/*
+output/generated/*
+output/videos/*
 
 # Convex generated
 convex/_generated/
