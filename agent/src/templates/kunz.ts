@@ -71,11 +71,34 @@ function resolveMarkPos(col: MarkGridRef, row: MarkGridRef, width: number, heigh
   };
 }
 
-// Typographic marks as graphic devices - data-viz aesthetic
+// Typographic marks as graphic devices - concrete poetry vocabulary
 type TypographicMark =
-  | "*" | "+" | ":" | "—" | "." | "(" | ")" | "[" | "]"
-  // Data characters
-  | "0" | "1" | "%" | "#" | "/" | "|" | ">" | "<";
+  // Footnote/invisible labor
+  | "*"      // asterisk — the fine print, overlooked labor
+  | "†"      // dagger — second footnote, deeper invisible
+  // Accumulation/growth
+  | "+"      // plus — positive feedback, adding up
+  | "×"      // multiply — compounding effect
+  // Ratio/transformation
+  | ":"      // colon — ratio, before:after
+  | "/"      // slash — division, fraction
+  | "~"      // tilde — approximate, unmeasured
+  // Time/duration
+  | "—"      // em dash — pause, breath
+  | "|"      // pipe — timeline, sequence
+  // Measurement/quantification
+  | "%"      // percent — making visible
+  | "#"      // hash — data structure, tagging
+  // Points/presence
+  | "."      // period — data point, minimal
+  | "·"      // middle dot — softer presence
+  | "○"      // empty circle — potential, unfilled
+  | "●"      // filled circle — complete, recognized
+  // Structure/containment
+  | "[" | "]"  // brackets — capture, framing
+  | "(" | ")"  // parens — aside, qualifier
+  // Flow/direction
+  | ">" | "<"; // arrows — input, output
 
 // Mark modes: how the mark appears
 type MarkMode =
@@ -383,12 +406,14 @@ export async function renderKunz(spec: KunzSpec): Promise<Buffer> {
  * - story: narrative arc, testimony, lived experience
  *
  * Mark semantics (form = content):
- * - 0→1 gradient: noise becoming signal (transformation)
+ * - * asterisk: footnote, the overlooked, invisible labor
+ * - ○→● circles: empty→full, potential→recognized
  * - [ ] brackets: containment, capture, framing experience
- * - > arrows: flow, direction, output (data pipeline)
+ * - > arrows: flow, direction, output
  * - | pipes: timeline, sequence, duration
  * - % : measurement, quantification, making visible
- * - # : data structure, hash/ID, digital identity
+ * - + : positive feedback, accumulation, growth
+ * - ~ : approximate, unmeasured, estimated
  */
 export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
   // ═══════════════════════════════════════════════════════════════════
@@ -397,23 +422,22 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
   // ═══════════════════════════════════════════════════════════════════
   {
     name: "transform-emerge",
-    // 0s fade left (invisible) → 1s solidify right (visible)
-    // Data literally emerging from noise - the GiveCare mission as visual
+    // Asterisks (footnotes/invisible) → filled circles (visible/recognized)
+    // The overlooked becoming seen - GiveCare mission as visual
     spec: {
       rows: [
         { content: "The invisible", size: 48, col: "A1", marginTop: 300 },
         { content: "made visible.", size: 72, col: "B2", marginTop: 12 },
       ],
       marks: [
-        // LEFT: faint 0s (invisible, noise, unseen labor)
-        { glyph: "0", mode: "pattern", col: 1, row: 1, spanCols: 4, spanRows: 6, size: 28, opacity: 0.15 },
-        { glyph: "0", mode: "scatter", col: 1, row: 7, spanCols: 4, spanRows: 4, size: 24, opacity: 0.12 },
-        // CENTER: transitional zone (mixing)
-        { glyph: "1", mode: "scatter", col: 5, row: 2, spanCols: 3, spanRows: 8, size: 26, opacity: 0.25 },
-        { glyph: "0", mode: "scatter", col: 5, row: 4, spanCols: 3, spanRows: 6, size: 22, opacity: 0.2 },
-        // RIGHT: bold 1s (visible, signal, recognized)
-        { glyph: "1", mode: "pattern", col: 8, row: 1, spanCols: 5, spanRows: 5, size: 32, opacity: 0.5 },
-        { glyph: "1", mode: "pattern", col: 9, row: 6, spanCols: 4, spanRows: 5, size: 28, opacity: 0.45 },
+        // LEFT: asterisks (invisible labor, footnotes nobody reads)
+        { glyph: "*", mode: "pattern", col: 1, row: 1, spanCols: 4, spanRows: 5, size: 28, opacity: 0.2 },
+        { glyph: "*", mode: "scatter", col: 1, row: 6, spanCols: 4, spanRows: 5, size: 24, opacity: 0.15 },
+        // CENTER: transitional (tildes = approximate, unmeasured)
+        { glyph: "~", mode: "scatter", col: 5, row: 2, spanCols: 3, spanRows: 8, size: 26, opacity: 0.25 },
+        // RIGHT: filled circles (visible, recognized, complete)
+        { glyph: "●", mode: "pattern", col: 8, row: 1, spanCols: 5, spanRows: 5, size: 20, opacity: 0.5 },
+        { glyph: "●", mode: "pattern", col: 9, row: 6, spanCols: 4, spanRows: 5, size: 16, opacity: 0.45 },
         // Output arrow: transformation complete
         { glyph: ">", mode: "singular", col: 11, row: 11, size: 48, opacity: 0.4 },
       ],
@@ -424,7 +448,7 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
   },
   {
     name: "transform-hours",
-    // Hours accumulating → becoming data → becoming recognition
+    // Hours accumulating → becoming measured → becoming recognized
     // Pipes show timeline, % shows measurement, > shows output
     spec: {
       rows: [
@@ -466,10 +490,10 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
         // Large brackets framing emptiness (answer space)
         { glyph: "[", mode: "singular", col: 1, row: 1, size: 320, opacity: 0.2 },
         { glyph: "]", mode: "singular", col: 10, row: 1, size: 320, opacity: 0.2 },
-        // Scattered data waiting to be revealed
-        { glyph: "1", mode: "scatter", col: 3, row: 4, spanCols: 6, spanRows: 3, size: 20, opacity: 0.15 },
-        { glyph: "0", mode: "scatter", col: 4, row: 7, spanCols: 5, spanRows: 3, size: 18, opacity: 0.12 },
-        // Question mark formed by colons (uncertainty)
+        // Empty circles waiting to be filled (potential answers)
+        { glyph: "○", mode: "scatter", col: 3, row: 4, spanCols: 6, spanRows: 3, size: 18, opacity: 0.2 },
+        { glyph: "○", mode: "scatter", col: 4, row: 7, spanCols: 5, spanRows: 3, size: 16, opacity: 0.15 },
+        // Colons at edge (uncertainty, waiting)
         { glyph: ":", mode: "pattern", col: 11, row: 8, spanCols: 2, spanRows: 4, size: 28, opacity: 0.35 },
       ],
       contrast: "quiet-loud",
@@ -489,11 +513,11 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
       ],
       marks: [
         // Empty center - the rest that isn't happening
-        // Only sparse marks at edges (constant activity)
+        // Only sparse marks at edges (constant activity, no pause)
         { glyph: "|", mode: "pattern", col: 10, row: 1, spanCols: 3, spanRows: 4, size: 20, opacity: 0.25 },
         { glyph: "|", mode: "pattern", col: 11, row: 5, spanCols: 2, spanRows: 3, size: 18, opacity: 0.2 },
-        // Faint data at bottom (always working)
-        { glyph: "0", mode: "scatter", col: 8, row: 9, spanCols: 5, spanRows: 4, size: 16, opacity: 0.15 },
+        // Faint dashes at bottom (pauses that don't happen)
+        { glyph: "—", mode: "scatter", col: 8, row: 9, spanCols: 5, spanRows: 4, size: 16, opacity: 0.15 },
       ],
       contrast: "loud-quiet",
       logo: { col: "B4", position: "bottom" },
@@ -507,8 +531,8 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
   // ═══════════════════════════════════════════════════════════════════
   {
     name: "stat-coalesce",
-    // Binary noise coalescing INTO the statistic
-    // Raw data → meaningful number (the analytics promise)
+    // Dots coalescing INTO the statistic
+    // Scattered points → meaningful number
     spec: {
       rows: [
         { content: "53", size: 280, col: "A1", marginTop: 80 },
@@ -516,14 +540,14 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
         { content: "caregivers", size: 40, col: "A4", marginTop: 40 },
       ],
       marks: [
-        // Binary FLOWING TOWARD the number (data becoming statistic)
-        { glyph: "1", mode: "pattern", col: 7, row: 1, spanCols: 6, spanRows: 3, size: 24, opacity: 0.5 },
-        { glyph: "0", mode: "pattern", col: 8, row: 4, spanCols: 5, spanRows: 3, size: 22, opacity: 0.4 },
-        { glyph: "1", mode: "scatter", col: 9, row: 7, spanCols: 4, spanRows: 3, size: 20, opacity: 0.35 },
+        // Dots FLOWING TOWARD the number (points becoming statistic)
+        { glyph: "·", mode: "pattern", col: 7, row: 1, spanCols: 6, spanRows: 3, size: 24, opacity: 0.5 },
+        { glyph: "·", mode: "pattern", col: 8, row: 4, spanCols: 5, spanRows: 3, size: 20, opacity: 0.4 },
+        { glyph: "·", mode: "scatter", col: 9, row: 7, spanCols: 4, spanRows: 3, size: 18, opacity: 0.35 },
         // Arrows pointing toward the stat
         { glyph: ">", mode: "singular", col: 6, row: 3, size: 40, opacity: 0.3 },
         { glyph: ">", mode: "singular", col: 7, row: 5, size: 36, opacity: 0.25 },
-        // Hash marks (counting, tallying)
+        // Hash marks at bottom (counting, tallying)
         { glyph: "#", mode: "pattern", col: 1, row: 9, spanCols: 4, spanRows: 3, size: 28, opacity: 0.35 },
       ],
       contrast: "balanced",
@@ -534,7 +558,7 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
   {
     name: "stat-fraction",
     // "1 in 5" - fractions as truth
-    // Slash marks creating division, ratio
+    // Colons and slashes as ratio marks
     spec: {
       rows: [
         { content: "1 in 5", size: 140, col: "A1", marginTop: 80 },
@@ -544,10 +568,10 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
       marks: [
         // Colons as ratio marks (the fraction concept)
         { glyph: ":", mode: "pattern", col: 8, row: 1, spanCols: 5, spanRows: 3, size: 36, opacity: 0.45 },
-        // Percentages (measurement)
-        { glyph: "%", mode: "pattern", col: 9, row: 5, spanCols: 4, spanRows: 3, size: 28, opacity: 0.4 },
-        // 1s representing the "1" being counted
-        { glyph: "1", mode: "scatter", col: 1, row: 8, spanCols: 6, spanRows: 4, size: 24, opacity: 0.3 },
+        // Slashes (division, fraction)
+        { glyph: "/", mode: "pattern", col: 9, row: 5, spanCols: 4, spanRows: 3, size: 28, opacity: 0.4 },
+        // Dots at bottom (the individuals being counted)
+        { glyph: "·", mode: "scatter", col: 1, row: 8, spanCols: 6, spanRows: 4, size: 20, opacity: 0.3 },
         // Brackets containing the measured experience
         { glyph: "[", mode: "singular", col: 7, row: 9, size: 120, opacity: 0.2 },
         { glyph: "]", mode: "singular", col: 11, row: 9, size: 120, opacity: 0.2 },
@@ -564,8 +588,8 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
   // ═══════════════════════════════════════════════════════════════════
   {
     name: "story-capture",
-    // Quote captured in data brackets
-    // Raw testimony being recorded, witnessed, validated
+    // Quote captured in brackets
+    // Raw testimony being witnessed, validated
     spec: {
       rows: [
         { content: '"I forgot', size: 56, col: "A1", marginTop: 140 },
@@ -577,9 +601,9 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
         // Large brackets CAPTURING the testimony (witnessing)
         { glyph: "[", mode: "singular", col: 1, row: 2, size: 200, opacity: 0.25 },
         { glyph: "]", mode: "singular", col: 7, row: 5, size: 200, opacity: 0.25 },
-        // Binary stream recording the words
-        { glyph: "1", mode: "pattern", col: 8, row: 2, spanCols: 5, spanRows: 4, size: 20, opacity: 0.4 },
-        { glyph: "0", mode: "pattern", col: 9, row: 6, spanCols: 4, spanRows: 3, size: 18, opacity: 0.3 },
+        // Asterisks (footnotes - the overlooked experiences)
+        { glyph: "*", mode: "pattern", col: 8, row: 2, spanCols: 5, spanRows: 4, size: 20, opacity: 0.35 },
+        { glyph: "*", mode: "pattern", col: 9, row: 6, spanCols: 4, spanRows: 3, size: 18, opacity: 0.25 },
         // Hash tags (data identity, categorization)
         { glyph: "#", mode: "scatter", col: 8, row: 9, spanCols: 5, spanRows: 3, size: 16, opacity: 0.25 },
       ],
@@ -604,7 +628,7 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
         { glyph: "|", mode: "pattern", col: 10, row: 1, spanCols: 1, spanRows: 11, size: 24, opacity: 0.45 },
         { glyph: "|", mode: "pattern", col: 11, row: 2, spanCols: 1, spanRows: 9, size: 22, opacity: 0.35 },
         { glyph: "|", mode: "pattern", col: 12, row: 3, spanCols: 1, spanRows: 7, size: 20, opacity: 0.25 },
-        // Marks at year positions (milestones)
+        // Plus marks at year positions (milestones, additions)
         { glyph: "+", mode: "singular", col: 10, row: 2, size: 28, opacity: 0.5 },
         { glyph: "+", mode: "singular", col: 10, row: 5, size: 28, opacity: 0.5 },
         { glyph: "+", mode: "singular", col: 10, row: 8, size: 28, opacity: 0.5 },
@@ -621,8 +645,8 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
   // ═══════════════════════════════════════════════════════════════════
   {
     name: "hybrid-affirmation",
-    // Transformation + Story: affirmation emerging from data
-    // Positive feedback loop visualized
+    // Transformation + Story: affirmation with positive feedback
+    // Plus signs accumulating, arrows growing
     spec: {
       rows: [
         { content: "You're doing", size: 52, col: "A1", marginTop: 200 },
@@ -635,8 +659,8 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
         { glyph: "+", mode: "pattern", col: 9, row: 5, spanCols: 4, spanRows: 3, size: 28, opacity: 0.4 },
         // Arrows showing growth direction
         { glyph: ">", mode: "pattern", col: 10, row: 9, spanCols: 3, spanRows: 3, size: 24, opacity: 0.35 },
-        // Single 1 at end (you are the one that matters)
-        { glyph: "1", mode: "singular", col: 12, row: 11, size: 48, opacity: 0.5 },
+        // Filled circle at end (you, complete, recognized)
+        { glyph: "●", mode: "singular", col: 12, row: 11, size: 32, opacity: 0.5 },
       ],
       contrast: "balanced",
       logo: { col: "A5", position: "bottom" },
@@ -646,7 +670,7 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
   {
     name: "hybrid-reframe",
     // Question + Transformation: reframing burnout
-    // Data marks show the shift in perspective
+    // Hash noise → clearing → clean output
     spec: {
       rows: [
         { content: "Burnout", size: 100, col: "A1", marginTop: 80 },
@@ -657,11 +681,11 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
       marks: [
         // Dense hash marks at top (the noise of "hustle culture")
         { glyph: "#", mode: "pattern", col: 7, row: 1, spanCols: 6, spanRows: 3, size: 24, opacity: 0.4 },
-        // Clearing/spacing in middle (the reframe happening)
-        { glyph: "0", mode: "scatter", col: 8, row: 5, spanCols: 5, spanRows: 3, size: 18, opacity: 0.2 },
+        // Tildes in middle (approximate, unmeasured exhaustion)
+        { glyph: "~", mode: "scatter", col: 8, row: 5, spanCols: 5, spanRows: 3, size: 18, opacity: 0.25 },
         // Clean output at bottom (new understanding)
         { glyph: ">", mode: "pattern", col: 9, row: 9, spanCols: 4, spanRows: 3, size: 28, opacity: 0.45 },
-        { glyph: "1", mode: "singular", col: 12, row: 11, size: 40, opacity: 0.5 },
+        { glyph: "●", mode: "singular", col: 12, row: 11, size: 28, opacity: 0.5 },
       ],
       contrast: "balanced",
       logo: { col: "A1", position: "bottom" },
@@ -670,7 +694,7 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
   },
   {
     name: "hybrid-count",
-    // Statistic + Story: "Every moment counts" with accumulating marks
+    // Statistic + Story: "Every moment counts" with dots accumulating
     spec: {
       rows: [
         { content: "Every", size: 48, col: "A1", marginTop: 60 },
@@ -678,10 +702,10 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
         { content: "counts.", size: 48, col: "A3", marginTop: 40 },
       ],
       marks: [
-        // 1s accumulating (moments being counted)
-        { glyph: "1", mode: "pattern", col: 1, row: 6, spanCols: 4, spanRows: 3, size: 24, opacity: 0.4 },
-        { glyph: "1", mode: "pattern", col: 3, row: 8, spanCols: 5, spanRows: 3, size: 22, opacity: 0.35 },
-        { glyph: "1", mode: "pattern", col: 5, row: 10, spanCols: 6, spanRows: 3, size: 20, opacity: 0.3 },
+        // Dots accumulating in waves (moments being counted)
+        { glyph: "·", mode: "pattern", col: 1, row: 6, spanCols: 4, spanRows: 3, size: 24, opacity: 0.4 },
+        { glyph: "·", mode: "pattern", col: 3, row: 8, spanCols: 5, spanRows: 3, size: 22, opacity: 0.35 },
+        { glyph: "·", mode: "pattern", col: 5, row: 10, spanCols: 6, spanRows: 3, size: 20, opacity: 0.3 },
         // Percentage (quantification)
         { glyph: "%", mode: "singular", col: 11, row: 6, size: 56, opacity: 0.45 },
         // Hash (recorded, counted)
@@ -694,16 +718,16 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
   },
   {
     name: "hybrid-value",
-    // Transformation + Statistic: time becoming measurable value
+    // Transformation: asterisks (overlooked) → filled circles (valued)
     spec: {
       rows: [
         { content: "Your time", size: 72, col: "A1", marginTop: 200 },
         { content: "has value.", size: 72, col: "B2", marginTop: 12 },
       ],
       marks: [
-        // Scattered 0s becoming organized 1s (value emerging)
-        { glyph: "0", mode: "scatter", col: 1, row: 1, spanCols: 5, spanRows: 4, size: 20, opacity: 0.2 },
-        { glyph: "1", mode: "pattern", col: 7, row: 1, spanCols: 6, spanRows: 4, size: 26, opacity: 0.45 },
+        // Asterisks becoming filled circles (overlooked → valued)
+        { glyph: "*", mode: "scatter", col: 1, row: 1, spanCols: 5, spanRows: 4, size: 22, opacity: 0.2 },
+        { glyph: "●", mode: "pattern", col: 7, row: 1, spanCols: 6, spanRows: 4, size: 16, opacity: 0.45 },
         // Percentages and plus signs (measurement + value)
         { glyph: "%", mode: "pattern", col: 2, row: 8, spanCols: 5, spanRows: 4, size: 32, opacity: 0.4 },
         { glyph: "+", mode: "pattern", col: 8, row: 9, spanCols: 5, spanRows: 4, size: 28, opacity: 0.35 },
