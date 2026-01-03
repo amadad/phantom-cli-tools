@@ -22,9 +22,11 @@ const COLORS = {
 };
 
 const RATIOS = {
-  "1:1": { width: 1080, height: 1080 },
-  "4:5": { width: 1080, height: 1350 },
-  "9:16": { width: 1080, height: 1920 },
+  "1:1": { width: 1080, height: 1080 },     // Instagram/Facebook feed
+  "4:5": { width: 1080, height: 1350 },     // Instagram feed portrait
+  "9:16": { width: 1080, height: 1920 },    // Stories/Reels/TikTok
+  "16:9": { width: 1200, height: 675 },     // Twitter/YouTube
+  "1.91:1": { width: 1200, height: 628 },   // LinkedIn article
 } as const;
 
 type Ratio = keyof typeof RATIOS;
@@ -735,6 +737,159 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
       contrast: "balanced",
       logo: { col: "A1", position: "bottom" },
       ratio: "1:1",
+    },
+  },
+];
+
+/**
+ * SINGLE HOOK → ALL PLATFORMS
+ *
+ * Hook: "Do you want me to tell you about my mom?"
+ * Category: question (50x multiplier)
+ * Theme: Caregiving, Alzheimer's, family
+ *
+ * Adapted for each platform's format and context:
+ * - 1:1: Instagram/Facebook feed (contemplative, centered)
+ * - 4:5: Instagram portrait (scroll-stopping)
+ * - 9:16: Stories/Reels/TikTok (vertical, dramatic)
+ * - 16:9: Twitter/YouTube (horizontal, punchy)
+ * - 1.91:1: LinkedIn (professional, context-heavy)
+ */
+export const HOOK_PLATFORMS: Array<{ name: string; platform: string; spec: KunzSpec }> = [
+  // ─────────────────────────────────────────────────────────────────
+  // INSTAGRAM FEED (1:1) - Contemplative, centered
+  // ─────────────────────────────────────────────────────────────────
+  {
+    name: "hook-instagram-feed",
+    platform: "instagram",
+    spec: {
+      rows: [
+        { content: "Do you want me", size: 52, col: "A1", marginTop: 240 },
+        { content: "to tell you", size: 52, col: "B2", marginTop: 12 },
+        { content: "about my mom?", size: 72, col: "A1", marginTop: 16 },
+      ],
+      marks: [
+        // Large brackets framing the question
+        { glyph: "[", mode: "singular", col: 1, row: 1, size: 280, opacity: 0.18 },
+        { glyph: "]", mode: "singular", col: 10, row: 1, size: 280, opacity: 0.18 },
+        // Empty circles (stories waiting to be told)
+        { glyph: "○", mode: "scatter", col: 3, row: 4, spanCols: 6, spanRows: 3, size: 16, opacity: 0.2 },
+        // Asterisks (the invisible caregiving story)
+        { glyph: "*", mode: "pattern", col: 8, row: 8, spanCols: 5, spanRows: 4, size: 18, opacity: 0.25 },
+      ],
+      contrast: "quiet-loud",
+      logo: { col: "B4", position: "bottom" },
+      ratio: "1:1",
+    },
+  },
+
+  // ─────────────────────────────────────────────────────────────────
+  // INSTAGRAM PORTRAIT (4:5) - Scroll-stopping, more space
+  // ─────────────────────────────────────────────────────────────────
+  {
+    name: "hook-instagram-portrait",
+    platform: "instagram",
+    spec: {
+      rows: [
+        { content: "Do you want me", size: 48, col: "A1", marginTop: 300 },
+        { content: "to tell you", size: 48, col: "A2", marginTop: 16 },
+        { content: "about", size: 80, col: "B1", marginTop: 40 },
+        { content: "my mom?", size: 80, col: "A1", marginTop: 8 },
+      ],
+      marks: [
+        // Brackets stretched vertically
+        { glyph: "[", mode: "singular", col: 1, row: 1, size: 320, opacity: 0.15 },
+        { glyph: "]", mode: "singular", col: 10, row: 4, size: 320, opacity: 0.15 },
+        // Empty circles in waiting
+        { glyph: "○", mode: "scatter", col: 8, row: 2, spanCols: 5, spanRows: 4, size: 14, opacity: 0.2 },
+        // Asterisks accumulating at bottom
+        { glyph: "*", mode: "pattern", col: 2, row: 9, spanCols: 8, spanRows: 3, size: 20, opacity: 0.25 },
+      ],
+      contrast: "balanced",
+      logo: { col: "A5", position: "bottom" },
+      ratio: "4:5",
+    },
+  },
+
+  // ─────────────────────────────────────────────────────────────────
+  // STORIES/REELS (9:16) - Vertical, dramatic, immediate
+  // ─────────────────────────────────────────────────────────────────
+  {
+    name: "hook-stories",
+    platform: "stories",
+    spec: {
+      rows: [
+        { content: "Do you", size: 56, col: "A1", marginTop: 280 },
+        { content: "want me", size: 56, col: "B2", marginTop: 16 },
+        { content: "to tell you", size: 56, col: "A1", marginTop: 16 },
+        { content: "about", size: 100, col: "B1", marginTop: 60 },
+        { content: "my mom?", size: 100, col: "A1", marginTop: 8 },
+      ],
+      marks: [
+        // Tall bracket framing
+        { glyph: "[", mode: "singular", col: 1, row: 1, size: 400, opacity: 0.12 },
+        { glyph: "]", mode: "singular", col: 9, row: 3, size: 400, opacity: 0.12 },
+        // Empty circles scattered (untold stories)
+        { glyph: "○", mode: "scatter", col: 7, row: 1, spanCols: 6, spanRows: 5, size: 12, opacity: 0.2 },
+        // Asterisks at bottom (hidden labor)
+        { glyph: "*", mode: "pattern", col: 1, row: 9, spanCols: 6, spanRows: 3, size: 24, opacity: 0.3 },
+        { glyph: "*", mode: "scatter", col: 7, row: 10, spanCols: 6, spanRows: 2, size: 18, opacity: 0.2 },
+      ],
+      contrast: "loud-quiet",
+      logo: { col: "A1", position: "bottom" },
+      ratio: "9:16",
+    },
+  },
+
+  // ─────────────────────────────────────────────────────────────────
+  // TWITTER/YOUTUBE (16:9) - Horizontal, punchy, immediate
+  // ─────────────────────────────────────────────────────────────────
+  {
+    name: "hook-twitter",
+    platform: "twitter",
+    spec: {
+      rows: [
+        { content: "Do you want me to tell you", size: 36, col: "A1", marginTop: 140 },
+        { content: "about my mom?", size: 64, col: "B2", marginTop: 16 },
+      ],
+      marks: [
+        // Wide brackets
+        { glyph: "[", mode: "singular", col: 1, row: 1, size: 200, opacity: 0.2 },
+        { glyph: "]", mode: "singular", col: 11, row: 1, size: 200, opacity: 0.2 },
+        // Horizontal asterisk pattern
+        { glyph: "*", mode: "pattern", col: 1, row: 8, spanCols: 12, spanRows: 4, size: 20, opacity: 0.25 },
+        // Empty circles (questions)
+        { glyph: "○", mode: "scatter", col: 8, row: 3, spanCols: 5, spanRows: 3, size: 14, opacity: 0.18 },
+      ],
+      contrast: "balanced",
+      logo: { col: "A1", position: "bottom" },
+      ratio: "16:9",
+    },
+  },
+
+  // ─────────────────────────────────────────────────────────────────
+  // LINKEDIN (1.91:1) - Professional, context-aware
+  // ─────────────────────────────────────────────────────────────────
+  {
+    name: "hook-linkedin",
+    platform: "linkedin",
+    spec: {
+      rows: [
+        { content: "Do you want me to tell you about my mom?", size: 44, col: "A1", marginTop: 160 },
+        { content: "The story 53 million caregivers share.", size: 24, col: "B2", marginTop: 40 },
+      ],
+      marks: [
+        // Professional bracket framing
+        { glyph: "[", mode: "singular", col: 1, row: 1, size: 180, opacity: 0.15 },
+        { glyph: "]", mode: "singular", col: 11, row: 1, size: 180, opacity: 0.15 },
+        // Dots (data points, statistics)
+        { glyph: "·", mode: "pattern", col: 1, row: 8, spanCols: 10, spanRows: 4, size: 18, opacity: 0.3 },
+        // Percentage (quantification)
+        { glyph: "%", mode: "singular", col: 11, row: 9, size: 36, opacity: 0.35 },
+      ],
+      contrast: "quiet-loud",
+      logo: { col: "A5", position: "bottom" },
+      ratio: "1.91:1",
     },
   },
 ];
