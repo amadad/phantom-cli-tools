@@ -374,27 +374,157 @@ export async function renderKunz(spec: KunzSpec): Promise<Buffer> {
 }
 
 /**
- * Kunz-inspired examples with typographic marks on separate grid
+ * CONCRETE POETRY EXAMPLES
  *
- * Contrast modes:
- * - loud-quiet: Big type + subtle marks (singular, low opacity)
- * - quiet-loud: Small type + bold mark patterns
- * - balanced: Medium both
+ * Each example draws from viral hook categories:
+ * - transformation: before/after, journey (invisible → visible)
+ * - question: rhetorical pull, suspended meaning
+ * - statistic: data-driven punch, numbers as truth
+ * - story: narrative arc, testimony, lived experience
+ *
+ * Mark semantics (form = content):
+ * - 0→1 gradient: noise becoming signal (transformation)
+ * - [ ] brackets: containment, capture, framing experience
+ * - > arrows: flow, direction, output (data pipeline)
+ * - | pipes: timeline, sequence, duration
+ * - % : measurement, quantification, making visible
+ * - # : data structure, hash/ID, digital identity
  */
 export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
-  // DATA-VIZ COLLAGE - pseudo-data as texture
+  // ═══════════════════════════════════════════════════════════════════
+  // TRANSFORMATION - Before/After, invisible → visible
+  // Hook pattern: Journey, metamorphosis, "I used to... now I..."
+  // ═══════════════════════════════════════════════════════════════════
   {
-    name: "binary-flood",
+    name: "transform-emerge",
+    // 0s fade left (invisible) → 1s solidify right (visible)
+    // Data literally emerging from noise - the GiveCare mission as visual
     spec: {
       rows: [
-        { content: "53", size: 220, col: "A1", marginTop: 80 },
-        { content: "million", size: 56, col: "B3", marginTop: 20 },
-        { content: "unpaid caregivers", size: 32, col: "A4", marginTop: 60 },
+        { content: "The invisible", size: 48, col: "A1", marginTop: 300 },
+        { content: "made visible.", size: 72, col: "B2", marginTop: 12 },
       ],
       marks: [
-        { glyph: "1", mode: "pattern", col: 6, row: 1, spanCols: 7, spanRows: 4, size: 28, opacity: 0.5 },
-        { glyph: "0", mode: "pattern", col: 7, row: 5, spanCols: 6, spanRows: 4, size: 28, opacity: 0.35 },
-        { glyph: "%", mode: "singular", col: 11, row: 10, size: 64, opacity: 0.4 },
+        // LEFT: faint 0s (invisible, noise, unseen labor)
+        { glyph: "0", mode: "pattern", col: 1, row: 1, spanCols: 4, spanRows: 6, size: 28, opacity: 0.15 },
+        { glyph: "0", mode: "scatter", col: 1, row: 7, spanCols: 4, spanRows: 4, size: 24, opacity: 0.12 },
+        // CENTER: transitional zone (mixing)
+        { glyph: "1", mode: "scatter", col: 5, row: 2, spanCols: 3, spanRows: 8, size: 26, opacity: 0.25 },
+        { glyph: "0", mode: "scatter", col: 5, row: 4, spanCols: 3, spanRows: 6, size: 22, opacity: 0.2 },
+        // RIGHT: bold 1s (visible, signal, recognized)
+        { glyph: "1", mode: "pattern", col: 8, row: 1, spanCols: 5, spanRows: 5, size: 32, opacity: 0.5 },
+        { glyph: "1", mode: "pattern", col: 9, row: 6, spanCols: 4, spanRows: 5, size: 28, opacity: 0.45 },
+        // Output arrow: transformation complete
+        { glyph: ">", mode: "singular", col: 11, row: 11, size: 48, opacity: 0.4 },
+      ],
+      contrast: "quiet-loud",
+      logo: { col: "A1", position: "bottom" },
+      ratio: "1:1",
+    },
+  },
+  {
+    name: "transform-hours",
+    // Hours accumulating → becoming data → becoming recognition
+    // Pipes show timeline, % shows measurement, > shows output
+    spec: {
+      rows: [
+        { content: "24", size: 200, col: "A1", marginTop: 60 },
+        { content: "hours a week", size: 48, col: "B3", marginTop: 20 },
+        { content: "Now counted.", size: 32, col: "A2", marginTop: 80 },
+      ],
+      marks: [
+        // Timeline pipes stacking up (hours accumulating)
+        { glyph: "|", mode: "pattern", col: 8, row: 1, spanCols: 1, spanRows: 8, size: 24, opacity: 0.4 },
+        { glyph: "|", mode: "pattern", col: 9, row: 2, spanCols: 1, spanRows: 7, size: 24, opacity: 0.35 },
+        { glyph: "|", mode: "pattern", col: 10, row: 3, spanCols: 1, spanRows: 6, size: 24, opacity: 0.3 },
+        // Percentages at bottom (measurement happening)
+        { glyph: "%", mode: "pattern", col: 6, row: 9, spanCols: 6, spanRows: 3, size: 32, opacity: 0.45 },
+        // Output arrow (recognition)
+        { glyph: ">", mode: "pattern", col: 11, row: 11, spanCols: 2, spanRows: 2, size: 28, opacity: 0.5 },
+      ],
+      contrast: "balanced",
+      logo: { col: "A5", position: "bottom" },
+      ratio: "1:1",
+    },
+  },
+
+  // ═══════════════════════════════════════════════════════════════════
+  // QUESTION - Rhetorical pull, suspended meaning
+  // Hook pattern: "Do you...?", "What if...?", "Have you ever...?"
+  // ═══════════════════════════════════════════════════════════════════
+  {
+    name: "question-container",
+    // Brackets create empty space - the question is a container awaiting answer
+    // From viral hook: "Do you want me to tell you about my mom?"
+    spec: {
+      rows: [
+        { content: "Do you want me", size: 44, col: "A1", marginTop: 200 },
+        { content: "to tell you", size: 44, col: "B2", marginTop: 8 },
+        { content: "about caregiving?", size: 64, col: "A1", marginTop: 12 },
+      ],
+      marks: [
+        // Large brackets framing emptiness (answer space)
+        { glyph: "[", mode: "singular", col: 1, row: 1, size: 320, opacity: 0.2 },
+        { glyph: "]", mode: "singular", col: 10, row: 1, size: 320, opacity: 0.2 },
+        // Scattered data waiting to be revealed
+        { glyph: "1", mode: "scatter", col: 3, row: 4, spanCols: 6, spanRows: 3, size: 20, opacity: 0.15 },
+        { glyph: "0", mode: "scatter", col: 4, row: 7, spanCols: 5, spanRows: 3, size: 18, opacity: 0.12 },
+        // Question mark formed by colons (uncertainty)
+        { glyph: ":", mode: "pattern", col: 11, row: 8, spanCols: 2, spanRows: 4, size: 28, opacity: 0.35 },
+      ],
+      contrast: "quiet-loud",
+      logo: { col: "B4", position: "bottom" },
+      ratio: "1:1",
+    },
+  },
+  {
+    name: "question-rest",
+    // Question suspended in negative space
+    // Minimal marks - the emptiness IS the answer
+    spec: {
+      rows: [
+        { content: "When did", size: 44, col: "A1", marginTop: 100 },
+        { content: "you last", size: 44, col: "A2", marginTop: 12 },
+        { content: "rest?", size: 160, col: "A1", marginTop: 40 },
+      ],
+      marks: [
+        // Empty center - the rest that isn't happening
+        // Only sparse marks at edges (constant activity)
+        { glyph: "|", mode: "pattern", col: 10, row: 1, spanCols: 3, spanRows: 4, size: 20, opacity: 0.25 },
+        { glyph: "|", mode: "pattern", col: 11, row: 5, spanCols: 2, spanRows: 3, size: 18, opacity: 0.2 },
+        // Faint data at bottom (always working)
+        { glyph: "0", mode: "scatter", col: 8, row: 9, spanCols: 5, spanRows: 4, size: 16, opacity: 0.15 },
+      ],
+      contrast: "loud-quiet",
+      logo: { col: "B4", position: "bottom" },
+      ratio: "4:5",
+    },
+  },
+
+  // ═══════════════════════════════════════════════════════════════════
+  // STATISTIC - Data-driven punch
+  // Hook pattern: "X million...", "1 in 5...", shocking number
+  // ═══════════════════════════════════════════════════════════════════
+  {
+    name: "stat-coalesce",
+    // Binary noise coalescing INTO the statistic
+    // Raw data → meaningful number (the analytics promise)
+    spec: {
+      rows: [
+        { content: "53", size: 280, col: "A1", marginTop: 80 },
+        { content: "million", size: 64, col: "B3", marginTop: 0 },
+        { content: "caregivers", size: 40, col: "A4", marginTop: 40 },
+      ],
+      marks: [
+        // Binary FLOWING TOWARD the number (data becoming statistic)
+        { glyph: "1", mode: "pattern", col: 7, row: 1, spanCols: 6, spanRows: 3, size: 24, opacity: 0.5 },
+        { glyph: "0", mode: "pattern", col: 8, row: 4, spanCols: 5, spanRows: 3, size: 22, opacity: 0.4 },
+        { glyph: "1", mode: "scatter", col: 9, row: 7, spanCols: 4, spanRows: 3, size: 20, opacity: 0.35 },
+        // Arrows pointing toward the stat
+        { glyph: ">", mode: "singular", col: 6, row: 3, size: 40, opacity: 0.3 },
+        { glyph: ">", mode: "singular", col: 7, row: 5, size: 36, opacity: 0.25 },
+        // Hash marks (counting, tallying)
+        { glyph: "#", mode: "pattern", col: 1, row: 9, spanCols: 4, spanRows: 3, size: 28, opacity: 0.35 },
       ],
       contrast: "balanced",
       logo: { col: "A5", position: "bottom" },
@@ -402,33 +532,25 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
     },
   },
   {
-    name: "hash-grid",
+    name: "stat-fraction",
+    // "1 in 5" - fractions as truth
+    // Slash marks creating division, ratio
     spec: {
       rows: [
-        { content: "You", size: 140, col: "A1", marginTop: 80 },
-        { content: "matter", size: 140, col: "B2", marginTop: 0 },
-        { content: "too.", size: 140, col: "A3", marginTop: 0 },
+        { content: "1 in 5", size: 140, col: "A1", marginTop: 80 },
+        { content: "caregivers report", size: 36, col: "B2", marginTop: 60 },
+        { content: "high emotional stress.", size: 36, col: "A3", marginTop: 8 },
       ],
       marks: [
-        { glyph: "#", mode: "pattern", col: 8, row: 1, spanCols: 5, spanRows: 6, size: 32, opacity: 0.45 },
-        { glyph: "+", mode: "pattern", col: 9, row: 8, spanCols: 4, spanRows: 4, size: 24, opacity: 0.35 },
-      ],
-      contrast: "balanced",
-      logo: { col: "B4", position: "bottom" },
-      ratio: "1:1",
-    },
-  },
-  {
-    name: "pipe-stream",
-    spec: {
-      rows: [
-        { content: "Burnout", size: 120, col: "A1", marginTop: 60 },
-        { content: "is not", size: 44, col: "B4", marginTop: 100, align: "right" },
-        { content: "a strategy.", size: 44, col: "B4", marginTop: 8, align: "right" },
-      ],
-      marks: [
-        { glyph: "|", mode: "pattern", col: 1, row: 5, spanCols: 6, spanRows: 7, size: 36, opacity: 0.4 },
-        { glyph: ">", mode: "pattern", col: 8, row: 9, spanCols: 4, spanRows: 3, size: 28, opacity: 0.35 },
+        // Colons as ratio marks (the fraction concept)
+        { glyph: ":", mode: "pattern", col: 8, row: 1, spanCols: 5, spanRows: 3, size: 36, opacity: 0.45 },
+        // Percentages (measurement)
+        { glyph: "%", mode: "pattern", col: 9, row: 5, spanCols: 4, spanRows: 3, size: 28, opacity: 0.4 },
+        // 1s representing the "1" being counted
+        { glyph: "1", mode: "scatter", col: 1, row: 8, spanCols: 6, spanRows: 4, size: 24, opacity: 0.3 },
+        // Brackets containing the measured experience
+        { glyph: "[", mode: "singular", col: 7, row: 9, size: 120, opacity: 0.2 },
+        { glyph: "]", mode: "singular", col: 11, row: 9, size: 120, opacity: 0.2 },
       ],
       contrast: "balanced",
       logo: { col: "A1", position: "bottom" },
@@ -436,128 +558,134 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
     },
   },
 
-  // PERCENTAGE + BINARY - data output aesthetic
+  // ═══════════════════════════════════════════════════════════════════
+  // STORY - Narrative hook, testimony, lived experience
+  // Hook pattern: "This was the last...", "I remember when...", raw honesty
+  // ═══════════════════════════════════════════════════════════════════
   {
-    name: "percent-field",
+    name: "story-capture",
+    // Quote captured in data brackets
+    // Raw testimony being recorded, witnessed, validated
     spec: {
       rows: [
-        { content: "It's okay", size: 52, col: "A1", marginTop: 420 },
-        { content: "to ask for help.", size: 52, col: "B2", marginTop: 8 },
+        { content: '"I forgot', size: 56, col: "A1", marginTop: 140 },
+        { content: "what it feels like", size: 56, col: "B2", marginTop: 8 },
+        { content: 'to not be tired."', size: 56, col: "A1", marginTop: 8 },
+        { content: "— Anonymous caregiver", size: 20, col: "A4", marginTop: 80, align: "right" },
       ],
       marks: [
-        { glyph: "%", mode: "pattern", col: 1, row: 1, spanCols: 8, spanRows: 4, size: 36, opacity: 0.45 },
-        { glyph: "0", mode: "pattern", col: 1, row: 5, spanCols: 6, spanRows: 3, size: 24, opacity: 0.3 },
-        { glyph: "1", mode: "scatter", col: 8, row: 4, spanCols: 5, spanRows: 4, size: 28, opacity: 0.35 },
+        // Large brackets CAPTURING the testimony (witnessing)
+        { glyph: "[", mode: "singular", col: 1, row: 2, size: 200, opacity: 0.25 },
+        { glyph: "]", mode: "singular", col: 7, row: 5, size: 200, opacity: 0.25 },
+        // Binary stream recording the words
+        { glyph: "1", mode: "pattern", col: 8, row: 2, spanCols: 5, spanRows: 4, size: 20, opacity: 0.4 },
+        { glyph: "0", mode: "pattern", col: 9, row: 6, spanCols: 4, spanRows: 3, size: 18, opacity: 0.3 },
+        // Hash tags (data identity, categorization)
+        { glyph: "#", mode: "scatter", col: 8, row: 9, spanCols: 5, spanRows: 3, size: 16, opacity: 0.25 },
       ],
-      contrast: "quiet-loud",
-      logo: { col: "A5", position: "top" },
-      ratio: "1:1",
-    },
-  },
-  {
-    name: "data-collage",
-    spec: {
-      rows: [
-        { content: "Your time", size: 56, col: "A1", marginTop: 60 },
-        { content: "has value.", size: 56, col: "B2", marginTop: 8 },
-      ],
-      marks: [
-        { glyph: ":", mode: "pattern", col: 1, row: 4, spanCols: 6, spanRows: 4, size: 32, opacity: 0.4 },
-        { glyph: "#", mode: "pattern", col: 7, row: 3, spanCols: 6, spanRows: 5, size: 28, opacity: 0.35 },
-        { glyph: "|", mode: "pattern", col: 1, row: 9, spanCols: 12, spanRows: 3, size: 24, opacity: 0.3 },
-      ],
-      contrast: "quiet-loud",
-      logo: { col: "A1", position: "bottom" },
-      ratio: "1:1",
-    },
-  },
-  {
-    name: "ones-zeros",
-    spec: {
-      rows: [
-        { content: "The invisible", size: 48, col: "A1", marginTop: 100 },
-        { content: "made visible.", size: 48, col: "B2", marginTop: 12 },
-      ],
-      marks: [
-        { glyph: "1", mode: "scatter", col: 1, row: 3, spanCols: 12, spanRows: 5, size: 32, opacity: 0.45 },
-        { glyph: "0", mode: "scatter", col: 2, row: 8, spanCols: 10, spanRows: 4, size: 28, opacity: 0.35 },
-      ],
-      contrast: "quiet-loud",
+      contrast: "balanced",
       logo: { col: "B4", position: "bottom" },
       ratio: "1:1",
     },
   },
-
-  // HEAVY DATA TEXTURE
   {
-    name: "terminal-output",
+    name: "story-timeline",
+    // Pipes creating timeline of caregiving journey
+    // Sequential marks showing duration, persistence
     spec: {
       rows: [
-        { content: "24", size: 180, col: "A2", marginTop: 40 },
-        { content: "hours a week", size: 56, col: "B3", marginTop: 40 },
-        { content: "That's a part-time job.", size: 28, col: "A1", marginTop: 60 },
-        { content: "Unpaid.", size: 28, col: "A4", marginTop: 12 },
+        { content: "Year one.", size: 36, col: "A1", marginTop: 120 },
+        { content: "Year five.", size: 48, col: "B2", marginTop: 80 },
+        { content: "Year twelve.", size: 64, col: "A1", marginTop: 80 },
+        { content: "Still here.", size: 80, col: "B2", marginTop: 80 },
       ],
       marks: [
-        { glyph: ">", mode: "pattern", col: 1, row: 7, spanCols: 8, spanRows: 3, size: 24, opacity: 0.4 },
-        { glyph: "|", mode: "pattern", col: 1, row: 10, spanCols: 12, spanRows: 3, size: 20, opacity: 0.35 },
+        // Vertical pipes as timeline (duration)
+        { glyph: "|", mode: "pattern", col: 10, row: 1, spanCols: 1, spanRows: 11, size: 24, opacity: 0.45 },
+        { glyph: "|", mode: "pattern", col: 11, row: 2, spanCols: 1, spanRows: 9, size: 22, opacity: 0.35 },
+        { glyph: "|", mode: "pattern", col: 12, row: 3, spanCols: 1, spanRows: 7, size: 20, opacity: 0.25 },
+        // Marks at year positions (milestones)
+        { glyph: "+", mode: "singular", col: 10, row: 2, size: 28, opacity: 0.5 },
+        { glyph: "+", mode: "singular", col: 10, row: 5, size: 28, opacity: 0.5 },
+        { glyph: "+", mode: "singular", col: 10, row: 8, size: 28, opacity: 0.5 },
+        { glyph: "+", mode: "singular", col: 10, row: 11, size: 28, opacity: 0.5 },
       ],
-      contrast: "balanced",
+      contrast: "quiet-loud",
       logo: { col: "A1", position: "bottom" },
       ratio: "9:16",
     },
   },
+
+  // ═══════════════════════════════════════════════════════════════════
+  // HYBRID - Combining multiple hook types
+  // ═══════════════════════════════════════════════════════════════════
   {
-    name: "bracket-data",
+    name: "hybrid-affirmation",
+    // Transformation + Story: affirmation emerging from data
+    // Positive feedback loop visualized
     spec: {
       rows: [
-        { content: '"I forgot', size: 56, col: "A1", marginTop: 100 },
-        { content: "what it feels like", size: 56, col: "B2", marginTop: 8 },
-        { content: 'to not be tired."', size: 56, col: "A1", marginTop: 8 },
-        { content: "— Maria", size: 24, col: "A5", marginTop: 60, align: "right" },
+        { content: "You're doing", size: 52, col: "A1", marginTop: 200 },
+        { content: "better than", size: 52, col: "B2", marginTop: 8 },
+        { content: "you think.", size: 84, col: "A1", marginTop: 12 },
       ],
       marks: [
-        { glyph: "[", mode: "singular", col: 1, row: 1, size: 240, opacity: 0.25 },
-        { glyph: "]", mode: "singular", col: 9, row: 5, size: 240, opacity: 0.25 },
-        { glyph: "1", mode: "pattern", col: 7, row: 7, spanCols: 6, spanRows: 5, size: 22, opacity: 0.4 },
-        { glyph: "0", mode: "pattern", col: 8, row: 9, spanCols: 5, spanRows: 3, size: 22, opacity: 0.3 },
+        // Plus signs accumulating (positive feedback)
+        { glyph: "+", mode: "pattern", col: 8, row: 1, spanCols: 5, spanRows: 4, size: 32, opacity: 0.5 },
+        { glyph: "+", mode: "pattern", col: 9, row: 5, spanCols: 4, spanRows: 3, size: 28, opacity: 0.4 },
+        // Arrows showing growth direction
+        { glyph: ">", mode: "pattern", col: 10, row: 9, spanCols: 3, spanRows: 3, size: 24, opacity: 0.35 },
+        // Single 1 at end (you are the one that matters)
+        { glyph: "1", mode: "singular", col: 12, row: 11, size: 48, opacity: 0.5 },
       ],
       contrast: "balanced",
-      logo: { col: "B4", position: "top" },
+      logo: { col: "A5", position: "bottom" },
       ratio: "1:1",
     },
   },
   {
-    name: "plus-percent",
+    name: "hybrid-reframe",
+    // Question + Transformation: reframing burnout
+    // Data marks show the shift in perspective
     spec: {
       rows: [
-        { content: "Care", size: 140, col: "A1", marginTop: 40 },
-        { content: "begets", size: 40, col: "B3", marginTop: 40 },
-        { content: "care.", size: 140, col: "A2", marginTop: 8 },
+        { content: "Burnout", size: 100, col: "A1", marginTop: 80 },
+        { content: "is not", size: 40, col: "B3", marginTop: 40 },
+        { content: "a badge", size: 60, col: "A2", marginTop: 20 },
+        { content: "of honor.", size: 60, col: "B2", marginTop: 8 },
       ],
       marks: [
-        { glyph: "+", mode: "pattern", col: 8, row: 1, spanCols: 5, spanRows: 5, size: 36, opacity: 0.5 },
-        { glyph: "%", mode: "pattern", col: 9, row: 7, spanCols: 4, spanRows: 4, size: 28, opacity: 0.4 },
-        { glyph: "#", mode: "scatter", col: 7, row: 10, spanCols: 6, spanRows: 3, size: 20, opacity: 0.3 },
+        // Dense hash marks at top (the noise of "hustle culture")
+        { glyph: "#", mode: "pattern", col: 7, row: 1, spanCols: 6, spanRows: 3, size: 24, opacity: 0.4 },
+        // Clearing/spacing in middle (the reframe happening)
+        { glyph: "0", mode: "scatter", col: 8, row: 5, spanCols: 5, spanRows: 3, size: 18, opacity: 0.2 },
+        // Clean output at bottom (new understanding)
+        { glyph: ">", mode: "pattern", col: 9, row: 9, spanCols: 4, spanRows: 3, size: 28, opacity: 0.45 },
+        { glyph: "1", mode: "singular", col: 12, row: 11, size: 40, opacity: 0.5 },
       ],
       contrast: "balanced",
       logo: { col: "A1", position: "bottom" },
       ratio: "1:1",
     },
   },
-
-  // MAXIMUM DATA-VIZ
   {
-    name: "full-binary",
+    name: "hybrid-count",
+    // Statistic + Story: "Every moment counts" with accumulating marks
     spec: {
       rows: [
-        { content: "Every", size: 44, col: "A1", marginTop: 440 },
-        { content: "moment counts.", size: 44, col: "B2", marginTop: 8 },
+        { content: "Every", size: 48, col: "A1", marginTop: 60 },
+        { content: "moment", size: 120, col: "B1", marginTop: 20 },
+        { content: "counts.", size: 48, col: "A3", marginTop: 40 },
       ],
       marks: [
-        { glyph: "1", mode: "pattern", col: 1, row: 1, spanCols: 12, spanRows: 4, size: 26, opacity: 0.5 },
-        { glyph: "0", mode: "pattern", col: 1, row: 5, spanCols: 12, spanRows: 4, size: 26, opacity: 0.4 },
-        { glyph: "%", mode: "scatter", col: 2, row: 9, spanCols: 10, spanRows: 2, size: 20, opacity: 0.35 },
+        // 1s accumulating (moments being counted)
+        { glyph: "1", mode: "pattern", col: 1, row: 6, spanCols: 4, spanRows: 3, size: 24, opacity: 0.4 },
+        { glyph: "1", mode: "pattern", col: 3, row: 8, spanCols: 5, spanRows: 3, size: 22, opacity: 0.35 },
+        { glyph: "1", mode: "pattern", col: 5, row: 10, spanCols: 6, spanRows: 3, size: 20, opacity: 0.3 },
+        // Percentage (quantification)
+        { glyph: "%", mode: "singular", col: 11, row: 6, size: 56, opacity: 0.45 },
+        // Hash (recorded, counted)
+        { glyph: "#", mode: "pattern", col: 10, row: 9, spanCols: 3, spanRows: 3, size: 20, opacity: 0.3 },
       ],
       contrast: "quiet-loud",
       logo: { col: "B4", position: "bottom" },
@@ -565,40 +693,24 @@ export const KUNZ_EXAMPLES: Array<{ name: string; spec: KunzSpec }> = [
     },
   },
   {
-    name: "hash-bracket",
+    name: "hybrid-value",
+    // Transformation + Statistic: time becoming measurable value
     spec: {
       rows: [
-        { content: "Guilt", size: 100, col: "B1", marginTop: 140 },
-        { content: "is not a", size: 32, col: "A4", marginTop: 40, align: "right" },
-        { content: "job requirement.", size: 44, col: "A2", marginTop: 16 },
+        { content: "Your time", size: 72, col: "A1", marginTop: 200 },
+        { content: "has value.", size: 72, col: "B2", marginTop: 12 },
       ],
       marks: [
-        { glyph: "[", mode: "singular", col: 1, row: 2, size: 280, opacity: 0.2 },
-        { glyph: "]", mode: "singular", col: 8, row: 6, size: 280, opacity: 0.2 },
-        { glyph: "#", mode: "pattern", col: 1, row: 8, spanCols: 8, spanRows: 4, size: 28, opacity: 0.4 },
-        { glyph: ">", mode: "pattern", col: 9, row: 9, spanCols: 4, spanRows: 3, size: 24, opacity: 0.35 },
+        // Scattered 0s becoming organized 1s (value emerging)
+        { glyph: "0", mode: "scatter", col: 1, row: 1, spanCols: 5, spanRows: 4, size: 20, opacity: 0.2 },
+        { glyph: "1", mode: "pattern", col: 7, row: 1, spanCols: 6, spanRows: 4, size: 26, opacity: 0.45 },
+        // Percentages and plus signs (measurement + value)
+        { glyph: "%", mode: "pattern", col: 2, row: 8, spanCols: 5, spanRows: 4, size: 32, opacity: 0.4 },
+        { glyph: "+", mode: "pattern", col: 8, row: 9, spanCols: 5, spanRows: 4, size: 28, opacity: 0.35 },
       ],
       contrast: "balanced",
       logo: { col: "A1", position: "bottom" },
       ratio: "1:1",
-    },
-  },
-  {
-    name: "data-scatter",
-    spec: {
-      rows: [
-        { content: "When did", size: 44, col: "A1", marginTop: 80 },
-        { content: "you last", size: 44, col: "B2", marginTop: 12 },
-        { content: "rest?", size: 140, col: "A1", marginTop: 30 },
-      ],
-      marks: [
-        { glyph: "1", mode: "scatter", col: 5, row: 1, spanCols: 8, spanRows: 6, size: 28, opacity: 0.45 },
-        { glyph: "0", mode: "scatter", col: 6, row: 6, spanCols: 7, spanRows: 6, size: 24, opacity: 0.35 },
-        { glyph: "|", mode: "pattern", col: 4, row: 10, spanCols: 9, spanRows: 3, size: 20, opacity: 0.3 },
-      ],
-      contrast: "balanced",
-      logo: { col: "B4", position: "bottom" },
-      ratio: "4:5",
     },
   },
 ];
