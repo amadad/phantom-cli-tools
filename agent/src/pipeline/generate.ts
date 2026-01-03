@@ -55,7 +55,7 @@ Respond in this exact JSON format:
 }`
 
   const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash-lite',
+    model: 'gemini-3-flash-preview',
     contents: prompt
   })
 
@@ -115,7 +115,7 @@ Respond in this exact JSON format:
 }`
 
   const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash-lite',
+    model: 'gemini-3-flash-preview',
     contents: prompt
   })
 
@@ -147,7 +147,7 @@ Avoid: ${brand.visual.avoid.join(', ')}
 
   // Generate image prompt
   const promptResponse = await ai.models.generateContent({
-    model: 'gemini-2.0-flash-lite',
+    model: 'gemini-3-flash-preview',
     contents: `Create a concise image generation prompt for this social media content.
 
 TOPIC: ${content?.topic}

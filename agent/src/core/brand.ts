@@ -86,10 +86,59 @@ STYLE REFERENCE: Editorial photography for a wellness magazine. Think Kinfolk, C
 }
 
 /**
- * Build content generation context from brand
+ * Detect frame type from topic
  */
-export function buildVoiceContext(brand: BrandProfile): string {
-  const ws = brand.voice.writing_system as any
+export function detectFrameType(topic: string): 'announcement' | 'weekly_update' | 'event' | 'partnership' | 'thought' | 'practical_tip' {
+  const topicLower = topic.toLowerCase()
+
+  // Announcement keywords
+  if (topicLower.includes('release') || topicLower.includes('launch') || topicLower.includes('ship') ||
+      topicLower.includes('new feature') || topicLower.includes('announcing')) {
+    return 'announcement'
+  }
+
+  // Event keywords
+  if (topicLower.includes('conference') || topicLower.includes('summit') || topicLower.includes('speaking') ||
+      topicLower.includes('event') || topicLower.includes('workshop')) {
+    return 'event'
+  }
+
+  // Partnership keywords
+  if (topicLower.includes('partner') || topicLower.includes('collaborat') || topicLower.includes('working with')) {
+    return 'partnership'
+  }
+
+  // Weekly update keywords
+  if (topicLower.includes('this week') || topicLower.includes('working on') || topicLower.includes('building')) {
+    return 'weekly_update'
+  }
+
+  // Practical tip keywords
+  if (topicLower.includes('tip') || topicLower.includes('how to') || topicLower.includes('ways to') ||
+      topicLower.includes('reset') || topicLower.includes('recovery') || topicLower.includes('self-care')) {
+    return 'practical_tip'
+  }
+
+  // Default to thought/observation
+  return 'thought'
+}
+
+/**
+ * Build content generation context from brand
+ *
+ * Voice modes:
+ * - practical_tip: Warm brand voice (like a friend who gets it)
+ * - thought: Writing system (operational, diagnostic)
+ * - announcement/event/partnership: Product voice (founder/builder)
+ */
+export function buildVoiceContext(brand: BrandProfile, frameType?: string): string {
+  const frames = brand.voice.frames as any
+  const frame = frameType && frames ? frames[frameType] : null
+
+  // Determine which voice mode to use
+  const isProductVoice = ['announcement', 'event', 'partnership', 'weekly_update'].includes(frameType || '')
+  const isBrandVoice = frameType === 'practical_tip'
+  const isThoughtVoice = frameType === 'thought'
 
   let context = `You are writing for ${brand.name}.
 
@@ -97,46 +146,74 @@ VOICE:
 - Tone: ${brand.voice.tone}
 - Style: ${brand.voice.style}
 
-RULES:
+CORE RULES:
 ${brand.voice.rules.map(r => `- ${r}`).join('\n')}`
 
-  if (ws) {
+  // Add product-specific rules for announcements/events
+  if (isProductVoice) {
+    const productRules = (brand.voice as any).product_rules
+    if (productRules) {
+      context += `
+
+PRODUCT VOICE (for this content type):
+${productRules.map((r: string) => `- ${r}`).join('\n')}`
+    }
+  }
+
+  // Add frame-specific guidance with examples
+  if (frame) {
     context += `
 
-=== WRITING SYSTEM ===
+=== CONTENT FRAME: ${frameType?.toUpperCase()} ===
+${frame.description}
+
+STRUCTURE:
+${frame.structure}`
+
+    // Include ALL examples for practical_tip to show the tone
+    if (isBrandVoice) {
+      context += `
+
+EXAMPLE 1:
+${frame.example || ''}
+
+${frame.example_2 ? `EXAMPLE 2:\n${frame.example_2}` : ''}
+
+${frame.example_3 ? `EXAMPLE 3:\n${frame.example_3}` : ''}
+
+CRITICAL: Match the warm, direct tone of these examples. NO clinical language. NO jargon. Write like a friend texting, not a company posting.`
+    } else if (frame.example) {
+      context += `
+
+EXAMPLE:
+${frame.example}`
+    }
+  }
+
+  // Only apply writing_system for "thought" posts
+  if (isThoughtVoice) {
+    const ws = brand.voice.writing_system as any
+    if (ws) {
+      context += `
+
+=== WRITING SYSTEM (for thought posts only) ===
 ${ws.goal}
 
 CORE RULES:
 ${ws.core_rules?.map((r: string) => `- ${r}`).join('\n') || ''}
 
-CHOOSE ONE ENGINE (based on topic):
-${Object.entries(ws.engines || {}).map(([name, engine]: [string, any]) =>
-  `- ${name.toUpperCase()}: ${engine.description} (use for: ${engine.use_for.join(', ')})`
-).join('\n')}
+LANGUAGE:
+- Prefer: ${ws.language?.prefer?.join(', ') || 'concrete nouns'}
+- Limit: ${ws.language?.limit?.join(', ') || 'adverbs'}
 
-CHOOSE ONE STRUCTURE:
-${ws.structures?.map((s: any) =>
-  `- ${s.name}: ${s.pattern}`
-).join('\n') || ''}
+TERM REPLACEMENTS (use these operational terms):
+${Object.entries(ws.language?.replacements || {}).map(([k, v]) => `- ${k} → "${v}"`).join('\n')}
 
-LANGUAGE CONSTRAINTS:
-Prefer: ${ws.language?.prefer?.join(', ') || 'concrete nouns, operational verbs'}
-Limit: ${ws.language?.limit?.join(', ') || 'abstract virtues, adverbs'}
+HUMAN MARKERS (include 1-2):
+${ws.human_markers?.slice(0, 3).map((m: string) => `- ${m}`).join('\n') || ''}
 
-TERM REPLACEMENTS (use operational language):
-${Object.entries(ws.language?.replacements || {}).map(([old, replacement]) =>
-  `- "${old}" → "${replacement}"`
-).join('\n')}
-
-TRAUMA-INFORMED:
-${ws.trauma_informed?.map((r: string) => `- ${r}`).join('\n') || ''}
-
-HUMAN MARKERS (include 1-2 per piece):
-${ws.human_markers?.slice(0, 5).map((m: string) => `- ${m}`).join('\n') || ''}
-
-ENDINGS:
-- AVOID: ${ws.endings?.avoid?.join(', ') || 'CTAs, inspirational wrap-ups'}
-- PREFER: ${ws.endings?.prefer?.join(', ') || 'stop after observation'}`
+ENDING: Stop after observation. No CTA.`
+    }
   }
 
   if (brand.voice.avoid_phrases && brand.voice.avoid_phrases.length > 0) {
@@ -197,13 +274,21 @@ export function selectReferenceStyle(
 
 /**
  * Get absolute paths to reference images for a style
+ * Handles both local paths and remote URLs
  */
 export function getAbsoluteReferenceImagePaths(
   style: ReferenceStyle,
   brandName: string
 ): string[] {
   const brandDir = join(process.cwd(), '..', 'brands', brandName)
-  return style.images.map(imagePath => join(brandDir, imagePath))
+  return style.images.map(imagePath => {
+    // If it's a URL, return as-is
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath
+    }
+    // Otherwise, treat as local path
+    return join(brandDir, imagePath)
+  })
 }
 
 /**

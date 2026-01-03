@@ -12,6 +12,7 @@ export {
   getBrandVisualStyle,
   buildImagePrompt,
   buildVoiceContext,
+  detectFrameType,
   selectReferenceStyle,
   getAbsoluteReferenceImagePaths,
   buildImagePromptWithStyleContext,

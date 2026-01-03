@@ -2,17 +2,41 @@
 name: "GiveCare"
 url: "https://givecareapp.com"
 
-# Voice - How we write (FOUNDER VOICE, not influencer)
-voice:
-  tone: "Founder building tools, not wellness influencer"
-  style: "Specific, substantive, action-oriented - like a builder shipping product"
+# =============================================================================
+# VOICE MODES
+# =============================================================================
+# GiveCare speaks in TWO distinct voices depending on content type:
+#
+# BRAND VOICE (default for community content):
+#   - Warm, direct, human
+#   - Speaks TO caregivers as someone who gets it
+#   - Uses plain language, not jargon
+#   - Acknowledges the hard thing, then offers something useful
+#
+# PRODUCT VOICE (for announcements, features, events):
+#   - Founder/builder perspective
+#   - Specific about what we're shipping
+#   - References real tools, assessments, benchmarks
+#   - Professional but not corporate
+# =============================================================================
 
-  # Core voice rules
+voice:
+  # Default tone for community content (tips, observations, support)
+  tone: "Warm, direct, honest - like a friend who's been there"
+  style: "Plain language, no jargon, acknowledges struggle before offering help"
+
+  # Base rules (apply to ALL content)
   rules:
-    - "Write as founder/builder, not inspirational coach"
-    - "Be SPECIFIC - mention real tools, assessments, benchmarks, events"
+    - "Acknowledge the hard thing first"
     - "NO empty affirmations ('You're allowed to...', 'Your peace matters')"
     - "NO dramatic one-word lines for emotional effect"
+    - "Keep sentences short and direct"
+    - "Use 'you' - speak directly to the reader"
+
+  # Product voice rules (only for announcements, features, events)
+  product_rules:
+    - "Write as founder/builder shipping real tools"
+    - "Be SPECIFIC - mention real features, assessments, benchmarks"
     - "Reference real GiveCare things: SMS assistant, assessments, AI safety"
     - "End with action: link, DM invitation, or question"
     - "Use ➡ arrows for lists, 🩶 for feature announcements"
@@ -224,6 +248,45 @@ voice:
 
         We need more folks doing real, useful work like this.
 
+    practical_tip:
+      description: "Useful advice for caregivers - WARM BRAND VOICE, not product voice"
+      use_brand_voice: true
+      structure: |
+        WARM, DIRECT, USEFUL:
+        - Start by naming what's hard (not dramatic, just real)
+        - Offer ONE concrete thing they can do
+        - Keep it short - they're tired
+        - End naturally - no CTA unless there's a real resource
+
+        LENGTH: Under 200 words total. Shorter is better.
+
+        TONE: Like a text from a friend who gets it.
+        NOT: Clinical, corporate, or preachy.
+      example: |
+        The holidays take more out of you than anyone sees.
+
+        The hosting. The extra appointments. The family dynamics on top of the daily stuff.
+
+        Here's something that actually helps: block 20 minutes tomorrow just for you. Not to be productive. Not to "recover." Just 20 minutes where no one needs anything from you.
+
+        That's it. Start there.
+      example_2: |
+        You just survived the holidays.
+
+        Not "enjoyed." Survived. There's a difference, and you know which one applies.
+
+        Your body kept score even if you didn't. The tension headaches. The interrupted sleep. The thing where you forget why you walked into a room.
+
+        This week: one slow morning. Just one. Sleep in, or sit with coffee before anyone else wakes up. Your system needs the reset.
+      example_3: |
+        Post-holiday crash is real.
+
+        You held it together through December. Now January hits and suddenly everything feels harder.
+
+        This isn't weakness. This is what happens after sustained effort without enough recovery.
+
+        Give yourself the same patience you'd give anyone else coming off a tough stretch.
+
     thought:
       description: "Observation or reflection - USES WRITING SYSTEM, no CTAs"
       use_writing_system: true
@@ -290,10 +353,32 @@ voice:
 
 # Visual Style - How we look
 visual:
+  # =============================================================================
+  # ELECTRIC CREAM PALETTE
+  # Tech with soul - Arc, Linear, Raycast vibes
+  # Elevates caregiving without undermining the message
+  # =============================================================================
   palette:
-    primary: "#FF9F1C"    # Warm orange
-    secondary: "#54340E"  # Deep brown
-    accent: "#FFE8D6"     # Cream
+    # Core
+    primary: "#1E1B16"      # Deep warm (text, headlines)
+    secondary: "#3D3929"    # Warm olive-brown (secondary text)
+    accent: "#5046E5"       # Electric indigo (CTAs, links, emphasis)
+
+    # Extended
+    background: "#FDFBF7"   # Cream white (page background)
+    surface: "#F5F2ED"      # Warm off-white (cards, containers)
+    midtone: "#7A7265"      # Warm gray (body text, borders)
+    muted: "#8A857B"        # Warm gray (placeholders, disabled) - WCAG AA compliant
+
+    # Semantic
+    success: "#2D7D46"      # Forest green
+    warning: "#D4A03A"      # Amber
+    error: "#C44536"        # Brick red
+
+    # Legacy (for backward compatibility)
+    legacy_orange: "#FF9F1C"
+    legacy_brown: "#54340E"
+    legacy_cream: "#FFE8D6"
 
   # Core visual identity
   style: "Bold editorial photography, high contrast, modern graphic design, fashion-forward"
@@ -356,26 +441,27 @@ visual:
   # =============================================================================
 
   design_system:
-    # PRIMARY: Vintage flat illustration (vessels, hands, plants)
+    # PRIMARY: Modern editorial illustration
     illustration:
       style_description: |
-        VINTAGE FLAT ILLUSTRATION:
-        - Dark chocolate brown background (#54340E)
-        - Flat color palette: lilac/lavender, lime green, coral pink, warm orange
+        MODERN FLAT ILLUSTRATION:
+        - Deep warm background (#1E1B16) or cream (#FDFBF7)
+        - Electric indigo accent (#5046E5) for highlights and focal points
+        - Warm olive-brown (#3D3929) for depth and grounding
         - Simplified silhouette shapes: vessels, pottery, hands, plants, botanical forms
-        - NO gradients, NO shading - pure flat color fills
-        - Vintage 1950s-1970s cookbook/poster aesthetic
-        - Playful arrangement of shapes, hand-crafted screen-printed look
+        - NO gradients, minimal shading - mostly flat color fills
+        - Contemporary editorial aesthetic with vintage warmth
+        - Clean, intentional composition
       reference: "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_06_style02.png"
       use_for: ["nurture", "grow", "cup", "fill", "garden", "harvest", "rest", "self-care"]
 
-    # SECONDARY: Photo with duotone/color treatment
+    # SECONDARY: Photo with modern treatment
     photo_treatment:
       style_description: |
-        DUOTONE PHOTO TREATMENT:
-        - Apply duotone effect: shadows in dark brown (#54340E), highlights in warm orange (#FF9F1C)
-        - OR: High contrast black & white with orange color accent overlay
-        - Grain texture overlay for vintage feel
+        MODERN PHOTO TREATMENT:
+        - Apply duotone effect: shadows in deep warm (#1E1B16), highlights in cream (#FDFBF7)
+        - OR: High contrast with electric indigo (#5046E5) accent overlay
+        - Subtle grain texture for editorial feel
         - Subject: hands, faces in close-up, objects (cups, plants, fabric)
         - Cropped dramatically - not full body shots
         - Editorial/fashion photography base with graphic treatment applied
@@ -386,12 +472,12 @@ visual:
     typography:
       style_description: |
         EDITORIAL TYPOGRAPHY POSTER:
-        - Dark maroon/burgundy background (#4A1515 or #54340E)
+        - Deep warm background (#1E1B16) or cream (#FDFBF7)
         - Mixed serif fonts: elegant + display + decorative
-        - Colors: warm orange (#FF9F1C) and coral pink (#E86B6B) on dark
+        - Electric indigo (#5046E5) for key words, cream for body on dark
         - Decorative elements: asterisks *, arrows →, symbols ™®©
         - Typography IS the visual - words as graphic design
-        - Fashion/editorial magazine aesthetic
+        - Modern tech-editorial aesthetic (Arc, Linear vibes)
         - Message-driven: the words ARE the art
       reference: "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_02_typography.jpg"
       use_for: ["boundaries", "permission", "allowed", "say", "no", "yes", "words", "message", "mantra"]
@@ -432,14 +518,14 @@ visual:
       description: "Bold typographic poster with mixed serif fonts"
       style_description: |
         EXACT STYLE TO MATCH:
-        - Dark maroon/burgundy background (#4A1515 or similar deep red-brown)
+        - Deep warm background (#1E1B16) or cream (#FDFBF7)
         - Centered typography composition using mixed serif fonts
-        - Color palette: warm orange (#FF9F1C) and coral pink (#E86B6B) text on dark background
+        - Color palette: electric indigo (#5046E5) for emphasis, cream for body on dark
         - Decorative typographic elements: asterisks, arrows (→), trademark symbols (™®©)
         - Elegant serif typefaces mixed with display fonts
         - NO IMAGES - pure typography as the visual
         - Clean negative space around text blocks
-        - Fashion/editorial magazine aesthetic
+        - Modern tech-editorial aesthetic (Arc, Linear, Raycast vibes)
       images:
         - "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_02_typography.jpg"
       mood_keywords: ["boundaries", "message", "statement", "permission", "no", "yes", "words", "mantra", "affirmation", "say", "speak", "voice", "allowed"]
@@ -460,18 +546,18 @@ visual:
         - "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_04_modernist.jpg"
       mood_keywords: ["clarity", "vision", "focus", "see", "awareness", "perspective", "insight", "truth", "recognize", "eye", "watch", "observe", "notice"]
 
-    - name: "vintage_flat_illustration"
-      description: "Retro flat-color illustration with limited palette"
+    - name: "modern_flat_illustration"
+      description: "Contemporary flat-color illustration with Electric Cream palette"
       style_description: |
         EXACT STYLE TO MATCH:
-        - Dark brown/chocolate background (#54340E or similar)
-        - Limited flat color palette: lilac/lavender, lime green, pink on brown
+        - Deep warm background (#1E1B16) or cream (#FDFBF7)
+        - Electric indigo (#5046E5) accent for highlights and focal points
+        - Warm olive-brown (#3D3929) and midtone (#7A7265) for depth
         - Simplified silhouette shapes (vessels, pottery, organic forms)
-        - NO gradients, NO shading - pure flat color fills
-        - Vintage 1950s-1970s illustration aesthetic
-        - Playful arrangement of shapes
-        - Hand-crafted, screen-printed look
-        - Think: vintage cookbook illustrations, mid-century modern design
+        - NO gradients, minimal shading - mostly flat color fills
+        - Contemporary editorial aesthetic with vintage warmth
+        - Clean, intentional composition
+        - Think: Arc browser, Linear, modern design systems
       images:
         - "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_06_style02.png"
       mood_keywords: ["nourish", "feed", "food", "harvest", "grow", "cultivate", "tend", "garden", "fruit", "bloom", "cup", "fill", "vessel", "container", "hold"]
@@ -489,7 +575,7 @@ visual:
         - Think: cross-section of fruit, cells under microscope, tree bark patterns
       images:
         - "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_03_organic.jpg"
-      mood_keywords: ["burnout", "exhaustion", "renewal", "growth", "empty", "whole", "energy", "depleted", "restore", "heal", "recover", "transform", "change"]
+      mood_keywords: ["burnout", "exhaustion", "renewal", "growth", "empty", "whole", "energy", "depleted", "restore", "heal", "recover", "transform", "change", "holiday", "crash", "reset", "tired", "rest", "survived", "aftermath"]
 
     - name: "bold_portrait"
       description: "High-contrast editorial beauty portrait"
@@ -505,6 +591,29 @@ visual:
       images:
         - "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/ref_01_beauty.jpg"
       mood_keywords: ["self-care", "beauty", "identity", "portrait", "confidence", "radical", "self-love", "face", "skin", "glow", "radiant", "shine"]
+
+    - name: "instax_wide"
+      description: "Last Night's Party Instax Wide polaroid aesthetic"
+      style_description: |
+        EXACT STYLE TO MATCH:
+        - Instax Wide format (landscape, white border thicker at bottom)
+        - Flash photography aesthetic - harsh direct flash, heavy film grain
+        - Candid intimate moments - real life, not posed
+        - Warm tungsten indoor lighting mixed with flash
+        - Generate on SOLID GREEN (#00FF00) background for clean removal
+        - Content: caregiving moments without being clinical or sad
+        - Subjects: intergenerational joy, quiet domestic scenes, objects that tell stories
+        - NO: hospital settings, sad expressions, clinical imagery
+        - Think: Mark Hunter "Last Night's Party", early 2000s flash aesthetic
+      style_refs:
+        - "https://pbs.twimg.com/media/G46250hWwAA0Dg3?format=jpg&name=large"
+        - "https://pbs.twimg.com/media/G5QQFPGX0AA5Ute?format=jpg&name=large"
+        - "https://pbs.twimg.com/media/G5g9ploWoAAxNjI?format=jpg&name=4096x4096"
+      generation:
+        model: "google/nano-banana"
+        aspect_ratio: "4:3"
+        background_removal: "bria/remove-background"
+      mood_keywords: ["candid", "real", "flash", "party", "intimate", "family", "home", "joy", "moment", "memory", "snapshot", "authentic"]
 
     - name: "retro_botanical"
       description: "Vintage botanical illustration style"
@@ -531,7 +640,7 @@ visual:
     # Brand watermark configuration
     logo_url: "https://pub-4d9471dbec644c5b90e77e776b4c6c8e.r2.dev/references/givecare/logo.png"
     logo_text: "GiveCare"
-    logo_style: "Bold sans-serif text 'GiveCare' in warm orange #FF9F1C, positioned subtly in corner"
+    logo_style: "Bold sans-serif text 'GiveCare' in electric indigo #5046E5 or deep warm #1E1B16, positioned subtly in corner"
 
 # Platforms
 platforms:

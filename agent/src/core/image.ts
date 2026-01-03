@@ -1,9 +1,9 @@
 /**
  * Image generation using Google Gemini
  * Primary: gemini-2.5-flash-image - cheap, fast
- * Fallback: gemini-3-pro-image-preview - expensive, high quality
+ * Expensive: gemini-3-pro-image-preview - high quality, style transfer
  *
- * Supports reference image style transfer with Gemini 3 Pro (up to 6 images)
+ * Text generation uses gemini-3-flash-preview (separate)
  */
 
 import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'fs'
@@ -19,10 +19,26 @@ const MODELS = {
 type ImageResolution = '1K' | '2K' | '4K'
 
 /**
- * Load image file and convert to base64
+ * Load image (file or URL) and convert to base64
  */
-function loadImageAsBase64(imagePath: string): { data: string; mimeType: string } | null {
+async function loadImageAsBase64(imagePath: string): Promise<{ data: string; mimeType: string } | null> {
   try {
+    // Handle URLs
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      console.log(`[image] Fetching reference image: ${imagePath.slice(0, 60)}...`)
+      const response = await fetch(imagePath)
+      if (!response.ok) {
+        console.log(`[image] Failed to fetch reference image: ${response.status}`)
+        return null
+      }
+      const buffer = Buffer.from(await response.arrayBuffer())
+      const base64 = buffer.toString('base64')
+      const contentType = response.headers.get('content-type') || 'image/png'
+      const mimeType = contentType.includes('jpeg') || contentType.includes('jpg') ? 'image/jpeg' : 'image/png'
+      return { data: base64, mimeType }
+    }
+
+    // Handle local files
     if (!existsSync(imagePath)) {
       console.log(`[image] Reference image not found: ${imagePath}`)
       return null
@@ -142,10 +158,10 @@ export async function generateImageWithReferences(
 
   const ai = new GoogleGenAI({ apiKey })
 
-  // Load reference images
+  // Load reference images (handles both local files and URLs)
   const loadedImages: { data: string; mimeType: string }[] = []
   for (const imagePath of referenceImagePaths.slice(0, 6)) {
-    const imageData = loadImageAsBase64(imagePath)
+    const imageData = await loadImageAsBase64(imagePath)
     if (imageData) {
       loadedImages.push(imageData)
     }

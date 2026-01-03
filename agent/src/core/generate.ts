@@ -10,6 +10,7 @@ import {
   getBrandVisualStyle,
   buildImagePrompt,
   buildVoiceContext,
+  detectFrameType,
   selectReferenceStyle,
   getAbsoluteReferenceImagePaths,
   buildImagePromptWithStyleContext
@@ -121,22 +122,22 @@ export async function generateContent(options: GenerateOptions): Promise<Generat
     console.log(`[generate] Using hook pattern: "${hookPattern.hook?.slice(0, 50)}..." (${hookPattern.category})`)
   }
 
+  // Detect frame type from topic
+  const frameType = detectFrameType(topic)
+  console.log(`[generate] Frame type: ${frameType}`)
+
   // Generate copy with Gemini
   console.log(`[generate] Generating copy...`)
-  const voiceContext = buildVoiceContext(brand)
+  const voiceContext = buildVoiceContext(brand, frameType)
 
   const ai = new GoogleGenAI({ apiKey })
 
-  // Build image direction context
+  // Build image direction context based on frame type
   const imageDirection = brand.visual.image_direction
-  const subjectsHint = imageDirection?.subjects?.slice(0, 3).join('\n  ') || 'authentic moments, natural settings'
-  const emotionsHint = imageDirection?.emotions?.join(', ') || brand.visual.mood
-  const sceneTemplates = imageDirection?.scene_templates
-    ? Object.entries(imageDirection.scene_templates).map(([k, v]) => `  ${k}: "${v}"`).join('\n')
-    : ''
+  const isPracticalTip = frameType === 'practical_tip'
 
-  // Build hook guidance if we have a proven pattern
-  const hookGuidance = hookPattern ? `
+  // Build hook guidance if we have a proven pattern (skip for practical_tip)
+  const hookGuidance = (hookPattern && !isPracticalTip) ? `
 === PROVEN HOOK PATTERN (use this structure) ===
 Category: ${hookPattern.category}
 Example hook: "${hookPattern.hook}"
@@ -145,6 +146,50 @@ ${hookPattern.amplified ? `Amplified version: "${hookPattern.amplified}"` : ''}
 Use this hook STRUCTURE (not exact words) to open your content. Make it specific to the topic.
 === END HOOK PATTERN ===
 ` : ''
+
+  // Different image guidance for practical_tip vs other content
+  const imageGuidance = isPracticalTip ? `
+=== IMAGE DESCRIPTION (ABSTRACT VISUAL) ===
+
+For this type of content, describe an ABSTRACT or ILLUSTRATIVE visual, NOT a literal scene.
+
+STYLE OPTIONS (pick one):
+1. ORGANIC TEXTURE: "Abstract cellular pattern in warm oranges and browns, organic blob shapes like cross-section of fruit or tree bark, fills entire frame, no recognizable objects"
+2. VINTAGE ILLUSTRATION: "Flat-color illustration on dark brown background, simplified silhouettes of vessels/cups/plants in lilac and coral, 1960s cookbook aesthetic, no gradients"
+3. BOTANICAL: "Vintage botanical illustration style, warm earthy tones with pops of coral/orange, hand-drawn quality, retro seed catalog aesthetic"
+
+MOOD TO CONVEY: ${brand.visual.mood}
+
+CRITICAL REQUIREMENTS:
+- NO literal scenes of people resting, stretching, or doing self-care
+- NO stock photography aesthetics
+- Think: graphic design poster, not photograph
+- Abstract visuals that FEEL like rest/renewal without depicting it literally
+
+BAD: "Person stretching in morning light" or "Hands holding tea"
+GOOD: "Abstract organic cellular texture in warm amber and cream tones, resembling a cross-section of honeycomb or tree rings, fills entire frame edge-to-edge, warm earthy color palette"
+` : `
+=== IMAGE DESCRIPTION (SPECIFIC SCENE) ===
+
+You must write a DETAILED, SPECIFIC image description. This will be used to generate the image, so be precise.
+
+GOOD SUBJECTS FOR THIS BRAND:
+  ${imageDirection?.subjects?.slice(0, 3).join('\n  ') || 'authentic moments, natural settings'}
+
+EMOTIONAL TONE TO CONVEY: ${imageDirection?.emotions?.join(', ') || brand.visual.mood}
+
+${imageDirection?.scene_templates ? `EXAMPLE SCENE TEMPLATES:\n${Object.entries(imageDirection.scene_templates).map(([k, v]) => `  ${k}: "${v}"`).join('\n')}\n` : ''}
+REQUIREMENTS FOR YOUR IMAGE DESCRIPTION:
+1. Describe a SPECIFIC scene, not an abstract concept
+2. Include lighting direction (e.g., "soft morning light from the left")
+3. Include camera perspective (e.g., "close-up", "overhead shot", "eye-level")
+4. Describe textures and materials (e.g., "weathered wooden table", "linen fabric")
+5. Set a mood through environmental details
+6. AVOID: generic stock photo scenes, people smiling at camera, office settings, medical settings
+
+BAD: "A caregiver taking a break"
+GOOD: "Close-up of weathered hands wrapped around a ceramic mug of tea, soft morning light streaming through gauze curtains, steam rising, a well-worn journal open on a wooden table in the background, shallow depth of field, muted warm tones"
+`
 
   const prompt = `You are a social media copywriter and art director. Generate content for this topic.
 
@@ -159,28 +204,7 @@ Generate content for these platforms:
 - Facebook: similar to LinkedIn but slightly more casual, community-focused
 - Instagram: visual-first caption, max 2200 chars, 5-10 hashtags, use emojis sparingly
 - Threads: short and conversational like Twitter, max 500 chars, 2-3 hashtags
-
-=== IMAGE DESCRIPTION (CRITICAL) ===
-
-You must write a DETAILED, SPECIFIC image description. This will be used to generate the image, so be precise.
-
-GOOD SUBJECTS FOR THIS BRAND:
-  ${subjectsHint}
-
-EMOTIONAL TONE TO CONVEY: ${emotionsHint}
-
-${sceneTemplates ? `EXAMPLE SCENE TEMPLATES:\n${sceneTemplates}\n` : ''}
-REQUIREMENTS FOR YOUR IMAGE DESCRIPTION:
-1. Describe a SPECIFIC scene, not an abstract concept
-2. Include lighting direction (e.g., "soft morning light from the left")
-3. Include camera perspective (e.g., "close-up", "overhead shot", "eye-level")
-4. Describe textures and materials (e.g., "weathered wooden table", "linen fabric")
-5. Set a mood through environmental details
-6. AVOID: generic stock photo scenes, people smiling at camera, office settings, medical settings
-
-BAD: "A caregiver taking a break"
-GOOD: "Close-up of weathered hands wrapped around a ceramic mug of tea, soft morning light streaming through gauze curtains, steam rising, a well-worn journal open on a wooden table in the background, shallow depth of field, muted warm tones"
-
+${imageGuidance}
 Respond in this exact JSON format:
 {
   "twitterText": "the twitter post text without hashtags",
@@ -197,7 +221,7 @@ Respond in this exact JSON format:
 }`
 
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash-lite-preview-06-17',
+    model: 'gemini-3-flash-preview',
     contents: prompt
   })
 
