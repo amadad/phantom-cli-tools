@@ -1,250 +1,197 @@
 # Phantom Loom
 
-Autonomous brand-driven content: **hooks + themes → generate → post**
+Brand-driven content generation: **intel → generate → post**
 
-## System Overview
-
-```
-brand.yml      →  voice, visual, guardrails (constant)
-calendar.yml   →  monthly themes (constant)
-hooks.json     →  viral hooks (weekly intel)
-queue.json     →  posts to publish (seeded + generated)
-                       ↓
-                 daily post
-```
-
-## Quick Start
+## Commands
 
 ```bash
-cd agent && npm install
+cd agent
 
-# Intel (weekly) - scan influencers, detect viral, extract hooks
+# Intel (weekly)
 npx tsx src/cli.ts intel givecare
+npx tsx src/cli.ts intel givecare --skip-enrich --dry-run
 
-# Generate - create content from hooks + theme
-npx tsx src/cli.ts gen givecare "topic"       # manual topic
-npx tsx src/cli.ts gen givecare --auto        # uses calendar or hooks
+# Generate (daily)
+npx tsx src/cli.ts gen givecare "topic"
+npx tsx src/cli.ts gen givecare --auto          # calendar theme or hooks
+npx tsx src/cli.ts gen givecare "topic" --save-image
 
-# Post - publish from queue
+# Post (daily)
+npx tsx src/cli.ts post givecare --dry-run      # preview first
 npx tsx src/cli.ts post givecare
+npx tsx src/cli.ts post givecare --platforms=twitter,linkedin
+npx tsx src/cli.ts post givecare --all
 
-# Queue - view pending posts
-npx tsx src/cli.ts queue
+# Queue
+npx tsx src/cli.ts post list
 ```
 
-## File Structure
+## Architecture
 
 ```
-phantom-loom/
-├── agent/                    # CLI + pipeline
-│   └── src/
-│       ├── cli.ts            # Main entry point
-│       ├── commands/         # intel, gen, post
-│       ├── core/             # generate, brand, image, types
-│       ├── social/           # Platform posting (direct APIs)
-│       └── intelligence/     # Influencer + viral detection
-├── brands/
-│   ├── givecare.yml          # Brand identity
-│   ├── givecare/
-│   │   ├── calendar.yml      # Monthly themes
-│   │   └── styles/           # Reference images
-│   └── scty.yml
-├── docs/
-│   └── content-calendar-framework.md
-├── output/                   # Generated content (gitignored)
-│   ├── queue/queue.json      # Post queue
-│   └── intel/hooks.json      # Viral hooks
-└── .env                      # API keys (gitignored)
+agent/src/
+├── cli.ts                 # Entry point, command routing
+├── commands/
+│   ├── intel.ts           # Run intelligence pipeline
+│   ├── gen.ts             # Generate content
+│   └── post.ts            # Publish to platforms
+├── core/
+│   ├── types.ts           # Central type definitions
+│   ├── brand.ts           # Load YAML, detect frames, build voice context
+│   ├── calendar.ts        # Monthly themes with fallback
+│   ├── generate.ts        # Topic → copy + image → queue
+│   └── image.ts           # Gemini image generation + style transfer
+├── intelligence/
+│   ├── pipeline.ts        # Orchestrates enrich → detect → extract
+│   ├── enrich-apify.ts    # Fetch live metrics via Apify
+│   ├── detect-outliers.ts # Flag posts >= 5x median views
+│   ├── extract-hooks.ts   # Gemini analysis of viral patterns
+│   └── hook-bank.ts       # Store/retrieve proven hooks
+├── social/
+│   ├── index.ts           # Unified routing, credential validation
+│   ├── twitter-direct.ts  # OAuth 1.0a
+│   ├── linkedin-direct.ts # OAuth 2.0
+│   ├── facebook-direct.ts # Graph API
+│   ├── instagram-direct.ts
+│   ├── threads-direct.ts
+│   └── youtube-direct.ts  # Stub
+├── queue/
+│   └── index.ts           # File-based queue (review → done/failed)
+└── templates/
+    ├── kunz/              # Layered typography system
+    ├── instax-social.ts   # Polaroid aesthetic
+    └── brand-system.ts    # SCTY modular prompts
 ```
 
-## Cadence
+## Data Flow
 
-| Task | Frequency | Command |
-|------|-----------|---------|
-| Intel | Weekly | `intel givecare` |
-| Generate | Daily | `gen givecare "topic"` or `gen givecare --from-hooks` |
-| Post | Daily | `post givecare` |
+```
+INTEL PIPELINE (weekly)
+Influencers DB → Apify scrape → Outlier detection → Hook extraction → Hook Bank
 
-## Content Sources
+GENERATION PIPELINE (daily)
+Topic → Frame detection → Voice context → Hook matching →
+Style selection → Gemini (copy + image) → Queue
 
-| Source | Who | When |
-|--------|-----|------|
-| **Seeded** | You | Product, founder thoughts |
-| **Generated** | System | Hooks + monthly theme |
+POSTING PIPELINE
+Queue item → Per-platform text → Direct API → Post results
+```
 
-Queue is FIFO. Seeded posts before generated.
+## Key Files
 
-## Platform Support
+| File | Purpose |
+|------|---------|
+| `brands/givecare.yml` | Voice, visual, platforms, guardrails |
+| `brands/givecare/calendar.yml` | Monthly themes |
+| `output/queue/queue.json` | Pending/published items |
+| `agent/src/intelligence/data/givecare-hooks.json` | Viral hook patterns |
 
-| Platform | Auth | Content |
-|----------|------|---------|
-| Twitter | OAuth 1.0a | Text + Images |
-| LinkedIn | OAuth 2.0 | Text + Images |
-| Facebook | Graph API | Text + Images |
-| Instagram | Platform API | Images (required) |
-| Threads | Threads API | Text + Images |
-| YouTube | Google OAuth | Videos/Shorts |
+## Brand Configuration
 
-## Content Formats
+`brands/givecare.yml` structure:
 
-Four post format types:
+```yaml
+voice:
+  tone, style, rules          # Core voice
+  product_rules               # Product-specific voice
+  writing_system              # Anti-AI-slop constraints
+  frames                      # Content type structures
+  avoid_phrases               # Never-use words
 
-| Format | Description |
-|--------|-------------|
-| `image` | Static singular — 1 image |
-| `carousel` | Static slideshow — multiple images |
-| `video` | Animated singular — 1 video/motion graphic |
-| `video-carousel` | Animated slideshow — multiple videos or mixed |
+visual:
+  palette                     # Colors
+  reference_styles            # 7 visual modes with mood keywords
+  image_generation            # Model, aspect ratio, resolution
 
-### Format Support Matrix
+guardrails:
+  pursue, reject, never       # Quality controls
+```
 
-| Format | IG | FB | LI | X | Threads | TikTok | YT Shorts |
-|--------|:--:|:--:|:--:|:-:|:-------:|:------:|:---------:|
-| image | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| carousel | ✅ | ✅ | ✅ | ⚠️ | ✅ | ✅ | ❌ |
-| video | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| video-carousel | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ |
+## Frame Types
 
-### Carousel Limits
+Auto-detected from topic keywords:
 
-| Platform | Max Slides | Notes |
-|----------|:----------:|-------|
-| Instagram | 20 | Images + videos mixed |
-| Facebook | 10 | Images + videos mixed |
-| LinkedIn | 10 | PDF document carousel only |
-| Twitter/X | 4 | Images only, no swipe UI |
-| Threads | 20 | Images + videos mixed |
-| TikTok | 35 | Images only |
+| Frame | Keywords | Voice Mode |
+|-------|----------|------------|
+| announcement | release, launch, ship | Product |
+| event | conference, summit | Product |
+| partnership | partner, collaborat | Founder |
+| weekly_update | this week, working on | Product |
+| practical_tip | tip, how-to, self-care | Brand (warm) |
+| thought | (default) | Writing system |
 
-### Image Specs
+## Hook Categories
 
-| Platform | Square | Portrait | Landscape |
-|----------|--------|----------|-----------|
-| Instagram | 1080×1080 | 1080×1350 (4:5) | 1080×566 |
-| Facebook | 1080×1080 | 1080×1350 | 1200×630 |
-| LinkedIn | 1080×1080 | 1080×1350 | 1200×628 (1.91:1) |
-| Twitter/X | 1080×1080 | 1080×1350 | 1200×675 (16:9) |
-| Threads | 1080×1080 | 1080×1920 (9:16) | — |
-| TikTok | 1080×1080 | 1080×1920 (9:16) | — |
+| Category | Pattern |
+|----------|---------|
+| curiosity | "I tried X for 30 days..." |
+| controversy | Hot takes, counterintuitive |
+| transformation | Before/after, journey |
+| secret | "Nobody talks about..." |
+| listicle | "5 things I wish..." |
+| story | Narrative hooks |
+| question | Rhetorical questions |
+| statistic | Data-driven hooks |
 
-### Video Specs
+## Queue Stages
 
-| Platform | Format | Max Size | Max Length | Recommended |
-|----------|--------|:--------:|:----------:|-------------|
-| Instagram Reels | MP4/MOV | 4GB | 90s | 1080×1920, 30fps |
-| Instagram Feed | MP4/MOV | 4GB | 60s | 1080×1350, 30fps |
-| Facebook | MP4/MOV | 4GB | 240min | 1080×1920, 30fps |
-| LinkedIn | MP4/MOV | 200MB | 30min | 1920×1080, 30fps |
-| Twitter/X | MP4/MOV | 512MB | 140s | 1280×720, 30fps |
-| Threads | MP4 | — | 5min | 1080×1920, 30fps |
-| TikTok | MP4/MOV | 4GB | 10min | 1080×1920, 30fps |
-| YouTube Shorts | MP4 | — | 60s | 1080×1920, 30fps |
-
-### GIF Support
-
-| Platform | Native GIF | Recommendation |
-|----------|:----------:|----------------|
-| Instagram | ❌ | Export as MP4 |
-| Facebook | ✅ | Native or MP4 |
-| LinkedIn | ✅ | Native or MP4 |
-| Twitter/X | ✅ | Converts to MP4 |
-| Threads | ❌ | Export as MP4 |
-| TikTok | ❌ | Export as MP4 |
-
-**Best practice**: Export all animations as MP4 (H.264) for universal support. 85% of users watch without sound — text-based motion graphics ideal.
-
-## Video Generation Pricing
-
-Using Replicate API with Kling 2.5 Turbo Pro (recommended).
-
-### Per-Video Cost
-
-| Duration | Cost | Notes |
-|----------|------|-------|
-| 5s | $0.35 | $0.07/sec |
-| 10s | $0.70 | Max duration |
-
-### Cost Per Post (All Channels)
-
-| Strategy | Videos | Cost |
-|----------|--------|------|
-| One size, crop/letterbox | 1 | $0.35 |
-| One per aspect ratio | 3 | **$1.05** |
-| One per platform | 7 | $2.45 |
-
-**Recommended**: 3 videos per post ($1.05)
-- 1:1 → Instagram Feed, Facebook, Threads
-- 9:16 → Instagram Reels, TikTok, YouTube Shorts
-- 16:9 → Twitter/X, LinkedIn
-
-### Model Comparison (Replicate)
-
-| Model | Cost/sec | 5s Cost | Quality |
-|-------|----------|---------|---------|
-| Kling 2.5 Turbo Pro | $0.07 | $0.35 | Best |
-| Hailuo 02 | $0.054 | $0.27 | Good |
-| WAN 2.2 | $0.03 | $0.15 | Budget |
-
-### Budget Calculator
-
-| Budget | Posts (3 videos) | Posts (1 video) |
-|--------|------------------|-----------------|
-| $10 | 9 | 28 |
-| $50 | 47 | 142 |
-| $100 | 95 | 285 |
-| $127 | 121 | 363 |
+```
+review → publishing → done
+                   → failed
+```
 
 ## Environment Variables
 
 ```bash
 # Required
-GEMINI_API_KEY=...            # Content + image generation
+GEMINI_API_KEY
 
 # Intel
-APIFY_API_TOKEN=...           # Influencer enrichment
-EXA_API_KEY=...               # Discovery (optional)
+APIFY_API_TOKEN
 
-# Posting (per-brand, per-platform)
-TWITTER_GIVECARE_API_KEY=...
-TWITTER_GIVECARE_API_SECRET=...
-TWITTER_GIVECARE_ACCESS_TOKEN=...
-TWITTER_GIVECARE_ACCESS_SECRET=...
+# Per-brand credentials (example for givecare)
+TWITTER_GIVECARE_API_KEY
+TWITTER_GIVECARE_API_SECRET
+TWITTER_GIVECARE_ACCESS_TOKEN
+TWITTER_GIVECARE_ACCESS_SECRET
 
-LINKEDIN_GIVECARE_ACCESS_TOKEN=...
-LINKEDIN_GIVECARE_ORG_ID=...
+LINKEDIN_GIVECARE_ACCESS_TOKEN
+LINKEDIN_GIVECARE_ORG_ID
 
-# See .env.example for full list
+FACEBOOK_GIVECARE_PAGE_ACCESS_TOKEN
+FACEBOOK_GIVECARE_PAGE_ID
+
+INSTAGRAM_GIVECARE_ACCESS_TOKEN
+INSTAGRAM_GIVECARE_USER_ID
+
+THREADS_GIVECARE_ACCESS_TOKEN
+THREADS_GIVECARE_USER_ID
 ```
 
-## Brand Configuration
+## Token Lifetimes
 
-`brands/givecare.yml`:
-- `voice` - tone, style, rules, writing_system, avoid_phrases
-- `visual` - palette, style, reference_styles
-- `platforms` - per-platform settings
-- `guardrails` - pursue, reject, never
-
-`brands/givecare/calendar.yml`:
-- `frequency` - daily
-- `platforms` - [instagram, threads, linkedin]
-- `themes` - monthly awareness themes
+| Platform | Lifetime | Refresh |
+|----------|----------|---------|
+| Twitter | Never | N/A |
+| LinkedIn | ~60 days | Manual re-auth |
+| Facebook/Instagram | ~60 days | Manual re-auth |
+| Threads | ~60 days | Manual re-auth |
+| YouTube | ~1 hour | Auto-refresh |
 
 ## Template System
 
-Templates render typography-driven images using Satori + Sharp.
+| Template | Purpose | When to Use |
+|----------|---------|-------------|
+| `kunz` | Layered typography | Bold text-driven posts |
+| `instax-social` | Polaroid aesthetic | Lifestyle content |
+| `brand-system` | SCTY modular prompts | Abstract visuals |
 
-| Template | Purpose | Grid |
-|----------|---------|------|
-| `kunz` | Layered typography (Willi Kunz inspired) | A (6-col) + B (5-col) + M (12x12 marks) |
-| `render` | Standard DesignSpec → PNG | Simple vertical stack |
-| `instax-social` | Polaroid aesthetic | Flash photography + bg removal |
-
-### Kunz Grid Reference
+### Kunz Grid
 
 ```
-A1-A6: Primary 6-column grid (typography alignment)
+A1-A6: Primary 6-column grid (typography)
 B1-B5: Secondary 5-column grid (offset tension)
-M1-M12: Mark grid (12x12 for glyphs/patterns)
+M1-M12: Mark grid (12x12 for glyphs)
 ```
 
 ### Mark Vocabulary
@@ -255,30 +202,46 @@ M1-M12: Mark grid (12x12 for glyphs/patterns)
 | `+` `×` | Accumulation, growth |
 | `:` `/` `~` | Ratio, transformation |
 | `—` `\|` | Time, duration |
-| `%` `#` | Measurement |
-| `.` `●` `○` | Points, presence |
 
-### Usage
+## Platform Specs
 
-```typescript
-import { renderKunz } from './templates/kunz'
+### Image Dimensions
 
-const buffer = await renderKunz({
-  rows: [{ content: "The unsung hours", size: 72, col: "A1" }],
-  marks: [{ glyph: "*", mode: "pattern", col: 9, row: 9, spanCols: 4, spanRows: 4 }],
-  contrast: "loud-quiet",
-  logo: { col: "A1", position: "bottom" },
-  ratio: "1:1"
-})
+| Platform | Square | Portrait | Landscape |
+|----------|--------|----------|-----------|
+| Instagram | 1080×1080 | 1080×1350 | 1080×566 |
+| Facebook | 1080×1080 | 1080×1350 | 1200×630 |
+| LinkedIn | 1080×1080 | 1080×1350 | 1200×628 |
+| Twitter/X | 1080×1080 | 1080×1350 | 1200×675 |
+| Threads | 1080×1080 | 1080×1920 | — |
+
+### Character Limits
+
+| Platform | Max | Hashtags |
+|----------|-----|----------|
+| Twitter | 280 | 3 |
+| LinkedIn | 3000 | 5 |
+| Facebook | 63206 | 3 |
+| Instagram | 2200 | 5-10 |
+| Threads | 500 | 2-3 |
+
+## Known Issues
+
+- YouTube video upload is stub only
+- No scheduling (manual trigger)
+- File-based queue (no concurrent access protection)
+- Token refresh is manual
+- SCTY brand incomplete (220 vs 740 LOC)
+- Calendar only has 6/12 months
+
+## Development
+
+```bash
+cd agent
+
+# Type check
+npx tsc --noEmit
+
+# Run specific command
+npx tsx src/cli.ts <command> [args]
 ```
-
-## Token Expiration
-
-| Platform | Lifetime | Refresh |
-|----------|----------|---------|
-| Twitter | Never | N/A |
-| LinkedIn | ~60 days | Re-run auth |
-| Facebook | ~60 days | Re-run auth |
-| Instagram | ~60 days | Re-run auth |
-| Threads | ~60 days | Re-run auth |
-| YouTube | ~1 hour | Auto-refresh |
