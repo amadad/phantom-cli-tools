@@ -2,7 +2,7 @@
  * Content generation - copy + image
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
 import { GoogleGenAI } from '@google/genai'
 import {
@@ -17,6 +17,7 @@ import {
 } from './brand'
 import { generateImage, generateImageWithReferences, saveImage } from './image'
 import type { GenerationResult, PlatformContent, QueueItem } from './types'
+import { addToQueue } from '../queue'
 
 /**
  * Get relevant hook patterns from hook bank for a topic
@@ -68,25 +69,6 @@ function getHooksForTopic(topic: string, brandName: string): {
   } catch {
     return null
   }
-}
-
-/**
- * Add item to queue
- */
-function addToQueue(item: QueueItem): void {
-  const queueDir = join(process.cwd(), '..', 'output', 'queue')
-  const queuePath = join(queueDir, 'queue.json')
-
-  if (!existsSync(queueDir)) {
-    mkdirSync(queueDir, { recursive: true })
-  }
-
-  const queue = existsSync(queuePath)
-    ? JSON.parse(readFileSync(queuePath, 'utf-8'))
-    : []
-
-  queue.push(item)
-  writeFileSync(queuePath, JSON.stringify(queue, null, 2))
 }
 
 export interface GenerateOptions {

@@ -5,7 +5,7 @@
 import Parser from 'rss-parser'
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { join } from 'path'
-import type { FeedItem, ContentSource } from '../types'
+import type { FeedItem, ContentSource } from '../core/types'
 
 const parser = new Parser()
 const STATE_DIR = join(process.cwd(), '..', 'output', 'state')

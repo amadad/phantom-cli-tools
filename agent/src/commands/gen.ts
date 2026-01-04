@@ -102,9 +102,9 @@ export async function run(args: string[]): Promise<void> {
       // 2. Fall back to hooks
       const hook = getNextHook(brand)
       if (hook) {
-        topic = hook.pattern
+        topic = hook.original
         markHookUsed(brand, hook.id)
-        console.log(`[auto] Using hook: ${hook.pattern.slice(0, 50)}...`)
+        console.log(`[auto] Using hook: ${hook.original.slice(0, 50)}...`)
       }
     }
   }

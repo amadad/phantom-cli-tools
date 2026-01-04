@@ -152,7 +152,8 @@ export function findHooks(
   }
 
   if (options.minMultiplier) {
-    results = results.filter(h => h.multiplier >= options.minMultiplier)
+    const min = options.minMultiplier
+    results = results.filter(h => h.multiplier >= min)
   }
 
   // Sort by multiplier (highest first), then by least used
@@ -227,8 +228,8 @@ export function getNextHook(brand: string): HookPattern | null {
 
   // Score by value/usage ratio
   return hooks.reduce((best, h) => {
-    const bestScore = best.viralMultiplier / (best.usedCount + 1)
-    const hScore = h.viralMultiplier / (h.usedCount + 1)
+    const bestScore = best.multiplier / (best.usedCount + 1)
+    const hScore = h.multiplier / (h.usedCount + 1)
     return hScore > bestScore ? h : best
   })
 }

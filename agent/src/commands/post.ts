@@ -11,9 +11,12 @@
  *   --dry-run                      Show what would be posted
  */
 
-import { postToAll, getAvailablePlatforms } from '../social'
+import { postToPlatform, getAvailablePlatforms, type PostResult } from '../social'
 import { loadQueue, saveQueue, getQueueItem } from '../queue'
 import type { Platform, Brand, QueueItem } from '../core/types'
+
+// Platforms that have text content (excludes youtube which is video-only)
+type TextPlatform = 'twitter' | 'linkedin' | 'facebook' | 'instagram' | 'threads'
 
 export interface PostOptions {
   brand: Brand
@@ -27,7 +30,9 @@ export interface PostOptions {
  * Get text for a platform from queue item
  */
 function getTextForPlatform(item: QueueItem, platform: Platform): string {
-  const content = item.content[platform] || item.content.twitter
+  // Only text platforms have content; youtube is video-only
+  const textPlatform = platform as TextPlatform
+  const content = item.content[textPlatform] || item.content.twitter
   if (!content) return ''
   return `${content.text}\n\n${content.hashtags.map((h: string) => `#${h}`).join(' ')}`
 }
@@ -105,16 +110,27 @@ export async function post(options: PostOptions): Promise<void> {
     return
   }
 
-  // Post to platforms
-  const text = getTextForPlatform(item, 'twitter')
+  // Post to platforms with per-platform text
   const imageUrl = item.image?.url
+  const results: PostResult[] = []
 
-  const results = await postToAll({
-    brand,
-    text,
-    imageUrl,
-    platforms: targetPlatforms
-  })
+  console.log(`\nPosting to ${targetPlatforms.length} platforms for ${brand}...`)
+
+  for (const platform of targetPlatforms) {
+    const text = getTextForPlatform(item, platform)
+    console.log(`  [${platform}] Posting...`)
+    const result = await postToPlatform(platform, brand, text, imageUrl)
+    results.push(result)
+
+    if (result.success) {
+      console.log(`  [${platform}] ✓ ${result.postUrl || 'Posted'}`)
+    } else {
+      console.log(`  [${platform}] ✗ ${result.error}`)
+    }
+  }
+
+  const succeeded = results.filter(r => r.success).length
+  console.log(`\nPosted to ${succeeded}/${targetPlatforms.length} platforms`)
 
   // Update queue
   const now = new Date().toISOString()

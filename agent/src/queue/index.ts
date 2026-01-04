@@ -5,7 +5,9 @@
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { join } from 'path'
-import type { ContentItem, QueueItem, PipelineStage } from '../types'
+import type { QueueItem } from '../core/types'
+
+type QueueStage = 'review' | 'publishing' | 'done' | 'failed'
 
 const QUEUE_DIR = join(process.cwd(), '..', 'output', 'queue')
 
@@ -48,23 +50,12 @@ export function saveQueue(items: QueueItem[]): void {
 }
 
 // Add item to queue
-export function addToQueue(item: Omit<ContentItem, 'id' | 'createdAt' | 'updatedAt'>): QueueItem {
+export function addToQueue(item: QueueItem): QueueItem {
   const queue = loadQueue()
-  const now = new Date().toISOString()
-
-  const queueItem: QueueItem = {
-    ...item,
-    id: generateId(),
-    createdAt: now,
-    updatedAt: now,
-    requiresApproval: true
-  }
-
-  queue.push(queueItem)
+  queue.push(item)
   saveQueue(queue)
-
-  console.log(`[queue] Added ${queueItem.id} (stage: ${queueItem.stage})`)
-  return queueItem
+  console.log(`[queue] Added ${item.id} (stage: ${item.stage})`)
+  return item
 }
 
 // Update item in queue
@@ -89,35 +80,8 @@ export function updateQueueItem(id: string, updates: Partial<QueueItem>): QueueI
 }
 
 // Get items by stage
-export function getByStage(stage: PipelineStage): QueueItem[] {
+export function getByStage(stage: QueueStage): QueueItem[] {
   return loadQueue().filter(item => item.stage === stage)
-}
-
-// Get items pending approval
-export function getPendingApproval(): QueueItem[] {
-  return loadQueue().filter(item =>
-    item.stage === 'review' &&
-    item.requiresApproval &&
-    !item.approvedAt &&
-    !item.rejectedAt
-  )
-}
-
-// Approve item
-export function approveItem(id: string): QueueItem | null {
-  return updateQueueItem(id, {
-    approvedAt: new Date().toISOString(),
-    stage: 'post'
-  })
-}
-
-// Reject item
-export function rejectItem(id: string, reason: string): QueueItem | null {
-  return updateQueueItem(id, {
-    rejectedAt: new Date().toISOString(),
-    rejectionReason: reason,
-    stage: 'failed'
-  })
 }
 
 // Get single item
@@ -140,23 +104,21 @@ export function removeFromQueue(id: string): boolean {
 // Get queue stats
 export function getQueueStats() {
   const queue = loadQueue()
-  const stages: Record<PipelineStage, number> = {
-    research: 0,
-    write: 0,
-    image: 0,
+  const stages: Record<QueueStage, number> = {
     review: 0,
-    post: 0,
+    publishing: 0,
     done: 0,
     failed: 0
   }
 
   for (const item of queue) {
-    stages[item.stage]++
+    if (item.stage in stages) {
+      stages[item.stage as QueueStage]++
+    }
   }
 
   return {
     total: queue.length,
-    stages,
-    pendingApproval: getPendingApproval().length
+    stages
   }
 }

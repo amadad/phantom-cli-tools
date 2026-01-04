@@ -201,3 +201,27 @@ export interface QueueItem {
     postedAt?: string
   }>
 }
+
+/**
+ * RSS feed item
+ */
+export interface FeedItem {
+  title: string
+  link: string
+  pubDate: string
+  content?: string
+  contentSnippet?: string
+}
+
+/**
+ * Content source for pipeline
+ */
+export type SourceType = 'manual' | 'rss' | 'url' | 'schedule'
+
+export interface ContentSource {
+  type: SourceType
+  url?: string
+  topic?: string
+  schedule?: string
+  brandName: string
+}
