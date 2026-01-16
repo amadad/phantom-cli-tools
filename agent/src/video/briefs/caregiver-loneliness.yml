@@ -1,0 +1,109 @@
+# Video Brief: Example Topic
+# Aesthetic: 70s noir, Robbie Müller, vintage Helios lens
+# Horizontal montage - images parallel to narration, not illustration
+# Mix of intimate human moments and environmental observation
+
+meta:
+  brand: "<brand>"
+  topic: "example topic"
+  total_duration: 40
+  aspect_ratio: "9:16"
+  resolution: [1080, 1920]
+
+style:
+  aesthetic: "70s noir cinematography, vintage lens, film stock"
+  post_process: true
+  blur: 0.4           # Light softening only, no grain
+  grain_intensity: 0  # No grain
+
+voice:
+  provider: cartesia
+  model: sonic-3
+  voice_id: "3580e947-2e33-446a-81e7-e69fb55d0a63"
+  emotion: sympathetic
+  speed: 0.95
+
+scenes:
+  # Human presence - establish the personal
+  - id: 1
+    duration: 5
+    script: "I still work a full-time job. But I've also taken over everything."
+    image_prompt: |
+      Vertical 9:16. Cinematic portrait, Wong Kar-wai style.
+      Close-up of tired Black or South Asian woman in her 30s.
+      Reflected in window or mirror, frame within frame composition.
+      Bold color - neon red or green tint bleeding into frame.
+      Christopher Doyle cinematography - diffused, dreamy, saturated.
+      Diagonal composition, urban textures, compressed intimate space.
+      Soft focus throughout, halation on highlights, atmospheric.
+      DO NOT include any text, borders, or film artifacts.
+    motion_prompt: "subtle breathing, slight head movement, static camera"
+
+  # Environmental - daytime train crossing
+  - id: 2
+    duration: 7
+    script: "Shopping. Cooking. Cleaning. Laundry. I rarely even talk to anyone anymore."
+    image_prompt: |
+      Vertical 9:16. Wong Kar-wai daytime scene.
+      Train passing at railroad crossing, captured through car windshield.
+      Cars waiting in foreground, extreme shallow depth of field.
+      Bold color - warm amber sunlight, saturated sky blues.
+      Christopher Doyle style - diagonal crossing bars, layered depth.
+      Foreground blurred, train motion blur, dreamy soft focus throughout.
+      Happy Together aesthetic - mundane waiting, beautiful banality.
+      Halation on bright areas, nothing digitally sharp.
+      DO NOT include any text, borders, or film artifacts.
+    motion_prompt: "train passing through frame, subtle car vibration, static camera"
+
+  # Environmental - wider public space, universality
+  - id: 3
+    duration: 8
+    script: "I'm 23. I just graduated college. Moved back home because no one else would do it."
+    image_prompt: |
+      Vertical 9:16. Wong Kar-wai suburban twilight.
+      Empty street at blue hour, streetlights creating warm pools.
+      Color contrast - deep saturated blue sky, amber sodium lights.
+      Christopher Doyle framing - diagonal power lines, layered depth.
+      Soft figure walking away in distance, anonymous, lonely.
+      Dreamy soft focus throughout, halation on all light sources.
+      In the Mood for Love melancholy - stillness, waiting, beauty in isolation.
+      DO NOT include any text, borders, or film artifacts.
+    motion_prompt: "slow horizontal pan, or static with distant movement"
+
+  # Human presence - oblique, observational
+  - id: 4
+    duration: 8
+    script: "I'm 30 and my mom keeps falling. She's only 63. The loneliness is killing me."
+    image_prompt: |
+      Vertical 9:16. Wong Kar-wai interior scene.
+      Figure out of focus in background, searching through bag.
+      Shot through doorframe or window - frame within frame.
+      Fluorescent green tint mixed with warm tungsten, color contrast.
+      Christopher Doyle style - foreground blur, compressed space.
+      Mundane waiting room or corridor, institutional but poetic.
+      Chungking Express aesthetic - anonymous moment, beautiful banality.
+      Soft focus throughout, dreamy, atmospheric.
+      DO NOT include any text, borders, or film artifacts.
+    motion_prompt: "very subtle motion, figure shifts weight, ambient movement"
+
+  # Environmental - openness, possibility
+  - id: 5
+    duration: 10
+    script: "If you're a caregiver, you're not invisible. We see you. You're doing something no one else would. That matters."
+    image_prompt: |
+      Vertical 9:16. Wong Kar-wai golden hour.
+      Light streaming through curtains or blinds, dust particles glowing.
+      Bold warm amber and gold, light bleeding and flaring.
+      Christopher Doyle style - diagonal light beams, layered shadows.
+      Frame within frame - window or doorway creating geometric shape.
+      Birds on wire or clouds through glass, soft and dreamy.
+      2046 aesthetic - hopeful, spacious, time suspended.
+      Heavy halation, nothing sharp, diffused beauty.
+      DO NOT include any text, borders, or film artifacts.
+    motion_prompt: "slow upward tilt or gentle push in, light shifting"
+
+output:
+  filename: "caregiver-loneliness-short"
+  format: mp4
+  codec: h264
+  audio_codec: aac

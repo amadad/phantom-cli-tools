@@ -1,0 +1,49 @@
+# Brand template
+# Rename this file to <brand>-brand.yml
+
+name: "__BRAND_NAME__"
+url: "https://example.com"
+
+handles:
+  twitter: "@__BRAND_SLUG__"
+  linkedin: "urn:li:organization:000000000"
+
+platforms:
+  twitter:
+    max_chars: 280
+    hashtags: 3
+  linkedin:
+    max_chars: 3000
+    hashtags: 5
+  instagram:
+    max_chars: 2200
+    hashtags: 5
+  threads:
+    max_chars: 500
+    hashtags: 2
+
+# Visual system (used by poster.ts)
+style:
+  colors:
+    dark: "#111111"
+    light: "#F7F7F2"
+    accent: "#4F46E5"
+    backgrounds:
+      warm: "#F5EEE6"
+      cream: "#FFFDF9"
+      dark: "#111111"
+
+  typography:
+    headline:
+      font: "Alegreya"
+      weight: 400
+      scale:
+        large: 0.04
+        medium: 0.032
+        small: 0.025
+
+  logo:
+    svg: "assets/logo.svg"
+    colors:
+      onLight: "#111111"
+      onDark: "#FFFFFF"

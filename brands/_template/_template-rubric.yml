@@ -1,0 +1,78 @@
+# Brand evaluation rubric template
+
+name: "__BRAND_NAME__"
+version: "1.0"
+threshold: 70
+max_retries: 2
+
+dimensions:
+  clarity:
+    weight: 0.25
+    description: "Clear, specific, and easy to understand"
+    rubric:
+      10: "Crystal clear, specific, concrete"
+      7: "Mostly clear, minor ambiguity"
+      4: "Somewhat vague"
+      1: "Confusing or unclear"
+  specificity:
+    weight: 0.25
+    description: "Uses concrete details instead of generic phrasing"
+    rubric:
+      10: "Concrete, specific details"
+      7: "Some specifics"
+      4: "Mostly generic"
+      1: "Purely generic"
+  brand_voice:
+    weight: 0.25
+    description: "Matches the brand's tone and voice"
+    rubric:
+      10: "Perfect voice match"
+      7: "Mostly on voice"
+      4: "Inconsistent"
+      1: "Off-brand"
+  usefulness:
+    weight: 0.25
+    description: "Provides real value to the reader"
+    rubric:
+      10: "Immediately useful"
+      7: "Some value"
+      4: "Light value"
+      1: "No value"
+
+banned_phrases:
+  - "just do it"
+  - "game changer"
+
+red_flag_patterns:
+  - pattern: "\"?revolutionary\"?"
+    reason: "Over-hyped language"
+    penalty: 5
+
+platforms:
+  twitter:
+    max_chars: 280
+    max_hashtags: 3
+  linkedin:
+    max_chars: 3000
+    max_hashtags: 5
+  instagram:
+    max_chars: 2200
+    max_hashtags: 5
+  threads:
+    max_chars: 500
+    max_hashtags: 3
+
+judge_prompt: |
+  You are evaluating content for __BRAND_NAME__.
+
+  Score each dimension 0-10 and explain the weakest area.
+
+  Respond in JSON:
+  {
+    "clarity": <0-10>,
+    "specificity": <0-10>,
+    "brand_voice": <0-10>,
+    "usefulness": <0-10>,
+    "critique": "...",
+    "suggestion": "..."
+  }

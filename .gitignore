@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Virtual environment
+.venv
+venv/
+
+# Environment files
+.env
+
+# System files
+**/.DS_Store
+.windsurfrules
+.windsurf*
+
+# IDE files
+.claude
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log
+social_pipeline.log
+
+# Archive
+_archive
+
+# Output
+output/
+
+# Private notes
+private/
+
+# Brand data (keep template only)
+brands/*
+!brands/_template/
+!brands/_template/**

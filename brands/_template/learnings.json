@@ -1,0 +1,16 @@
+{
+  "updated": "",
+  "sample_size": 0,
+  "copy": {
+    "weak_dimensions": [],
+    "common_red_flags": [],
+    "avoid": [],
+    "prefer": []
+  },
+  "image": {
+    "weak_areas": [],
+    "common_issues": [],
+    "avoid": [],
+    "prefer": []
+  }
+}
