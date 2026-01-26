@@ -1,4 +1,3 @@
-#!/usr/bin/env npx tsx
 /**
  * Intelligence Pipeline - Unified runner for social intelligence
  *
@@ -22,6 +21,7 @@ import {
 } from './detect-outliers'
 import { addHook } from './hook-bank'
 import { extractJson } from '../core/json'
+import { calculateMedianViews, getLikesMultiplier } from '../core/stats'
 
 // Load env from project root
 config({ path: join(getProjectRoot(), '.env') })
@@ -280,11 +280,7 @@ function updateTwitterInfluencers(
 
             // Calculate median views
             if (handle.recentPosts.length > 0) {
-              const views = handle.recentPosts
-                .map((p: any) => p.views || p.likes * 50)  // Twitter ~50x impressions/like
-                .sort((a: number, b: number) => a - b)
-              const mid = Math.floor(views.length / 2)
-              handle.medianViews = views.length % 2 ? views[mid] : (views[mid - 1] + views[mid]) / 2
+              handle.medianViews = calculateMedianViews(handle.recentPosts, getLikesMultiplier('twitter'))
             }
           }
 
@@ -365,12 +361,7 @@ function updateInfluencersFromResults(
 
             // Calculate median views (platform-specific multiplier)
             if (handle.recentPosts && handle.recentPosts.length > 0) {
-              const likesMultiplier = platform === 'twitter' ? 50 : 10  // Twitter ~50x, IG ~10x
-              const views = handle.recentPosts
-                .map((p: any) => p.views || p.likes * likesMultiplier)
-                .sort((a: number, b: number) => a - b)
-              const mid = Math.floor(views.length / 2)
-              handle.medianViews = views.length % 2 ? views[mid] : (views[mid - 1] + views[mid]) / 2
+              handle.medianViews = calculateMedianViews(handle.recentPosts, getLikesMultiplier(platform))
             }
           }
 
@@ -508,27 +499,4 @@ Return JSON:
 
   console.log(`  ✓ Extracted ${extracted} hooks`)
   return extracted
-}
-
-// CLI
-async function main() {
-  const args = process.argv.slice(2)
-  const brand = args.find(a => !a.startsWith('--')) || getDefaultBrand()
-
-  await runPipeline({
-    brand,
-    skipEnrich: args.includes('--skip-enrich'),
-    skipDetect: args.includes('--skip-detect'),
-    skipExtract: args.includes('--skip-extract'),
-    includePosts: !args.includes('--no-posts'),
-    minMultiplier: 50,
-    maxAgeDays: 7,
-    dryRun: args.includes('--dry-run'),
-    failFast: args.includes('--fail-fast')
-  })
-}
-
-const isDirect = process.argv[1]?.endsWith('pipeline.ts')
-if (isDirect) {
-  main().catch(console.error)
 }

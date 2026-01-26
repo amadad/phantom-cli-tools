@@ -1,4 +1,3 @@
-#!/usr/bin/env npx tsx
 /**
  * Hook Bank - Store and retrieve proven content hooks
  *
@@ -225,79 +224,4 @@ export function getNextHook(brand: string): HookPattern | null {
     const hScore = h.multiplier / (h.usedCount + 1)
     return hScore > bestScore ? h : best
   })
-}
-
-// CLI
-async function main() {
-  const args = process.argv.slice(2)
-  const brand = args[0] || getDefaultBrand()
-  const command = args[1] || 'list'
-
-  console.log(`\n${'='.repeat(60)}`)
-  console.log(`HOOK BANK: ${brand.toUpperCase()}`)
-  console.log(`${'='.repeat(60)}`)
-
-  if (command === 'list') {
-    const categoryArg = args.find(a => a.startsWith('--category='))
-    const category = categoryArg?.split('=')[1] as HookCategory | undefined
-
-    const hooks = findHooks(brand, { category, limit: 20 })
-
-    if (hooks.length === 0) {
-      console.log('\nNo hooks found. Add some with:')
-      console.log(`  npx tsx hook-bank.ts ${brand} add --hook="Your hook" --category=curiosity --multiplier=50`)
-      return
-    }
-
-    console.log(`\nFound ${hooks.length} hooks:\n`)
-    for (const hook of hooks) {
-      console.log(`[${hook.multiplier}x] [${hook.category}] ${hook.original}`)
-      if (hook.amplified) console.log(`  → ${hook.amplified}`)
-      console.log(`  Themes: ${hook.themes.join(', ')} | Used: ${hook.usedCount}x`)
-      console.log()
-    }
-  } else if (command === 'add') {
-    const hookArg = args.find(a => a.startsWith('--hook='))
-    const categoryArg = args.find(a => a.startsWith('--category='))
-    const multiplierArg = args.find(a => a.startsWith('--multiplier='))
-    const themesArg = args.find(a => a.startsWith('--themes='))
-    const platformArg = args.find(a => a.startsWith('--platform='))
-
-    if (!hookArg) {
-      console.error('Missing --hook="..." argument')
-      process.exit(1)
-    }
-
-    const newHook = addHook(brand, {
-      original: hookArg.split('=').slice(1).join('='),
-      category: (categoryArg?.split('=')[1] || 'curiosity') as HookCategory,
-      multiplier: parseInt(multiplierArg?.split('=')[1] || '10'),
-      themes: themesArg?.split('=')[1].split(',') || [],
-      platform: platformArg?.split('=')[1] || 'unknown'
-    })
-
-    console.log(`\n✓ Added hook: ${newHook.id}`)
-    console.log(`  "${newHook.original}"`)
-  } else if (command === 'search') {
-    const query = args[2] || ''
-    const hooks = findHooks(brand, { theme: query, limit: 10 })
-
-    console.log(`\nSearch: "${query}" - Found ${hooks.length} hooks\n`)
-    for (const hook of hooks) {
-      console.log(`[${hook.multiplier}x] ${hook.original}`)
-    }
-  } else if (command === 'stats') {
-    const bank = loadHookBank(brand)
-    console.log(`\nTotal hooks: ${bank.stats.totalHooks}`)
-    console.log(`Avg multiplier: ${bank.stats.avgMultiplier.toFixed(1)}x`)
-    console.log(`\nBy category:`)
-    for (const [cat, count] of Object.entries(bank.stats.byCategory)) {
-      if (count > 0) console.log(`  ${cat}: ${count}`)
-    }
-  }
-}
-
-const isDirect = process.argv[1]?.endsWith('hook-bank.ts')
-if (isDirect) {
-  main().catch(console.error)
 }

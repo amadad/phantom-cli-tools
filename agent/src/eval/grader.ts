@@ -34,13 +34,13 @@ interface DimensionConfig {
   rubric: Record<number, string>
 }
 
-interface RedFlagPattern {
+export interface RedFlagPattern {
   pattern: string
   reason: string
   penalty: number
 }
 
-interface PlatformLimits {
+export interface PlatformLimits {
   max_chars: number
   max_hashtags: number
 }
@@ -89,12 +89,12 @@ export function loadRubric(brandName: string): Rubric {
 // HARD FAIL CHECKS (no LLM needed)
 // =============================================================================
 
-function checkBannedPhrases(text: string, banned: string[]): string[] {
+export function checkBannedPhrases(text: string, banned: string[]): string[] {
   const lower = text.toLowerCase()
   return banned.filter(phrase => lower.includes(phrase.toLowerCase()))
 }
 
-function checkRedFlags(text: string, patterns: RedFlagPattern[]): RedFlagPattern[] {
+export function checkRedFlags(text: string, patterns: RedFlagPattern[]): RedFlagPattern[] {
   const lower = text.toLowerCase()
   return patterns.filter(p => {
     try {
@@ -106,7 +106,7 @@ function checkRedFlags(text: string, patterns: RedFlagPattern[]): RedFlagPattern
   })
 }
 
-function checkPlatformLimits(
+export function checkPlatformLimits(
   text: string,
   hashtags: string[],
   platform: string,
@@ -181,7 +181,7 @@ ${content}
 // SCORE COMPUTATION
 // =============================================================================
 
-function computeScore(
+export function computeScore(
   dimensions: Record<string, number>,
   weights: Record<string, number>,
   redFlagPenalty: number
@@ -326,7 +326,7 @@ export async function gradeAndRefine(
   return { content, eval: result, attempts }
 }
 
-function buildFeedback(result: EvalResult, rubric: Rubric): string {
+export function buildFeedback(result: EvalResult, rubric: Rubric): string {
   const parts: string[] = []
 
   if (result.hard_fails.length > 0) {

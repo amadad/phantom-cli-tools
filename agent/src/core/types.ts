@@ -80,6 +80,48 @@ export interface ContentFrame {
   use_writing_system?: boolean
 }
 
+/**
+ * Brand style configuration for poster generation
+ * Loaded from style.yml or inline in brand config
+ */
+export interface BrandStyle {
+  colors?: {
+    dark?: string
+    light?: string
+    accent?: string
+    backgrounds?: {
+      warm?: string
+      cream?: string
+      dark?: string
+    }
+  }
+  logo?: {
+    svg?: string
+    colors?: {
+      onLight?: string
+      onDark?: string
+    }
+  }
+  typography?: {
+    headline?: {
+      font?: string
+      weight?: number
+      scale?: {
+        large?: number
+        medium?: number
+        small?: number
+      }
+    }
+  }
+  templates?: Array<{
+    name: string
+    template: string
+    ratio: string
+    logo: boolean
+  }>
+  prompt_override?: string
+}
+
 export interface BrandProfile {
   name: string
   url: string
@@ -105,6 +147,7 @@ export interface BrandProfile {
     image_direction?: ImageDirection
     reference_styles?: ReferenceStyle[]
     image_generation?: ImageGenerationConfig
+    prompt_override?: string
   }
   platforms: {
     twitter?: { max_chars: number; hashtags: number }
@@ -123,6 +166,8 @@ export interface BrandProfile {
     threads?: string
     youtube?: string
   }
+  /** Design system for poster generation. Loaded from style.yml or inline. */
+  style?: BrandStyle
 }
 
 export interface VisualStyle {

@@ -5,8 +5,8 @@
 
 import crypto from 'crypto'
 import { downloadImage } from '../core/http'
-import { discoverBrands } from '../core/paths'
 import type { Brand } from '../core/types'
+import { createHasCredentials, createGetConfiguredBrands, type PostResult } from './base'
 
 export type TwitterBrand = Brand
 
@@ -15,13 +15,6 @@ interface TwitterCredentials {
   apiSecret: string
   accessToken: string
   accessSecret: string
-}
-
-interface PostResult {
-  success: boolean
-  tweetId?: string
-  tweetUrl?: string
-  error?: string
 }
 
 /**
@@ -210,8 +203,8 @@ export async function postToTwitter(
 
     return {
       success: true,
-      tweetId: tweet.id,
-      tweetUrl
+      postId: tweet.id,
+      postUrl: tweetUrl
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
@@ -223,21 +216,8 @@ export async function postToTwitter(
   }
 }
 
-/**
- * Check if credentials are configured for a brand
- */
-export function hasCredentials(brand: TwitterBrand): boolean {
-  try {
-    getCredentials(brand)
-    return true
-  } catch {
-    return false
-  }
-}
+/** Check if credentials are configured for a brand */
+export const hasCredentials = createHasCredentials(getCredentials)
 
-/**
- * Get configured brands
- */
-export function getConfiguredBrands(): TwitterBrand[] {
-  return discoverBrands().filter((brand: string) => hasCredentials(brand as TwitterBrand))
-}
+/** Get configured brands */
+export const getConfiguredBrands = createGetConfiguredBrands(hasCredentials)

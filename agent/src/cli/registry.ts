@@ -54,7 +54,7 @@ export const commands: CommandDefinition[] = [
   {
     name: 'video',
     aliases: ['short'],
-    summary: 'Generate a short-form video from a brief',
+    summary: '[experimental] Generate a short-form video from a brief',
     usage: 'video <brand> <brief> [options]',
     acceptsBrand: true,
     options: commandOptions([
@@ -63,7 +63,11 @@ export const commands: CommandDefinition[] = [
       { flag: '--provider=<name>', description: 'Video provider (replicate, runway, luma)' }
     ]),
     examples: ['phantom video <brand> briefs/example.yml'],
-    preflight: () => requireEnv('REPLICATE_API_TOKEN'),
+    preflight: () => {
+      requireEnv('REPLICATE_API_TOKEN')
+      console.warn('\n⚠️  Video generation is experimental and may not work as expected.')
+      console.warn('   Required: REPLICATE_API_TOKEN, CARTESIA_API_KEY\n')
+    },
     run: async (args: string[], ctx) => {
       const { run } = await import('../commands/video')
       return run(args, ctx)

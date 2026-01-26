@@ -16,6 +16,7 @@ import { readFileSync, writeFileSync, existsSync } from 'fs'
 import { config } from 'dotenv'
 import { getIntelPath, ensureIntelDir } from './paths'
 import { getProjectRoot, join, getDefaultBrand } from '../core/paths'
+import { calculateMedianViews, getLikesMultiplier } from '../core/stats'
 
 // Load env from project root
 config({ path: join(getProjectRoot(), '.env') })
@@ -146,13 +147,8 @@ async function enrichInstagram(
         }))
 
         // Calculate median views for outlier detection
-        const views = profileData.recentPosts.map((p: any) => p.views || p.likes * 10)
-        if (views.length > 0) {
-          views.sort((a: number, b: number) => a - b)
-          const mid = Math.floor(views.length / 2)
-          profileData.medianViews = views.length % 2 !== 0
-            ? views[mid]
-            : (views[mid - 1] + views[mid]) / 2
+        if (profileData.recentPosts.length > 0) {
+          profileData.medianViews = calculateMedianViews(profileData.recentPosts, getLikesMultiplier('instagram'))
         }
       }
 
@@ -267,13 +263,8 @@ async function enrichTwitter(
         }))
 
         // Calculate median views for outlier detection
-        const views = profileData.recentPosts.map((p: any) => p.views || p.likes * 20)
-        if (views.length > 0) {
-          views.sort((a: number, b: number) => a - b)
-          const mid = Math.floor(views.length / 2)
-          profileData.medianViews = views.length % 2 !== 0
-            ? views[mid]
-            : (views[mid - 1] + views[mid]) / 2
+        if (profileData.recentPosts.length > 0) {
+          profileData.medianViews = calculateMedianViews(profileData.recentPosts, getLikesMultiplier('twitter'))
         }
       }
 

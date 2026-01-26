@@ -215,6 +215,48 @@ export const TEMPLATES: Record<string, TemplateConfig> = {
     },
   },
 
+  // Scale - extreme image dominance with tight text strip
+  scale: {
+    name: 'Scale',
+    description: 'Extreme image scale with thin text band',
+    background: 'light',
+    textAlign: 'left',
+    textSize: 'medium',
+    imageStyle: 'abstract',
+    variants: {
+      square: {
+        width: 1080, height: 1080,
+        imageZone: { x: 0, y: 0, width: 100, height: 86 },
+        textZone: { x: 4, y: 88, width: 92, height: 10 },
+        logoZone: { x: 86, y: 88, width: 10, height: 10 },
+      },
+      portrait: {
+        width: 1080, height: 1350,
+        imageZone: { x: 0, y: 0, width: 100, height: 86 },
+        textZone: { x: 4, y: 88, width: 92, height: 10 },
+        logoZone: { x: 86, y: 88, width: 10, height: 10 },
+      },
+      story: {
+        width: 1080, height: 1920,
+        imageZone: { x: 0, y: 0, width: 100, height: 88 },
+        textZone: { x: 4, y: 89, width: 92, height: 9 },
+        logoZone: { x: 86, y: 89, width: 10, height: 9 },
+      },
+      landscape: {
+        width: 1200, height: 675,
+        imageZone: { x: 0, y: 0, width: 100, height: 84 },
+        textZone: { x: 3, y: 86, width: 94, height: 12 },
+        logoZone: { x: 88, y: 86, width: 9, height: 12 },
+      },
+      wide: {
+        width: 1200, height: 627,
+        imageZone: { x: 0, y: 0, width: 100, height: 84 },
+        textZone: { x: 3, y: 86, width: 94, height: 12 },
+        logoZone: { x: 88, y: 86, width: 9, height: 12 },
+      },
+    },
+  },
+
   // =============================================================================
   // MONOCHROME TEMPLATES - Dark backgrounds, white text, bold varied layouts
   // =============================================================================
@@ -258,7 +300,7 @@ export const TEMPLATES: Record<string, TemplateConfig> = {
   // Stack - headline stacked vertically, image beside
   stack: {
     name: 'Stack',
-    description: 'Vertical headline stack with image column - dark'
+    description: 'Vertical headline stack with image column - dark',
     background: 'dark',
     textAlign: 'left',
     textSize: 'large',
@@ -288,7 +330,7 @@ export const TEMPLATES: Record<string, TemplateConfig> = {
   // Bleed - image bleeds to edge, headline overlays bottom
   bleed: {
     name: 'Bleed',
-    description: 'Full bleed image with headline bar - dark'
+    description: 'Full bleed image with headline bar - dark',
     background: 'dark',
     textAlign: 'left',
     textSize: 'large',
@@ -329,20 +371,36 @@ export function zoneToPixels(zone: ZonePercent, width: number, height: number) {
 }
 
 /**
+ * Standard aspect ratio targets for matching
+ */
+const ASPECT_TARGETS = [
+  { ratio: 1, label: '1:1' },
+  { ratio: 4/5, label: '4:5' },
+  { ratio: 3/4, label: '3:4' },
+  { ratio: 4/3, label: '4:3' },
+  { ratio: 16/9, label: '16:9' },
+  { ratio: 9/16, label: '9:16' },
+] as const
+
+/**
+ * Match a ratio to the closest standard aspect ratio
+ */
+function matchAspectRatio(ratio: number, tolerance: number = 0.1): string {
+  for (const target of ASPECT_TARGETS) {
+    if (Math.abs(ratio - target.ratio) < tolerance) {
+      return target.label
+    }
+  }
+  // Default based on orientation
+  return ratio > 1 ? '16:9' : '3:4'
+}
+
+/**
  * Get Gemini aspect ratio string for a variant
  */
 export function getGeminiAspectRatio(variant: TemplateVariant): string {
-  const { width, height } = variant
-  const ratio = width / height
-
-  if (Math.abs(ratio - 1) < 0.1) return '1:1'
-  if (Math.abs(ratio - 4/5) < 0.1) return '4:5'
-  if (Math.abs(ratio - 3/4) < 0.1) return '3:4'
-  if (Math.abs(ratio - 16/9) < 0.1) return '16:9'
-  if (Math.abs(ratio - 9/16) < 0.1) return '9:16'
-
-  // Default based on orientation
-  return ratio > 1 ? '16:9' : '3:4'
+  const ratio = variant.width / variant.height
+  return matchAspectRatio(ratio, 0.1)
 }
 
 /**
@@ -350,14 +408,7 @@ export function getGeminiAspectRatio(variant: TemplateVariant): string {
  */
 export function getImageZoneAspectRatio(zone: ZonePercent): string {
   const ratio = zone.width / zone.height
-
-  if (Math.abs(ratio - 1) < 0.2) return '1:1'
-  if (ratio > 1.5) return '16:9'
-  if (ratio > 1.2) return '4:3'
-  if (ratio < 0.7) return '3:4'
-  if (ratio < 0.9) return '4:5'
-
-  return '1:1'
+  return matchAspectRatio(ratio, 0.2)
 }
 
 /**

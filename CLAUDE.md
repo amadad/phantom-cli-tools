@@ -85,8 +85,36 @@ Then edit:
 
 Template lives at `brands/_template/`.
 
+## Key Patterns
+
+### Per-Brand Queues
+Queues are stored at `brands/<brand>/queue.json`. Always specify brand:
+```bash
+npx tsx src/cli.ts post <brand>  # NOT just "post"
+```
+
+### Brand Discovery
+```typescript
+import { discoverBrands } from './core/paths'
+const brands = discoverBrands()  // ['brand-a', 'brand-b']
+```
+
+### Image Providers
+- Primary: Gemini (`generate/providers/gemini.ts`)
+- Fallback: Reve (`generate/providers/reve.ts`)
+
+## Session End
+
+```bash
+cd agent && npx tsc --noEmit  # typecheck
+git add <files> && git commit -m "feat: description"
+```
+
 ## Troubleshooting
 
-- **Twitter 403**: URL in tweet may be flagged. Try without URL or use "link in bio"
-- **Instagram needs public URL**: Images uploaded to R2 automatically
-- **Wrong content posted**: Queues are per-brand. Always specify brand: `post <brand>`
+| Issue | Fix |
+|-------|-----|
+| Twitter 403 | Remove URL from tweet; spam filter |
+| Instagram fail | Needs public URL; use R2 upload |
+| Wrong queue item | Specify brand explicitly |
+| Type errors | Check QueueItem.brand field exists |

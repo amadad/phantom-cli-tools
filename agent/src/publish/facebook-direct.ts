@@ -4,8 +4,14 @@
  */
 
 import { downloadImage } from '../core/http'
-import { discoverBrands } from '../core/paths'
 import type { Brand } from '../core/types'
+import {
+  createCredentialGetter,
+  createHasCredentials,
+  createGetConfiguredBrands,
+  getExtensionFromMime,
+  type PostResult
+} from './base'
 
 export type FacebookBrand = Brand
 
@@ -14,47 +20,10 @@ interface FacebookCredentials {
   pageId: string
 }
 
-interface PostResult {
-  success: boolean
-  postId?: string
-  postUrl?: string
-  error?: string
-}
-
-/**
- * Get credentials for a brand
- */
-function getCredentials(brand: FacebookBrand): FacebookCredentials {
-  const brandUpper = brand.toUpperCase()
-
-  const pageAccessToken = process.env[`FACEBOOK_${brandUpper}_PAGE_ACCESS_TOKEN`]
-  const pageId = process.env[`FACEBOOK_${brandUpper}_PAGE_ID`]
-
-  if (!pageAccessToken) {
-    throw new Error(`FACEBOOK_${brandUpper}_PAGE_ACCESS_TOKEN not set. Run: npx tsx facebook-auth.ts`)
-  }
-
-  if (!pageId) {
-    throw new Error(`FACEBOOK_${brandUpper}_PAGE_ID not set`)
-  }
-
-  return { pageAccessToken, pageId }
-}
-
-
-/**
- * Get file extension from MIME type
- */
-function getExtensionFromMime(mimeType: string): string {
-  const extensions: Record<string, string> = {
-    'image/jpeg': 'jpg',
-    'image/jpg': 'jpg',
-    'image/png': 'png',
-    'image/gif': 'gif',
-    'image/webp': 'webp'
-  }
-  return extensions[mimeType] || 'jpg'
-}
+const getCredentials = createCredentialGetter<FacebookCredentials>('FACEBOOK', [
+  { suffix: 'PAGE_ACCESS_TOKEN', field: 'pageAccessToken', errorHint: 'Run: npx tsx facebook-auth.ts' },
+  { suffix: 'PAGE_ID', field: 'pageId' }
+])
 
 /**
  * Upload and publish a photo to Facebook in one step
@@ -196,21 +165,8 @@ export async function postToFacebook(
   }
 }
 
-/**
- * Check if credentials are configured for a brand
- */
-export function hasCredentials(brand: FacebookBrand): boolean {
-  try {
-    getCredentials(brand)
-    return true
-  } catch {
-    return false
-  }
-}
+/** Check if credentials are configured for a brand */
+export const hasCredentials = createHasCredentials(getCredentials)
 
-/**
- * Get configured brands
- */
-export function getConfiguredBrands(): FacebookBrand[] {
-  return discoverBrands().filter((brand: string) => hasCredentials(brand as FacebookBrand))
-}
+/** Get configured brands */
+export const getConfiguredBrands = createGetConfiguredBrands(hasCredentials)

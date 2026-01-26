@@ -3,9 +3,14 @@
  * Uses Threads Graph API for publishing
  */
 
-import { discoverBrands } from '../core/paths'
 import { loadBrand } from '../core/brand'
 import type { Brand } from '../core/types'
+import {
+  createCredentialGetter,
+  createHasCredentials,
+  createGetConfiguredBrands,
+  type PostResult
+} from './base'
 
 export type ThreadsBrand = Brand
 
@@ -14,32 +19,10 @@ interface ThreadsCredentials {
   userId: string
 }
 
-interface PostResult {
-  success: boolean
-  postId?: string
-  postUrl?: string
-  error?: string
-}
-
-/**
- * Get credentials for a brand
- */
-function getCredentials(brand: ThreadsBrand): ThreadsCredentials {
-  const brandUpper = brand.toUpperCase()
-
-  const accessToken = process.env[`THREADS_${brandUpper}_ACCESS_TOKEN`]
-  const userId = process.env[`THREADS_${brandUpper}_USER_ID`]
-
-  if (!accessToken) {
-    throw new Error(`THREADS_${brandUpper}_ACCESS_TOKEN not set. Run: npx tsx threads-auth.ts`)
-  }
-
-  if (!userId) {
-    throw new Error(`THREADS_${brandUpper}_USER_ID not set`)
-  }
-
-  return { accessToken, userId }
-}
+const getCredentials = createCredentialGetter<ThreadsCredentials>('THREADS', [
+  { suffix: 'ACCESS_TOKEN', field: 'accessToken', errorHint: 'Run: npx tsx threads-auth.ts' },
+  { suffix: 'USER_ID', field: 'userId' }
+])
 
 /**
  * Create a text-only thread container
@@ -249,21 +232,8 @@ export async function postToThreads(
   }
 }
 
-/**
- * Check if credentials are configured for a brand
- */
-export function hasCredentials(brand: ThreadsBrand): boolean {
-  try {
-    getCredentials(brand)
-    return true
-  } catch {
-    return false
-  }
-}
+/** Check if credentials are configured for a brand */
+export const hasCredentials = createHasCredentials(getCredentials)
 
-/**
- * Get configured brands
- */
-export function getConfiguredBrands(): ThreadsBrand[] {
-  return discoverBrands().filter((brand: string) => hasCredentials(brand as ThreadsBrand))
-}
+/** Get configured brands */
+export const getConfiguredBrands = createGetConfiguredBrands(hasCredentials)

@@ -4,8 +4,13 @@
  * Note: Instagram API requires images to be publicly accessible URLs
  */
 
-import { discoverBrands } from '../core/paths'
 import type { Brand } from '../core/types'
+import {
+  createCredentialGetter,
+  createHasCredentials,
+  createGetConfiguredBrands,
+  type PostResult
+} from './base'
 
 export type InstagramBrand = Brand
 
@@ -14,33 +19,10 @@ interface InstagramCredentials {
   igUserId: string     // Instagram Business Account ID
 }
 
-interface PostResult {
-  success: boolean
-  postId?: string
-  postUrl?: string
-  error?: string
-}
-
-/**
- * Get credentials for a brand
- */
-function getCredentials(brand: InstagramBrand): InstagramCredentials {
-  const brandUpper = brand.toUpperCase()
-
-  // Instagram Platform API requires Instagram-issued access token
-  const accessToken = process.env[`INSTAGRAM_${brandUpper}_ACCESS_TOKEN`]
-  const igUserId = process.env[`INSTAGRAM_${brandUpper}_USER_ID`]
-
-  if (!accessToken) {
-    throw new Error(`INSTAGRAM_${brandUpper}_ACCESS_TOKEN not set. Run: npx tsx instagram-auth.ts`)
-  }
-
-  if (!igUserId) {
-    throw new Error(`INSTAGRAM_${brandUpper}_USER_ID not set`)
-  }
-
-  return { accessToken, igUserId }
-}
+const getCredentials = createCredentialGetter<InstagramCredentials>('INSTAGRAM', [
+  { suffix: 'ACCESS_TOKEN', field: 'accessToken', errorHint: 'Run: npx tsx instagram-auth.ts' },
+  { suffix: 'USER_ID', field: 'igUserId' }
+])
 
 /**
  * Create a media container for an image post
@@ -225,18 +207,8 @@ export async function postToInstagram(
 /**
  * Check if credentials are configured for a brand
  */
-export function hasCredentials(brand: InstagramBrand): boolean {
-  try {
-    getCredentials(brand)
-    return true
-  } catch {
-    return false
-  }
-}
+/** Check if credentials are configured for a brand */
+export const hasCredentials = createHasCredentials(getCredentials)
 
-/**
- * Get configured brands
- */
-export function getConfiguredBrands(): InstagramBrand[] {
-  return discoverBrands().filter((brand: string) => hasCredentials(brand as InstagramBrand))
-}
+/** Get configured brands */
+export const getConfiguredBrands = createGetConfiguredBrands(hasCredentials)

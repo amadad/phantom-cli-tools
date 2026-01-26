@@ -6,7 +6,6 @@
 import type { Platform, Brand } from '../core/types'
 import { checkRateLimit, getRateLimitStatus } from '../core/rate-limit'
 import { uploadToR2, isR2Configured } from '../core/r2'
-import { downloadImage } from '../core/http'
 
 export interface PostResult {
   platform: Platform

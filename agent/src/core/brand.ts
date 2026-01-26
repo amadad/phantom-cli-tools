@@ -65,10 +65,10 @@ export function loadBrand(brandName?: string): BrandProfile {
   const brand = yaml.load(content) as BrandProfile
 
   // Use inline style: if present, otherwise load from style.yml
-  if (!(brand as any).style) {
+  if (!brand.style) {
     const style = loadBrandStyle(name)
     if (style) {
-      (brand as any).style = style
+      brand.style = style
     }
   }
 

@@ -23,12 +23,11 @@ import { getOutputDir, getBrandDir, join, getDefaultBrand } from '../core/paths'
 import { generatePoster } from '../composite/poster'
 import { generateCopy } from '../generate/copy'
 import { classify } from '../generate/classify'
-import { grade, loadRubric } from '../eval/grader'
+import { grade, loadRubric, buildFeedback } from '../eval/grader'
 import { getHookForTopic } from '../intel/hook-bank'
 import { addToQueue } from '../queue'
 import type { QueueItem } from '../core/types'
 import type { CommandContext } from '../cli/types'
-import Replicate from 'replicate'
 
 interface StyleVariation {
   name: string
@@ -74,6 +73,8 @@ async function upscaleImage(imageBuffer: Buffer): Promise<Buffer> {
 
   console.log('[explore] Upscaling with Real-ESRGAN...')
 
+  // Lazy import to avoid loading when not needed
+  const Replicate = (await import('replicate')).default
   const replicate = new Replicate()
   const dataUri = `data:image/png;base64,${imageBuffer.toString('base64')}`
 
@@ -662,27 +663,8 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Explor
     attempts++
     console.log(`\n[explore] Retry ${attempts}/${maxRetries} - fixing issues...`)
 
-    // Build feedback from eval result
-    const feedbackParts: string[] = []
-    if (evalResult.hard_fails.length > 0) {
-      feedbackParts.push(`REMOVE banned phrases: ${evalResult.hard_fails.join(', ')}`)
-    }
-    if (evalResult.red_flags.length > 0) {
-      feedbackParts.push(`AVOID patterns: ${evalResult.red_flags.map(rf => rf.pattern).join(', ')}`)
-    }
-    const weakDims = Object.entries(evalResult.dimensions)
-      .filter(([_, score]) => score < 7)
-      .sort((a, b) => a[1] - b[1])
-    for (const [dim, score] of weakDims.slice(0, 2)) {
-      const desc = rubric.dimensions[dim]?.description || dim
-      feedbackParts.push(`IMPROVE ${dim.toUpperCase()} (${score}/10): ${desc}`)
-    }
-    if (evalResult.suggestion) {
-      feedbackParts.push(`SUGGESTION: ${evalResult.suggestion}`)
-    }
-    feedbackParts.push(`CRITIQUE: ${evalResult.critique}`)
-
-    const feedback = feedbackParts.join('\n')
+    // Build feedback using shared helper + critique
+    const feedback = buildFeedback(evalResult, rubric) + `\n\nCRITIQUE: ${evalResult.critique}`
 
     // Regenerate with feedback
     copy = await generateCopy(topic, brand, contentType, hookPattern, feedback)
