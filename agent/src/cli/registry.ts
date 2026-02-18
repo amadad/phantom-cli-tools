@@ -86,11 +86,15 @@ export const commands: CommandDefinition[] = [
     acceptsBrand: true,
     options: commandOptions([
       { flag: '--topic "<topic>"', description: 'Content topic' },
-      { flag: '--copy <path>', description: 'Path to copy.md' },
+      { flag: '--copy <path>', description: 'Path to copy.json or copy.md' },
       { flag: '--image <path>', description: 'Path to content image' },
-      { flag: '--poster-dir <path>', description: 'Directory with platform posters' }
+      { flag: '--poster-dir <path>', description: 'Directory with platform posters' },
+      { flag: '--notify', description: 'Post to #content-queue on Discord with image' }
     ]),
-    examples: ['phantom enqueue <brand> --topic "burnout" --copy ./copy.md --image ./selected.png'],
+    examples: [
+      'phantom enqueue <brand> --topic "burnout" --copy ./copy.json --image ./selected.png',
+      'phantom enqueue <brand> --topic "burnout" --copy ./copy.json --image ./selected.png --notify'
+    ],
     run: async (args: string[], ctx) => {
       const { run } = await import('../commands/enqueue-cmd')
       return run(args, ctx)

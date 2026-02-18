@@ -11,6 +11,7 @@ import { readFileSync, existsSync } from 'fs'
 import { addToQueue } from '../queue'
 import { validateBrand, join } from '../core/paths'
 import { parseArgs } from '../cli/args'
+import { notifyContentQueue } from '../notify/discord-queue'
 import type { QueueItem } from '../core/types'
 import type { CommandContext } from '../cli/types'
 import type { CopyResult } from '../generate/copy'
@@ -19,6 +20,7 @@ export interface EnqueueCommandResult {
   queueId: string
   brand: string
   stage: string
+  notified?: boolean
 }
 
 export async function run(args: string[], _ctx?: CommandContext): Promise<EnqueueCommandResult> {
@@ -73,7 +75,20 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Enqueu
   addToQueue(queueItem)
   console.log(`[enqueue] Added: ${queueItem.id} (stage: review)`)
 
-  return { queueId: queueItem.id, brand, stage: 'review' }
+  // --notify: post to #content-queue on Discord with image inline
+  let notified = false
+  if (parsed.booleans.has('notify')) {
+    const notifyResult = await notifyContentQueue({
+      item: queueItem,
+      imagePath: posterImagePath,
+    }).catch((e: Error) => {
+      console.warn(`[enqueue] Discord notify failed: ${e.message}`)
+      return null
+    })
+    notified = !!notifyResult
+  }
+
+  return { queueId: queueItem.id, brand, stage: 'review', notified }
 }
 
 /**

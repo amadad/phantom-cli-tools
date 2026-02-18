@@ -164,3 +164,71 @@ export async function notifyContentQueue(opts: NotifyOptions): Promise<{ message
   console.log(`[discord-queue] Posted message ${msg.id}`)
   return { messageId: msg.id }
 }
+
+/**
+ * Post a simple text notification to a channel via Bot token.
+ * Used for #content-shipped and #content-intel.
+ */
+async function postTextMessage(channelId: string, content: string): Promise<{ messageId: string } | null> {
+  const botToken = process.env.DISCORD_BOT_TOKEN
+  if (!botToken) return null
+
+  const response = await fetch(
+    `https://discord.com/api/v10/channels/${channelId}/messages`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bot ${botToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content }),
+    }
+  )
+
+  if (!response.ok) {
+    console.error(`[discord-queue] Post failed ${response.status}: ${await response.text()}`)
+    return null
+  }
+
+  const msg = await response.json() as { id: string }
+  return { messageId: msg.id }
+}
+
+/**
+ * Notify #content-shipped when a queue item is successfully posted to social platforms.
+ */
+export interface ShippedOptions {
+  brand: string
+  topic: string
+  queueId: string
+  platforms: Array<{ platform: string; postUrl?: string; success: boolean }>
+}
+
+export async function notifyContentShipped(opts: ShippedOptions): Promise<{ messageId: string } | null> {
+  const SHIPPED_CHANNEL = process.env.DISCORD_CONTENT_SHIPPED_CHANNEL ?? '1473770543097577502'
+
+  const { brand, topic, queueId, platforms } = opts
+  const succeeded = platforms.filter(p => p.success)
+  const failed = platforms.filter(p => !p.success)
+
+  const lines = [
+    `**${brand} · ${truncate(topic, 60)}** ✅ Shipped`,
+    `ID: \`${queueId}\``,
+    '',
+    ...succeeded.map(p => `  ✓ **${p.platform}**${p.postUrl ? ` — <${p.postUrl}>` : ''}`),
+    ...failed.map(p => `  ✗ **${p.platform}** failed`),
+  ]
+
+  return postTextMessage(SHIPPED_CHANNEL, lines.join('\n'))
+}
+
+/**
+ * Notify #content-intel with a research digest (plain text / markdown).
+ */
+export async function notifyContentIntel(brand: string, digest: string): Promise<{ messageId: string } | null> {
+  const INTEL_CHANNEL = process.env.DISCORD_CONTENT_INTEL_CHANNEL ?? '1473770521551311030'
+  const header = `**${brand} · Content Intel** 📊\n\n`
+  // Discord message limit: 2000 chars
+  const body = (header + digest).slice(0, 1990)
+  return postTextMessage(INTEL_CHANNEL, body)
+}
