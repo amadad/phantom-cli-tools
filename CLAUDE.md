@@ -8,31 +8,62 @@ CLI design system docs: `docs/cli/overview.md`
 
 ```bash
 cd agent
-npx tsx src/cli.ts intel <brand>                # Weekly: scrape → outliers → hooks
-npx tsx src/cli.ts explore <brand> "topic"      # Generate: copy + image → queue
+# Atomic primitives (agent-composable, each returns JSON with --json)
+npx tsx src/cli.ts copy <brand> "topic"         # Generate platform copy + eval
+npx tsx src/cli.ts image <brand> "topic"        # Generate brand image
+npx tsx src/cli.ts poster <brand> --image <path> --headline "text"  # Platform posters
+npx tsx src/cli.ts enqueue <brand> --topic "t" --copy <p> --image <p>  # Add to queue
 npx tsx src/cli.ts grade <brand> "text"         # Eval: score against rubric
-npx tsx src/cli.ts learn <brand>                # Aggregate learnings from eval-log
+
+# Convenience wrapper (chains the primitives)
+npx tsx src/cli.ts explore <brand> "topic"      # image + copy + grade + poster + enqueue
+
+# Intel
+npx tsx src/cli.ts intel <brand>                # Weekly: scrape → outliers → hooks
+
+# Queue & publish
 npx tsx src/cli.ts post <brand> [--dry-run]     # Publish queue items
 npx tsx src/cli.ts post <brand> --all           # Post to all platforms
 npx tsx src/cli.ts queue list [brand]           # View queue items
 npx tsx src/cli.ts queue show <id> [brand]      # Show a queue item
+
+# Other
+npx tsx src/cli.ts learn <brand>                # Aggregate learnings from eval-log
 npx tsx src/cli.ts video <brand> <brief>        # Generate short-form video
 npx tsx src/cli.ts brand init <name>            # Scaffold a new brand
 ```
+
+## Agent Workflow
+
+Each primitive returns structured JSON with `--json`. Agent orchestrates:
+
+```bash
+# Steps 1a + 1b run in parallel
+phantom copy givecare "topic" --json        # → { headline, twitter, linkedin, ... }
+phantom image givecare "topic" --quick --json # → { imagePath, style, model }
+
+# Sequential steps
+phantom grade givecare "text" --json         # → { score, passed, dimensions }
+phantom poster givecare --image ... --headline ... --json  # → { outputs }
+phantom enqueue givecare --topic ... --copy copy.json --image ... --json  # → { queueId }
+phantom post givecare --id gen_... --json    # → { posted, failed }
+```
+
+Copy and image are parallelizable. Failure is isolated — if image gen fails, copy is preserved. Each step writes to disk for checkpointing.
 
 ## Structure
 
 ```
 agent/src/
-├── core/       brand, paths, types, json, http
+├── core/       brand, paths, session, types, json, http
 ├── intel/      pipeline, enrich-apify, detect-outliers, extract-hooks
-├── generate/   copy, image, classify, providers/ (gemini, reve)
+├── generate/   copy, image, classify, style-selection, upscale
 ├── video/      video pipeline, conform, providers/ (replicate/kling)
 ├── eval/       grader, image-grader, learnings
 ├── composite/  poster, templates
 ├── publish/    social, twitter/linkedin/facebook/instagram/threads
-├── cli/        flags, output, registry
-├── commands/   intel, explore, post, video, queue, brand
+├── cli/        args, flags, output, registry, schemas, errors
+├── commands/   explore, copy-cmd, image-cmd, poster-cmd, enqueue-cmd, intel, post, video, queue, brand
 └── queue/      per-brand file-based queue
 
 brands/<name>/
@@ -46,6 +77,13 @@ brands/<name>/
 
 output/
 ├── YYYY-MM-DD/        # Daily sessions
+│   └── topic-slug/
+│       ├── selected.png   # Generated image
+│       ├── copy.md        # Human-readable copy
+│       ├── copy.json      # Machine-readable copy (for enqueue)
+│       ├── twitter.png    # Platform poster
+│       ├── instagram.png
+│       └── story.png
 └── eval-log.jsonl     # All evaluations
 ```
 
@@ -54,17 +92,32 @@ output/
 | Stage | Flow |
 |-------|------|
 | Intel | Influencers → Apify → Outliers (50x+ median) → Hooks |
-| Generate | Topic → Classify → Voice + Hooks + Learnings → Gemini → Queue |
-| Eval | Content → Grade → Log → Aggregate → Inject into prompts |
+| Copy | Topic → Classify → Voice + Hooks + Learnings → Gemini → Eval → Retry |
+| Image | Topic → Load refs → Style selection → Generate → Upscale |
+| Poster | Image + Headline → Template → Platform-specific ratios |
+| Enqueue | Copy.json + Image → Queue item (stage: review) |
 | Post | Queue → Rate limit → Platform API → Done/Failed |
 | Video | Brief → Images → Kling animation → TTS → Conform → Stitch |
+
+## Shared Internals
+
+Commands share logic via exported functions, not abstraction layers:
+
+```typescript
+import { generateBrandImage } from './commands/image-cmd'    // Self-contained: takes brand name
+import { generateAndGradeCopy } from './commands/copy-cmd'   // Copy + eval retry loop
+import { generateFinals } from './commands/poster-cmd'       // Self-contained: takes brand name
+import { parseArgs } from './cli/args'                       // Shared arg parser
+import { createSessionDir, slugify } from './core/session'   // Session dir helper
+import { resolvePalette } from './core/brand'                // Palette fallback logic
+```
 
 ## Env
 
 ```bash
-GEMINI_API_KEY         # Required - image generation
+GEMINI_API_KEY         # Required - copy + image generation
 APIFY_API_TOKEN        # Intel scraping
-REPLICATE_API_TOKEN    # Video animation (Kling)
+REPLICATE_API_TOKEN    # Image upscale + video animation
 CARTESIA_API_KEY       # TTS voice generation
 
 # Per-brand platform creds: TWITTER_<BRAND>_*, LINKEDIN_<BRAND>_*, etc.
@@ -99,9 +152,12 @@ import { discoverBrands } from './core/paths'
 const brands = discoverBrands()  // ['brand-a', 'brand-b']
 ```
 
-### Image Providers
-- Primary: Gemini (`generate/providers/gemini.ts`)
-- Fallback: Reve (`generate/providers/reve.ts`)
+### Session Output
+```typescript
+import { createSessionDir, slugify } from './core/session'
+const dir = createSessionDir(slugify('caregiver burnout'), '-quick')
+// → output/2026-02-18/caregiver-burnout-quick/
+```
 
 ## Session End
 

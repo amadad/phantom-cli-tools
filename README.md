@@ -1,141 +1,160 @@
-# Phantom Loom CLI
+# Phantom Loom
 
-Brand-driven content pipeline with feedback loop: **intel → generate → eval → post**
-
-## What It Does
-
-Generate platform-specific social content while maintaining brand voice and visual consistency. Learn what works by analyzing viral patterns, grade content against rubrics, and inject learnings back into generation.
+Brand-driven social content pipeline with viral pattern learning.
 
 ```
 WEEKLY                              DAILY
 Influencers → Outliers → Hooks      Topic → Copy + Image → Grade → Queue → Post
-                                           ↑                    ↓
-                                    Learnings ←────── Eval Log
+                                          ↑                    ↓
+                                   Learnings ←────── Eval Log
 ```
 
 ## Quick Start
 
 ```bash
 cd agent && npm install
-cp .env.example .env  # Add GEMINI_API_KEY, platform creds
+cp .env.example .env  # Add GEMINI_API_KEY, REPLICATE_API_TOKEN
 
-# Intel (weekly)
-npx tsx src/cli.ts intel <brand>
+# One-shot generation
+npx tsx src/cli.ts explore <brand> "your topic" --quick
 
-# Generate (daily)
-npx tsx src/cli.ts explore <brand> "topic"
-
-# Post
-npx tsx src/cli.ts post <brand> --dry-run
-npx tsx src/cli.ts post <brand> --all
-
-# Help
-npx tsx src/cli.ts --help
+# Or atomic steps (agent-driven)
+npx tsx src/cli.ts copy <brand> "topic" --json
+npx tsx src/cli.ts image <brand> "topic" --quick --json
 ```
 
-## Brand Scaffold
+## Commands
+
+### Atomic Primitives
+
+Each returns structured JSON with `--json`. Designed for agent orchestration — copy and image run in parallel, each step checkpoints to disk, failure is isolated.
+
+| Command | Purpose | Key Output |
+|---------|---------|------------|
+| `copy <brand> "topic"` | Platform copy + eval grading | `copy.md` + `copy.json` |
+| `image <brand> "topic"` | Brand-consistent image | `selected.png` |
+| `poster <brand> --image <p> --headline "text"` | Platform posters | `twitter.png`, `instagram.png`, `story.png` |
+| `enqueue <brand> --topic "t" --copy <p> --image <p>` | Add to queue | Queue item (stage: review) |
+| `grade <brand> "text"` | Score against rubric | `{ score, passed, dimensions }` |
+
+### Convenience Wrapper
+
+```bash
+npx tsx src/cli.ts explore <brand> "topic"          # Full: image + copy + grade + poster + enqueue
+npx tsx src/cli.ts explore <brand> "topic" --quick   # Skip moodboard
+npx tsx src/cli.ts explore <brand> "topic" --pro     # Gemini Pro quality
+```
+
+### Pipeline
+
+```bash
+npx tsx src/cli.ts intel <brand>              # Weekly: scrape → outliers → hooks
+npx tsx src/cli.ts post <brand> [--dry-run]   # Publish queue items
+npx tsx src/cli.ts queue list [brand]         # View queue
+npx tsx src/cli.ts learn <brand>              # Aggregate eval learnings
+```
+
+### Utility
+
+```bash
+npx tsx src/cli.ts brand init <name>          # Scaffold new brand
+npx tsx src/cli.ts video <brand> <brief>      # Short-form video
+npx tsx src/cli.ts brief <brand>              # Daily research digest
+npx tsx src/cli.ts blog <brand> "topic"       # Long-form blog post
+```
+
+## Agent Workflow
+
+All commands return `{ status: "ok", command, data }` or `{ status: "error", command, error }` with `--json`.
+
+```bash
+# Parallel
+phantom copy givecare "burnout" --json &
+phantom image givecare "burnout" --quick --json &
+wait
+
+# Sequential
+phantom grade givecare "$(cat output/.../copy.md)" --json
+phantom poster givecare --image output/.../selected.png --headline "..." --json
+phantom enqueue givecare --topic "burnout" --copy output/.../copy.json --image output/.../selected.png --json
+phantom post givecare --id gen_... --json
+```
+
+Each step is independently retriable. Agent inspects JSON, decides next step.
+
+## Structure
+
+```
+agent/src/
+├── commands/   explore, copy-cmd, image-cmd, poster-cmd, enqueue-cmd, intel, post, queue, brand
+├── core/       brand, paths, session, types, json
+├── cli/        args, flags, output, registry, schemas, errors
+├── generate/   copy, image, classify, style-selection, upscale
+├── eval/       grader, image-grader, learnings
+├── composite/  poster, templates
+├── publish/    twitter, linkedin, facebook, instagram, threads
+├── intel/      pipeline, enrich-apify, detect-outliers, extract-hooks
+├── queue/      per-brand file-based queue
+└── video/      video pipeline, providers/
+
+brands/<name>/
+├── <name>-brand.yml     # Voice, visual, platforms
+├── <name>-rubric.yml    # Eval dimensions + threshold
+├── queue.json           # Post queue
+├── styles/              # Reference images for style transfer
+├── assets/              # logo.svg, fonts/
+├── intel/               # hooks.json, outliers.json
+└── learnings.json       # Aggregated feedback
+
+output/YYYY-MM-DD/topic-slug/
+├── selected.png         # Generated image (upscaled)
+├── copy.md / copy.json  # Platform copy (human + machine)
+├── twitter.png          # Platform posters
+├── instagram.png
+└── story.png
+```
+
+## Adding a Brand
 
 ```bash
 npx tsx src/cli.ts brand init <name>
 ```
 
-## CLI
+Then configure:
+1. `brands/<name>/<name>-brand.yml` — voice, visual style, platforms
+2. `brands/<name>/<name>-rubric.yml` — eval dimensions + pass threshold
+3. `brands/<name>/styles/` — reference images for style transfer
+4. `brands/<name>/assets/logo.svg`
+5. Env vars: `TWITTER_<NAME>_API_KEY`, `LINKEDIN_<NAME>_ACCESS_TOKEN`, etc.
 
-The CLI is the primary interface. See the design system in `docs/cli/overview.md`.
+## Environment
 
-Examples:
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `GEMINI_API_KEY` | Yes | Copy + image generation |
+| `REPLICATE_API_TOKEN` | Yes | Image upscaling |
+| `APIFY_API_TOKEN` | Intel only | Influencer scraping |
+| `CARTESIA_API_KEY` | Video only | TTS voice generation |
+
+Per-brand platform credentials: `TWITTER_<BRAND>_API_KEY`, `LINKEDIN_<BRAND>_ACCESS_TOKEN`, etc.
+
+## Development
 
 ```bash
-# Default brand for a session
-npx tsx src/cli.ts --brand <brand> explore "topic"
-
-# JSON output
-npx tsx src/cli.ts queue --json
-
-# Via npm script
-cd agent && npm run cli -- --help
+cd agent
+npx vitest run           # Tests
+npx vitest --watch       # Watch mode
+npx tsc --noEmit         # Typecheck
 ```
 
-## Architecture
+## Docs
 
-```
-agent/src/
-├── core/       Foundation (brand, paths, types, http)
-├── intel/      Intelligence (pipeline, enrich-apify, detect-outliers, hooks)
-├── generate/   Content (copy, image, classify, providers/)
-├── video/      Video pipeline (conform, providers/replicate)
-├── eval/       Evaluation (grader, image-grader, learnings)
-├── composite/  Poster generation (poster, templates)
-├── publish/    Social APIs (twitter, linkedin, facebook, instagram, threads)
-├── cli/        CLI system (flags, output, registry)
-├── commands/   Command handlers (intel, explore, post, video, queue, brand)
-└── queue/      Per-brand file-based queue
-
-brands/<name>/
-├── <name>-brand.yml   # Voice, visual, platforms
-├── <name>-rubric.yml  # Eval dimensions (threshold, banned phrases)
-├── queue.json         # Per-brand post queue
-├── assets/            # logo.svg, fonts/
-├── styles/            # Reference images for style transfer
-├── intel/             # hooks.json, outliers.json, influencers.json
-└── learnings.json     # Aggregated weak dimensions, avoid/prefer lists
-
-output/
-├── YYYY-MM-DD/        # Daily generation sessions
-└── eval-log.jsonl     # All evaluation history
-```
-
-## Pipelines
-
-### Intel (Weekly)
-
-| Step | Action |
-|------|--------|
-| Enrich | Apify scrapes Instagram/Twitter metrics |
-| Detect | Flag posts with views >= 50x median |
-| Extract | Gemini analyzes why posts went viral |
-| Store | Hook patterns indexed by category, multiplier |
-
-### Generate
-
-| Step | Action |
-|------|--------|
-| Classify | Detect content type (warm, product, thought) |
-| Voice | Load brand rules + writing system |
-| Hooks | Match topic to proven patterns |
-| Style | Select reference images for visual consistency |
-| Generate | Gemini creates copy + image |
-| Grade | Score against rubric, retry if below threshold |
-| Queue | Store in per-brand queue |
-
-### Video (Experimental)
-
-| Step | Action |
-|------|--------|
-| Brief | Load YAML brief with scenes, voice config |
-| Images | Gemini generates 9:16 scene images |
-| Animate | Kling (via Replicate) adds motion |
-| Voice | Cartesia TTS generates narration |
-| Conform | FFmpeg normalizes to 1080x1920 H.264 |
-| Stitch | Combine scenes + audio into final video |
-
-### Eval (Feedback Loop)
-
-| Step | Action |
-|------|--------|
-| Grade | Score content on brand-specific dimensions |
-| Log | Append to eval-log.jsonl |
-| Learn | Aggregate weak dimensions, derive avoid/prefer |
-| Inject | Learnings added to generation prompts |
-
-### Post
-
-| Step | Action |
-|------|--------|
-| Load | Get next item from brand queue |
-| Adapt | Platform-specific text (char limits, hashtags) |
-| Post | Direct API calls (OAuth) |
-| Track | Record success/failure, post URLs |
+- [Architecture](docs/architecture.md) — system overview, core modules, data flow
+- [Content Generation Flow](docs/explore-flow.md) — atomic workflow, pipeline, cost
+- [CLI Overview](docs/cli/overview.md) — design principles, command taxonomy
+- [CLI Command Spec](docs/cli/command-spec.md) — full command reference
+- [CLI Output Contract](docs/cli/output.md) — JSON response formats
+- [CLI Errors](docs/cli/errors.md) — exit codes, error formats
 
 ## Platform Support
 
@@ -147,57 +166,3 @@ output/
 | Instagram | Graph API | Full |
 | Threads | Meta API | Full |
 | YouTube | Google OAuth | Stub |
-
-## Environment
-
-```bash
-GEMINI_API_KEY         # Required - image generation
-APIFY_API_TOKEN        # Intel scraping
-REPLICATE_API_TOKEN    # Video animation (Kling)
-CARTESIA_API_KEY       # TTS voice generation
-
-# Per-brand, per-platform
-TWITTER_<BRAND>_API_KEY
-TWITTER_<BRAND>_API_SECRET
-TWITTER_<BRAND>_ACCESS_TOKEN
-TWITTER_<BRAND>_ACCESS_SECRET
-LINKEDIN_<BRAND>_ACCESS_TOKEN
-LINKEDIN_<BRAND>_ORG_ID
-# See .env.example for full list
-```
-
-## Adding a Brand
-
-```bash
-npx tsx src/cli.ts brand init <name>
-```
-
-Then edit:
-1. `brands/<name>/<name>-brand.yml` - voice, visual, platforms
-2. `brands/<name>/<name>-rubric.yml` - eval dimensions
-3. `brands/<name>/styles/` - reference images
-4. `brands/<name>/assets/logo.svg`
-5. Env vars: `TWITTER_<NAME>_API_KEY`, etc.
-
-Template lives at `brands/_template/`.
-
-## Strengths
-
-- **Feedback loop**: Learnings from evals injected back into generation
-- **Hook-driven**: Content based on viral patterns with multiplier scoring
-- **Multi-platform**: One topic → 5 platforms with platform-specific copy
-- **Style transfer**: Reference images → visual consistency
-- **Brand as config**: YAML-based, version-controlled identity
-- **Per-brand queues**: Isolated content streams prevent cross-posting
-
-## Known Limitations
-
-- No scheduling (manual trigger)
-- File-based queue (no concurrent access)
-- Token refresh manual (LinkedIn/Facebook ~60 days)
-- No analytics feedback yet
-- Video pipeline experimental
-
-## License
-
-MIT

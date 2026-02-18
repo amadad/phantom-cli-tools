@@ -30,6 +30,73 @@ export const commands: CommandDefinition[] = [
     }
   },
   {
+    name: 'copy',
+    summary: 'Generate platform copy for a topic',
+    usage: 'copy <brand> "<topic>" [options]',
+    acceptsBrand: true,
+    options: commandOptions([
+      { flag: '--hook "<pattern>"', description: 'Inject a specific hook pattern' }
+    ]),
+    examples: ['phantom copy <brand> "caregiver burnout"', 'phantom copy <brand> "topic" --json'],
+    preflight: () => requireEnv('GEMINI_API_KEY'),
+    run: async (args: string[], ctx) => {
+      const { run } = await import('../commands/copy-cmd')
+      return run(args, ctx)
+    }
+  },
+  {
+    name: 'image',
+    aliases: ['img'],
+    summary: 'Generate a brand-consistent image for a topic',
+    usage: 'image <brand> "<topic>" [options]',
+    acceptsBrand: true,
+    options: commandOptions([
+      { flag: '--pro', description: 'Use Gemini 3 Pro model' },
+      { flag: '--quick', description: 'Skip moodboard selection' },
+      { flag: '--style <name>', description: 'Force specific style' }
+    ]),
+    examples: ['phantom image <brand> "topic" --quick', 'phantom image <brand> "topic" --json'],
+    preflight: () => requireEnv('GEMINI_API_KEY'),
+    run: async (args: string[], ctx) => {
+      const { run } = await import('../commands/image-cmd')
+      return run(args, ctx)
+    }
+  },
+  {
+    name: 'poster',
+    aliases: ['finals'],
+    summary: 'Generate platform posters from image + headline',
+    usage: 'poster <brand> --image <path> --headline "<text>" [options]',
+    acceptsBrand: true,
+    options: commandOptions([
+      { flag: '--image <path>', description: 'Path to content image' },
+      { flag: '--headline "<text>"', description: 'Headline text for overlay' },
+      { flag: '--no-logo', description: 'Disable logo on posters' }
+    ]),
+    examples: ['phantom poster <brand> --image ./selected.png --headline "Your brain is running 20 tabs"'],
+    run: async (args: string[], ctx) => {
+      const { run } = await import('../commands/poster-cmd')
+      return run(args, ctx)
+    }
+  },
+  {
+    name: 'enqueue',
+    summary: 'Add generated content to the brand queue',
+    usage: 'enqueue <brand> --topic "<topic>" --copy <path> --image <path> [options]',
+    acceptsBrand: true,
+    options: commandOptions([
+      { flag: '--topic "<topic>"', description: 'Content topic' },
+      { flag: '--copy <path>', description: 'Path to copy.md' },
+      { flag: '--image <path>', description: 'Path to content image' },
+      { flag: '--poster-dir <path>', description: 'Directory with platform posters' }
+    ]),
+    examples: ['phantom enqueue <brand> --topic "burnout" --copy ./copy.md --image ./selected.png'],
+    run: async (args: string[], ctx) => {
+      const { run } = await import('../commands/enqueue-cmd')
+      return run(args, ctx)
+    }
+  },
+  {
     name: 'explore',
     aliases: ['gen', 'generate'],
     summary: 'Generate copy + images for a topic',

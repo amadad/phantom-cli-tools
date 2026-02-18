@@ -100,16 +100,18 @@ export function checkRateLimit(platform: string, brand: string): {
 }
 
 /**
- * Wait for rate limit to clear
+ * Wait for rate limit to clear (uses canMakeRequest to avoid consuming tokens)
  */
 export async function waitForRateLimit(platform: string, brand: string): Promise<void> {
-  const result = checkRateLimit(platform, brand)
-
-  if (!result.allowed && result.waitMs) {
-    console.log(`[rate-limit] ${platform}/${brand} rate limited, waiting ${Math.ceil(result.waitMs / 1000)}s...`)
-    await new Promise(resolve => setTimeout(resolve, result.waitMs))
-    // Retry after waiting
-    return waitForRateLimit(platform, brand)
+  while (!canMakeRequest(platform, brand)) {
+    const config = getConfig(platform)
+    const key = `${platform}:${brand}`
+    const s = getState(key)
+    const cleaned = cleanupOldRequests(s.requests, config.windowMs)
+    const oldest = Math.min(...cleaned)
+    const waitMs = Math.max(0, oldest + config.windowMs - Date.now())
+    console.log(`[rate-limit] ${platform}/${brand} rate limited, waiting ${Math.ceil(waitMs / 1000)}s...`)
+    await new Promise(resolve => setTimeout(resolve, waitMs + 100))
   }
 }
 

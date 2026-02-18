@@ -95,11 +95,17 @@ export function getBrandRubricPath(brandName: string): string {
   return join(getBrandDir(brandName), `${brandName}-rubric.yml`)
 }
 
+// Cache discovered brands within a process invocation
+let _brandsCache: string[] | null = null
+
 /**
  * Discover available brands from filesystem
  * Looks for directories containing <name>-brand.yml
+ * Results are cached per process invocation
  */
 export function discoverBrands(): string[] {
+  if (_brandsCache) return _brandsCache
+
   const brandsDir = getBrandsDir()
 
   if (!existsSync(brandsDir)) {
@@ -109,12 +115,20 @@ export function discoverBrands(): string[] {
 
   const entries = readdirSync(brandsDir, { withFileTypes: true })
   const brands = entries
-    .filter(e => e.isDirectory() && !e.name.startsWith('.'))
+    .filter(e => e.isDirectory() && !e.name.startsWith('.') && !e.name.startsWith('_'))
     .filter(e => existsSync(join(brandsDir, e.name, `${e.name}-brand.yml`)))
     .map(e => e.name)
     .sort()
 
+  _brandsCache = brands
   return brands
+}
+
+/**
+ * Clear the brands cache (useful for testing or after brand init)
+ */
+export function clearBrandsCache(): void {
+  _brandsCache = null
 }
 
 /**

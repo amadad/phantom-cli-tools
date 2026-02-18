@@ -6,6 +6,8 @@ import { GoogleGenAI } from '@google/genai'
 import type { ContentType } from './classify'
 import { extractJson } from '../core/json'
 import { getCopyContext } from '../eval/learnings'
+import { loadBrand, buildVoiceContext, detectFrameType } from '../core/brand'
+import type { BrandProfile } from '../core/types'
 
 export interface PlatformCopy {
   text: string
@@ -21,8 +23,8 @@ export interface CopyResult {
   imageDirection: string
 }
 
-// Voice templates by content type
-const VOICE: Record<ContentType, string> = {
+// Fallback voice templates (used when brand has no frames/writing system)
+const FALLBACK_VOICE: Record<ContentType, string> = {
   warm: `Voice: Warm, direct, honest - like a friend who gets it.
 - Acknowledge the hard thing first, then offer something useful
 - Short sentences, speak directly with "you"
@@ -43,6 +45,22 @@ const VOICE: Record<ContentType, string> = {
 }
 
 /**
+ * Build platform limits string from brand config
+ */
+function buildPlatformLimits(brand: BrandProfile): string {
+  const tw = brand.platforms?.twitter
+  const li = brand.platforms?.linkedin
+  const ig = brand.platforms?.instagram
+  const th = brand.platforms?.threads
+
+  return `Generate for each platform:
+- Twitter: max ${tw?.max_chars ?? 280} chars, ${tw?.hashtags ?? 2}-${(tw?.hashtags ?? 2) + 1} hashtags (without #)
+- LinkedIn: max ${li?.max_chars ?? 1500} chars, ${li?.hashtags ?? 3}-${(li?.hashtags ?? 3) + 2} hashtags (without #)
+- Instagram: max ${ig?.max_chars ?? 1000} chars, ${ig?.hashtags ?? 5} hashtags (without #)
+- Threads: max ${th?.max_chars ?? 500} chars, ${th?.hashtags ?? 2}-${(th?.hashtags ?? 2) + 1} hashtags (without #)`
+}
+
+/**
  * Generate copy for all platforms
  */
 export async function generateCopy(
@@ -55,23 +73,30 @@ export async function generateCopy(
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) throw new Error('GEMINI_API_KEY not set')
 
+  // Load brand profile for voice config and platform limits
+  const brand = loadBrand(brandName)
+  const frameType = detectFrameType(topic)
+
+  // Use brand voice config if available, fall back to hardcoded templates
+  const hasVoiceConfig = brand.voice?.frames || brand.voice?.writing_system
+  const voiceContext = hasVoiceConfig
+    ? buildVoiceContext(brand, frameType)
+    : FALLBACK_VOICE[contentType]
+
   // Inject learnings from past evaluations
   const learningsContext = getCopyContext(brandName)
 
-  const prompt = `You are a social media writer for ${brandName}.
+  // Platform limits from brand config
+  const platformLimits = buildPlatformLimits(brand)
 
-${VOICE[contentType]}
+  const prompt = `${voiceContext}
 ${learningsContext}
 
 Write about: ${topic}
 ${hookPattern ? `\nHook pattern to adapt: "${hookPattern}"` : ''}
 ${evalFeedback ? `\n⚠️ PREVIOUS ATTEMPT FAILED EVALUATION. FIX THESE ISSUES:\n${evalFeedback}\n` : ''}
 
-Generate for each platform:
-- Twitter: max 280 chars, 2-3 hashtags (without #)
-- LinkedIn: max 1500 chars, 3-5 hashtags (without #)
-- Instagram: max 1000 chars, 5 hashtags (without #)
-- Threads: max 500 chars, 2-3 hashtags (without #)
+${platformLimits}
 
 Also generate:
 - headline: Punchy 5-10 word hook for image overlay. Conversational, provocative. NOT the topic verbatim. Examples: "Your brain is running 20 tabs", "Nobody warns you about this part", "The thing nobody tells caregivers"

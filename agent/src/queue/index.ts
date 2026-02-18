@@ -3,7 +3,7 @@
  * Each brand has its own queue: brands/<brand>/queue.json
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, renameSync } from 'fs'
 import type { QueueItem } from '../core/types'
 import { getBrandDir, discoverBrands } from '../core/paths'
 
@@ -49,10 +49,12 @@ function loadAllQueues(): QueueItem[] {
   )
 }
 
-// Save queue to file for a specific brand
+// Save queue to file for a specific brand (atomic write via temp+rename)
 export function saveQueue(brand: string, items: QueueItem[]): void {
   const path = getQueuePath(brand)
-  writeFileSync(path, JSON.stringify(items, null, 2))
+  const tmp = `${path}.tmp`
+  writeFileSync(tmp, JSON.stringify(items, null, 2))
+  renameSync(tmp, path)
 }
 
 // Add item to queue (brand is required on the item)

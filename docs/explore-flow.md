@@ -1,32 +1,56 @@
-# Explore Flow
+# Content Generation Flow
 
-Generate brand-consistent social content through an agentic creative workflow.
+Generate brand-consistent social content. Available as atomic primitives or a single `explore` wrapper.
 
-## Quick Start
+## Atomic Workflow (Agent-Driven)
 
 ```bash
 cd agent
 
-# Full explore (moodboard → select → upscale → finals)
+# Step 1a: Generate copy (can run in parallel with 1b)
+npx tsx src/cli.ts copy <brand> "weekend self-care reset" --json
+
+# Step 1b: Generate image (can run in parallel with 1a)
+npx tsx src/cli.ts image <brand> "weekend self-care reset" --quick --json
+
+# Step 2: Grade copy quality
+npx tsx src/cli.ts grade <brand> "$(cat output/.../copy.md)" --json
+
+# Step 3: Generate platform posters
+npx tsx src/cli.ts poster <brand> --image output/.../selected.png --headline "Your brain is running 20 tabs" --json
+
+# Step 4: Enqueue for publishing
+npx tsx src/cli.ts enqueue <brand> --topic "weekend self-care reset" --copy output/.../copy.json --image output/.../selected.png --json
+
+# Step 5: Publish
+npx tsx src/cli.ts post <brand> --id gen_... --json
+```
+
+Each step is independently retriable. Agent inspects JSON, decides next step.
+
+## One-Shot Wrapper
+
+```bash
+# Full explore (moodboard → select → upscale → copy → grade → poster → enqueue)
 npx tsx src/cli.ts explore <brand> "weekend self-care reset"
 
-# Quick mode (agent picks from refs → 1 generation → finals)
+# Quick mode (agent picks from refs → 1 generation)
 npx tsx src/cli.ts explore <brand> "weekend self-care reset" --quick
 
 # Force specific style (skip selection entirely)
 npx tsx src/cli.ts explore <brand> "weekend self-care reset" --style style04
 
-# Use Gemini 3 Pro for higher quality (~$0.25 vs free)
+# Use Gemini 3 Pro for higher quality
 npx tsx src/cli.ts explore <brand> "weekend self-care reset" --pro
 ```
 
-## Modes
+## Image Modes
 
 | Mode | Flag | Flow | Speed | Cost |
 |------|------|------|-------|------|
-| Full | (default) | 6 generations → moodboard → agent picks → upscale → finals | ~60s | ~$0.003 (flash) |
-| Quick | `--quick` | Agent picks from refs → 1 generation → upscale → finals | ~20s | ~$0.001 |
-| Style | `--style NAME` | Use specified style → 1 generation → upscale → finals | ~15s | ~$0.001 |
+| Full | (default) | 8 variations → moodboard → agent picks → upscale | ~60s | ~$0.003 (flash) |
+| Quick | `--quick` | Agent picks from refs → 1 generation → upscale | ~20s | ~$0.001 |
+| Style | `--style NAME` | Use specified style → 1 generation → upscale | ~15s | ~$0.001 |
 
 Combine with `--pro` for Gemini 3 Pro quality (+~$0.04/generation).
 
@@ -34,52 +58,53 @@ Combine with `--pro` for Gemini 3 Pro quality (+~$0.04/generation).
 
 ```
 INPUT: topic + brand
-         ↓
-    ┌─────────────────────────────────────────┐
-    │  1. GENERATE VARIATIONS                 │
-    │     6 images from 6 style references    │
-    │     Model: gemini-2.0-flash (free)      │
-    │            gemini-3-pro (--pro, $0.04ea)│
-    └─────────────────────────────────────────┘
-         ↓
-    ┌─────────────────────────────────────────┐
-    │  2. MOODBOARD                           │
-    │     Contact sheet of all variations     │
-    │     Labeled by style name               │
-    └─────────────────────────────────────────┘
-         ↓
-    ┌─────────────────────────────────────────┐
-    │  3. AGENT SELECTION                     │
-    │     LLM reviews moodboard + topic       │
-    │     Returns: style, confidence, reason  │
-    └─────────────────────────────────────────┘
-         ↓
-    ┌─────────────────────────────────────────┐
-    │  4. UPSCALE                             │
-    │     Real-ESRGAN 4x via Replicate        │
-    │     ~$0.002 per image                   │
-    └─────────────────────────────────────────┘
-         ↓
-    ┌─────────────────────────────────────────┐
-    │  5. GENERATE COPY                       │
-    │     Twitter, LinkedIn, Instagram        │
-    │     Platform-optimized text + hashtags  │
-    └─────────────────────────────────────────┘
-         ↓
-    ┌─────────────────────────────────────────┐
-    │  6. COMPOSITE FINALS                    │
-    │     Template + headline + logo          │
-    │     Platform-specific ratios            │
-    └─────────────────────────────────────────┘
-         ↓
+         |
+    +---------+       +---------+
+    |  IMAGE  |       |  COPY   |     (parallel)
+    +---------+       +---------+
+         |                 |
+    Load refs         Classify topic
+    Style select      Build voice context
+    Generate          Generate per-platform
+    Upscale           Grade + retry
+         |                 |
+         +--------+--------+
+                  |
+             +---------+
+             | POSTER  |
+             +---------+
+                  |
+             Template + headline + logo
+             Platform-specific ratios
+                  |
+             +---------+
+             | ENQUEUE |
+             +---------+
+                  |
+             Queue item (stage: review)
+                  |
 OUTPUT: output/YYYY-MM-DD/topic-slug/
         ├── moodboard.png      (full mode only)
-        ├── selected.png       (upscaled)
-        ├── copy.md            (Twitter, LinkedIn, Instagram copy)
+        ├── selected.png       (upscaled content image)
+        ├── copy.md            (human-readable)
+        ├── copy.json          (machine-readable)
         ├── twitter.png        (banner, 1200x675)
         ├── instagram.png      (polaroid, 1080x1080)
         └── story.png          (polaroid, 1080x1920)
 ```
+
+## Shared Functions
+
+The atomic commands export self-contained functions for reuse:
+
+```typescript
+// Takes brand name, handles all setup internally
+import { generateBrandImage } from './commands/image-cmd'
+import { generateAndGradeCopy } from './commands/copy-cmd'
+import { generateFinals } from './commands/poster-cmd'
+```
+
+`explore` is a thin orchestrator that calls these — ~160 LOC.
 
 ## Cost
 
@@ -114,100 +139,9 @@ Archived styles in `styles/archive/`.
 | split | Balanced layout | square, portrait, landscape |
 | minimal | Clean, modern | square, portrait |
 
-## Style Guide
-
-Brand colors and typography defined in `brands/<brand>/style.yml`:
-
-```yaml
-colors:
-  dark: "#1E1B16"      # Text on light bg (not used for headlines)
-  light: "#FFE8D6"     # Text on dark bg
-  secondary: "#54340E" # Brown - headlines and logo on light bg
-  accent: "#5046E5"    # Electric indigo
-
-  backgrounds:
-    warm: "#FCEEE3"    # Peach cream
-    cream: "#FDFBF7"   # Off-white
-    dark: "#1E1B16"    # Dark mode
-
-typography:
-  headline:
-    font: "Alegreya"
-    weight: 700
-    scale:
-      large: 0.04      # 4% of canvas height
-      medium: 0.032
-      small: 0.025
-
-logo:
-  svg: "public/gc-logo.svg"
-  colors:
-    onLight: "#54340E" # Brown
-    onDark: "#FFE8D6"  # Cream
-```
-
-## Prompt Engineering
-
-Variations use this prompt pattern:
-
-```
-Study the reference image and identify its ESSENCE:
-- What makes this style distinctive? (materials, forms, techniques)
-- What is the visual language? (geometric, organic, photographic, sculptural)
-- What is the color relationship and mood?
-
-Now create a NEW, ORIGINAL image for this topic: "{topic}"
-
-CRITICAL RULES:
-- DO NOT recreate or copy the reference image
-- Extract the aesthetic DNA and apply it to a fresh composition
-- Different subject, different perspective, different arrangement
-- Same visual spirit, completely new execution
-- NO text, NO words, NO letters
-
-COLOR PALETTE to use:
-- #FDFBF7 cream (background/negative space)
-- #1E1B16 deep brown (primary forms)
-- #5046E5 indigo (accent)
-
-The result should feel like it belongs in the same gallery as the reference, but be a distinct piece.
-```
-
 ## Environment Variables
 
 ```bash
-GEMINI_API_KEY        # Required
+GEMINI_API_KEY        # Required (copy + image generation)
 REPLICATE_API_TOKEN   # Required for upscaling
-```
-
-## File Structure
-
-```
-agent/src/
-├── commands/
-│   └── explore.ts      # Main explore command
-├── gen/
-│   ├── poster.ts       # Template compositing
-│   ├── templates.ts    # Template definitions
-│   ├── copy.ts         # Copy generation (Twitter, LinkedIn, etc.)
-│   └── classify.ts     # Content type classification
-└── core/
-    └── brand.ts        # Brand + style loading
-
-brands/<brand>/
-├── <brand>.yml        # Voice, platforms
-├── style.yml           # Colors, typography, logo
-└── styles/
-    ├── ref_*.png       # Style references
-    └── archive/        # Unused references
-
-output/
-└── YYYY-MM-DD/
-    └── topic-slug[-mode]/
-        ├── moodboard.png   # Full mode only
-        ├── selected.png    # Upscaled content image
-        ├── copy.md         # Platform copy + hashtags
-        ├── twitter.png     # 1200x675
-        ├── instagram.png   # 1080x1080
-        └── story.png       # 1080x1920
 ```

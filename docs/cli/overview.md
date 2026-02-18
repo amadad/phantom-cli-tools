@@ -1,13 +1,14 @@
 # CLI Design System Overview
 
-Phantom Loom CLI is CLI-first. The command line is the primary interface for orchestration, content generation, and publishing. The CLI design system defines a consistent interaction model, command taxonomy, and output contract so every command feels cohesive and scriptable.
+Phantom Loom CLI is CLI-first. The command line is the primary interface for orchestration, content generation, and publishing. Every command returns structured JSON with `--json`, making the CLI a toolkit of composable primitives for agent orchestration.
 
 ## Principles
 
-- **Predictable commands**: Command names are verbs (`intel`, `explore`, `post`, `queue`).
+- **Composable primitives**: Each pipeline step is a standalone command. Agent orchestrates the sequence.
+- **Predictable commands**: Command names are verbs (`copy`, `image`, `poster`, `enqueue`, `post`).
 - **Global flags everywhere**: `--brand`, `--json`, `--quiet`, `--verbose` apply to any command.
 - **Human + machine output**: Human-friendly output by default, structured JSON with `--json`.
-- **No surprises**: Clear usage hints, consistent exit codes, and safe defaults.
+- **Isolated failure**: Copy and image can fail independently. Each step writes to disk for checkpointing.
 
 ## Architecture
 
@@ -15,6 +16,7 @@ Phantom Loom CLI is CLI-first. The command line is the primary interface for orc
 agent/src/cli/
 ├── index.ts        # Entrypoint, dispatch, error handling
 ├── registry.ts     # Command definitions + metadata
+├── args.ts         # Shared argument parsing
 ├── flags.ts        # Global flags and parsing
 ├── output.ts       # Output helpers, help formatting
 ├── errors.ts       # Exit codes + error formatting
@@ -23,23 +25,45 @@ agent/src/cli/
 
 ## Invocation
 
-Use the CLI via tsx:
-
 ```bash
 npx tsx src/cli.ts <command> [options]
 ```
 
 ## Command Taxonomy
 
-Core commands reflect the pipeline:
+### Atomic Primitives
+Each returns structured JSON with `--json`. Agent-composable.
 
-- `intel` → outliers + hooks
-- `explore` → generate copy + images
-- `grade` → score content
-- `learn` → aggregate eval log
-- `post` → publish queue items
-- `queue` → inspect queue
-- `video` → generate shorts
-- `brand` → scaffold new brands
+- `copy` — generate platform copy + eval grading
+- `image` — generate brand-consistent image
+- `poster` — generate platform posters from image + headline
+- `enqueue` — add content to brand queue
+- `grade` — score content against rubric
+
+### Convenience Wrapper
+- `explore` — chains image → copy → grade → poster → enqueue
+
+### Pipeline
+- `intel` — weekly: scrape → outliers → hooks
+- `post` — publish queue items to platforms
+- `queue` — inspect queue items
+- `learn` — aggregate eval log into learnings
+
+### Utility
+- `video` — generate short-form video
+- `brand` — scaffold new brands
+- `brief` — daily research digest
+- `blog` — long-form blog post
+
+## Shared Arg Parser
+
+All commands use `cli/args.ts` for consistent argument parsing:
+
+```typescript
+import { parseArgs } from '../cli/args'
+
+const parsed = parseArgs(args, ['style', 'hook']) // knownFlags = value-taking flags
+// → { brand: "givecare", topic: "burnout", flags: { style: "s09" }, booleans: Set(["quick"]) }
+```
 
 See [command-spec.md](command-spec.md) for command details.

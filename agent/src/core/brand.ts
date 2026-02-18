@@ -4,7 +4,7 @@
 
 import { readFileSync, existsSync, statSync } from 'fs'
 import yaml from 'js-yaml'
-import type { BrandProfile, VisualStyle, ReferenceStyle } from './types'
+import type { BrandProfile, BrandStyle, VisualStyle, ReferenceStyle } from './types'
 import {
   getBrandConfigPath,
   getBrandDir,
@@ -25,7 +25,7 @@ const brandCache = new Map<string, CacheEntry>()
  * Load style guide from brands/<name>/style.yml
  * Returns undefined if not found
  */
-export function loadBrandStyle(brandName: string): any | undefined {
+export function loadBrandStyle(brandName: string): BrandStyle | undefined {
   const brandDir = getBrandDir(brandName)
   const stylePath = join(brandDir, 'style.yml')
 
@@ -34,7 +34,7 @@ export function loadBrandStyle(brandName: string): any | undefined {
   }
 
   const content = readFileSync(stylePath, 'utf-8')
-  return yaml.load(content)
+  return yaml.load(content) as BrandStyle
 }
 
 /**
@@ -74,6 +74,41 @@ export function loadBrand(brandName?: string): BrandProfile {
 
   brandCache.set(name, { brand, mtime })
   return brand
+}
+
+/**
+ * Resolve palette for image generation from brand config.
+ * Handles visual.palette vs style.colors fallback.
+ */
+export function resolvePalette(brand: BrandProfile): { background: string; primary: string; accent: string } {
+  const vp = brand.visual?.palette
+  const sc = brand.style?.colors
+  if (vp) {
+    return {
+      background: vp.secondary || '#FAFAFA',
+      primary: vp.primary || '#000000',
+      accent: vp.accent || '#1A1A1A'
+    }
+  }
+  return {
+    background: sc?.backgrounds?.cream || '#FDFBF7',
+    primary: sc?.dark || '#1E1B16',
+    accent: sc?.accent || '#5046E5'
+  }
+}
+
+/**
+ * Resolve prompt override from brand config.
+ */
+export function getPromptOverride(brand: BrandProfile): string | undefined {
+  return brand.visual?.prompt_override || brand.style?.prompt_override
+}
+
+/**
+ * Build a short brand context string for AI selection prompts.
+ */
+export function buildBrandContext(brand: BrandProfile): string {
+  return `${brand.name} - ${brand.voice?.tone || 'brand voice'}`
 }
 
 // Re-export for convenience

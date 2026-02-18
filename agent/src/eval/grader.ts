@@ -6,7 +6,7 @@
  */
 
 import { GoogleGenAI } from '@google/genai'
-import { readFileSync, existsSync, appendFileSync } from 'fs'
+import { readFileSync, existsSync, appendFileSync, statSync, renameSync } from 'fs'
 import yaml from 'js-yaml'
 import { extractJson } from '../core/json'
 import { getBrandRubricPath, getEvalLogPath, getDefaultBrand } from '../core/paths'
@@ -270,8 +270,24 @@ export async function grade(
 // LOGGING (for learning loop)
 // =============================================================================
 
+const MAX_LOG_BYTES = 5 * 1024 * 1024 // 5 MB
+
+function rotateLogIfNeeded(logPath: string): void {
+  if (!existsSync(logPath)) return
+  try {
+    const { size } = statSync(logPath)
+    if (size > MAX_LOG_BYTES) {
+      const rotated = logPath.replace(/\.jsonl$/, `.${Date.now()}.jsonl`)
+      renameSync(logPath, rotated)
+    }
+  } catch {
+    // Non-critical — skip rotation on error
+  }
+}
+
 function logEval(brandName: string, content: string, result: EvalResult): void {
   const logPath = getEvalLogPath()
+  rotateLogIfNeeded(logPath)
 
   const entry = {
     ts: new Date().toISOString(),
