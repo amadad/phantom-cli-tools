@@ -2,7 +2,8 @@
  * Poster generation using templates with aspect ratio variants
  *
  * Templates define percentage-based zones for image, text, and logo.
- * Compositing uses Sharp + Satori.
+ * Primary renderer: BrandFrame (node-canvas layered composition via renderComposition).
+ * Fallback renderer: Sharp + Satori (original pipeline, kept for resilience).
  */
 
 import satori from 'satori'
@@ -10,7 +11,8 @@ import sharp from 'sharp'
 import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
 import { TEMPLATES, ASPECT_RATIOS, zoneToPixels, type AspectRatio, type TemplateConfig, type TemplateVariant } from './templates'
-import { getAgentDir } from '../core/paths'
+import { getAgentDir, getBrandDir, getProjectRoot } from '../core/paths'
+import { renderComposition } from './remotion/render'
 
 interface FontConfig {
   path?: string     // Path to .woff file (optional)
@@ -106,9 +108,67 @@ function getFontSize(textSize: 'large' | 'medium' | 'small', height: number, sty
 }
 
 /**
- * Generate poster from template
+ * Generate poster from template.
+ *
+ * Tries the new BrandFrame renderer (renderComposition via node-canvas) first.
+ * Falls back to the original Satori + Sharp pipeline on any error so existing
+ * callers are never broken.
  */
 export async function generatePoster(options: PosterOptions): Promise<Buffer> {
+  const { template: templateName, ratio = 'square', headline, contentImage, logoPath, fonts, style } = options
+
+  // ── Try new BrandFrame renderer ────────────────────────────────────────────
+  // Requires brand tokens (brands/<name>/tokens.json from `node tokens/build.js`).
+  // We extract the brand name from the logoPath convention (brands/<brand>/assets/...)
+  // or fall back if we can't determine it.
+  try {
+    const brandName = extractBrandFromLogoPath(logoPath) ?? extractBrandFromStyle(style)
+    if (brandName) {
+      console.log(`[poster] Using BrandFrame renderer (brand: ${brandName})`)
+      const pngBuffer = await renderComposition({
+        brand: brandName,
+        headline,
+        contentImage,
+        template: templateName,
+        ratio: ratio as 'square' | 'portrait' | 'story' | 'landscape' | 'wide',
+        logoPath,
+      })
+      // Post-process with Sharp (resize / format normalisation if needed)
+      return await sharp(pngBuffer).png().toBuffer()
+    }
+    console.log(`[poster] Brand name undetermined; using Satori fallback`)
+  } catch (err: any) {
+    console.warn(`[poster] BrandFrame renderer failed (${err.message}); falling back to Satori`)
+  }
+
+  // ── Satori fallback ────────────────────────────────────────────────────────
+  return generatePosterSatori(options)
+}
+
+/**
+ * Extract brand name from a logo path like
+ *   /path/to/brands/<brand>/assets/logo.svg
+ */
+function extractBrandFromLogoPath(logoPath?: string): string | null {
+  if (!logoPath) return null
+  const match = logoPath.match(/brands\/([^/]+)\//)
+  return match ? match[1] : null
+}
+
+/**
+ * Attempt to infer brand from style object (best-effort).
+ * This is a heuristic for callers that don't pass a logoPath.
+ */
+function extractBrandFromStyle(_style?: PosterOptions['style']): string | null {
+  // No reliable way to infer brand from style alone; return null to trigger fallback.
+  return null
+}
+
+/**
+ * Original Satori + Sharp poster renderer (kept as fallback).
+ * Signature matches generatePoster() — do not change.
+ */
+async function generatePosterSatori(options: PosterOptions): Promise<Buffer> {
   const { template: templateName, ratio = 'square', headline, contentImage, logoPath, fonts, style } = options
 
   // Get template config

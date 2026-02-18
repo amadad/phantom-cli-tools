@@ -1,0 +1,40 @@
+{
+  "color": {
+    "background": { "$value": "#FDFBF7", "$type": "color" },
+    "primary":    { "$value": "#1E1B16", "$type": "color" },
+    "accent":     { "$value": "#5046E5", "$type": "color" },
+    "secondary":  { "$value": "#3D3929", "$type": "color" }
+  },
+  "spacing": {
+    "xs":  { "$value": 8,  "$type": "number" },
+    "sm":  { "$value": 16, "$type": "number" },
+    "md":  { "$value": 24, "$type": "number" },
+    "lg":  { "$value": 40, "$type": "number" },
+    "xl":  { "$value": 64, "$type": "number" }
+  },
+  "radius": {
+    "sm":   { "$value": 4,  "$type": "number" },
+    "md":   { "$value": 8,  "$type": "number" },
+    "lg":   { "$value": 16, "$type": "number" },
+    "full": { "$value": 9999, "$type": "number" }
+  },
+  "typography": {
+    "headline": {
+      "font":            { "$value": "Alegreya",  "$type": "fontFamily" },
+      "weight":          { "$value": 400,          "$type": "fontWeight" },
+      "scaleFactorLarge":  { "$value": 0.04,       "$type": "number" },
+      "scaleFactorMedium": { "$value": 0.032,      "$type": "number" },
+      "scaleFactorSmall":  { "$value": 0.025,      "$type": "number" }
+    },
+    "body": {
+      "font":   { "$value": "sans-serif", "$type": "fontFamily" },
+      "weight": { "$value": 400,          "$type": "fontWeight" }
+    }
+  },
+  "logo": {
+    "colorOnLight": { "$value": "#1E1B16", "$type": "color" },
+    "colorOnDark":  { "$value": "#FFFFFF", "$type": "color" },
+    "path":         { "$value": "", "$type": "string" },
+    "darkPath":     { "$value": "", "$type": "string" }
+  }
+}

@@ -13,7 +13,7 @@ import type {
 export class GeminiProvider implements ImageProvider {
   name = 'gemini'
   private apiKey: string | undefined
-  private models = ['gemini-3-pro-image-preview', 'gemini-2.0-flash-exp']
+  private models = ['gemini-3-pro-image-preview', 'gemini-2.5-flash-image']
 
   constructor() {
     this.apiKey = process.env.GEMINI_API_KEY

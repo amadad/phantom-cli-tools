@@ -26,6 +26,7 @@ import { classify } from '../generate/classify'
 import { grade, loadRubric, buildFeedback } from '../eval/grader'
 import { getHookForTopic } from '../intel/hook-bank'
 import { addToQueue } from '../queue'
+import { notifyContentQueue } from '../notify/discord-queue'
 import type { QueueItem } from '../core/types'
 import type { CommandContext } from '../cli/types'
 
@@ -160,7 +161,7 @@ REASONING: [1-2 sentences]`
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash-image',
       contents: [{
         role: 'user',
         parts: [
@@ -216,7 +217,7 @@ REASONING: [1-2 sentences explaining why this style fits]`
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash-image',
       contents: [{
         role: 'user',
         parts: [
@@ -314,7 +315,7 @@ The result should feel like it belongs in the same gallery as the reference, but
     const ext = ref.refPath.split('.').pop()?.toLowerCase()
     const mimeType = ext === 'png' ? 'image/png' : 'image/jpeg'
 
-    const modelName = model === 'pro' ? 'gemini-3-pro-image-preview' : 'gemini-2.0-flash-exp'
+    const modelName = model === 'pro' ? 'gemini-3-pro-image-preview' : 'gemini-2.5-flash-image'
     const config = model === 'pro'
       ? { imageConfig: { aspectRatio: '1:1', imageSize: '2K' } }
       : { responseModalities: ['Text', 'Image'], imageConfig: { aspectRatio: '1:1' } }
@@ -466,7 +467,7 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Explor
   console.log(`\n[explore] Topic: "${topic}"`)
   console.log(`[explore] Brand: ${brand}`)
   console.log(`[explore] Mode: ${modeLabel}`)
-  console.log(`[explore] Model: ${model === 'pro' ? 'gemini-3-pro-image-preview' : 'gemini-2.0-flash-exp'}`)
+  console.log(`[explore] Model: ${model === 'pro' ? 'gemini-3-pro-image-preview' : 'gemini-2.5-flash-image'}`)
 
   // Load brand and references
   const brandConfig = loadBrand(brand)
@@ -791,6 +792,7 @@ ${copy.instagram.hashtags.map(h => `#${h}`).join(' ')}
   const now = new Date().toISOString()
   const queueItem: QueueItem = {
     id: `gen_${Date.now()}`,
+    brand,
     source: {
       type: 'manual',
       topic,
@@ -810,12 +812,25 @@ ${copy.instagram.hashtags.map(h => `#${h}`).join(' ')}
     image: {
       url: join(sessionDir, 'twitter.png'),
       prompt: topic,
-      model: `gemini-2.0-${model}-exp`
+      model: `model === 'pro' ? 'gemini-3-pro-image-preview' : 'gemini-2.5-flash-image'`
     }
   }
 
   addToQueue(queueItem)
   console.log(`[explore] Added to queue: ${queueItem.id}`)
+
+  // Notify #content-queue on Discord with the generated image
+  const notifyImagePath = join(sessionDir, 'twitter.png')
+  notifyContentQueue({
+    item: queueItem,
+    imagePath: notifyImagePath,
+    evalScore: evalResult.score,
+    evalPassed: evalResult.passed,
+    platform: 'Instagram',
+    format: selectedStyleName ?? undefined,
+  }).catch((e: Error) => {
+    console.warn(`[explore] Discord notify failed: ${e.message}`)
+  })
 
   console.log(`\n${'─'.repeat(60)}`)
   console.log(`Output: ${sessionDir}`)
@@ -825,7 +840,7 @@ ${copy.instagram.hashtags.map(h => `#${h}`).join(' ')}
     brand,
     topic,
     mode: modeLabel,
-    model: model === 'pro' ? 'gemini-3-pro-image-preview' : 'gemini-2.0-flash-exp',
+    model: model === 'pro' ? 'gemini-3-pro-image-preview' : 'gemini-2.5-flash-image',
     outputDir: sessionDir,
     selectedStyle: selectedStyleName,
     eval: {

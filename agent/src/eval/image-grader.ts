@@ -87,7 +87,7 @@ export async function gradeImage(
   parts.push({ text: `IMAGE TO EVALUATE above.\n\n${prompt}` })
 
   const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash-exp',
+    model: 'gemini-2.0-flash',
     contents: [{ role: 'user', parts }]
   })
 

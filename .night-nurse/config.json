@@ -1,0 +1,12 @@
+{
+  "name": "phantom-cli-tools",
+  "path": "/home/deploy/gc-repos/phantom-cli-tools",
+  "agents": {
+    "review": "claude",
+    "implement": "codex"
+  },
+  "maxIterations": 25,
+  "priorities": {
+    "sources": ["specs", "backlog"]
+  }
+}

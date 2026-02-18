@@ -1,8 +1,11 @@
 import { loadQueue, getQueueItem } from '../queue'
 import { discoverBrands } from '../core/paths'
+import { notifyContentQueue } from '../notify/discord-queue'
 import type { QueueItem } from '../core/types'
 import type { CommandContext, Output } from '../cli/types'
 import { createConsoleOutput } from '../cli/output'
+import { existsSync } from 'fs'
+import { dirname, join } from 'path'
 
 export interface QueueListResult {
   brand: string | null
@@ -115,6 +118,59 @@ function printQueueItem(item: QueueItem): void {
   output.info('')
 }
 
+async function notifyQueueItem(args: string[]): Promise<QueueShowResult> {
+  const [id, brandArg] = args
+  if (!id) {
+    output.error('Usage: queue notify <id> <brand>')
+    throw new Error('Missing queue id')
+  }
+
+  const brands = discoverBrands()
+  const brand = brandArg && brands.includes(brandArg) ? brandArg : undefined
+
+  let item: QueueItem | null = null
+  if (brand) {
+    item = getQueueItem(brand, id)
+  } else {
+    const all = loadQueue()
+    item = all.find(i => i.id === id) ?? null
+  }
+
+  if (!item) {
+    output.error(`Queue item not found: ${id}`)
+    throw new Error(`Queue item not found: ${id}`)
+  }
+
+  // Find best available image: twitter.png in same dir as item.image.url
+  let imagePath: string | undefined
+  if (item.image?.url) {
+    const dir = dirname(item.image.url)
+    const candidates = ['twitter.png', 'instagram.png', 'linkedin.png']
+    for (const f of candidates) {
+      const p = join(dir, f)
+      if (existsSync(p)) { imagePath = p; break }
+    }
+    if (!imagePath && existsSync(item.image.url)) {
+      imagePath = item.image.url
+    }
+  }
+
+  if (!imagePath) {
+    output.error('No image found for this queue item')
+    throw new Error('No image found')
+  }
+
+  output.info(`Notifying #content-queue for ${id}…`)
+  const result = await notifyContentQueue({ item, imagePath })
+  if (result) {
+    output.info(`✓ Posted Discord message ${result.messageId}`)
+  } else {
+    output.warn('⚠ Discord notify returned null (check DISCORD_BOT_TOKEN)')
+  }
+
+  return item
+}
+
 export async function run(args: string[], ctx?: CommandContext): Promise<QueueListResult | QueueShowResult> {
   setOutput(ctx?.output)
   const [subcommand, ...rest] = args
@@ -128,7 +184,11 @@ export async function run(args: string[], ctx?: CommandContext): Promise<QueueLi
     return showQueueItem(rest)
   }
 
+  if (normalized === 'notify') {
+    return notifyQueueItem(rest)
+  }
+
   output.error(`Unknown queue subcommand: ${normalized}`)
-  output.error('Usage: queue [list|show <id>] [brand]')
+  output.error('Usage: queue [list|show|notify <id> <brand>]')
   throw new Error(`Unknown queue subcommand: ${normalized}`)
 }

@@ -138,6 +138,7 @@ Audio:    ${skipAudio ? 'disabled' : 'enabled'}
 
   await addToQueue({
     id: queueId,
+    brand,
     source: {
       type: 'video',
       topic: result.brief.meta.topic,

@@ -98,9 +98,10 @@ export const commands: CommandDefinition[] = [
     usage: 'queue [list|show <id>] [brand]',
     options: commandOptions([
       { flag: 'list', description: 'List queue items (default)' },
-      { flag: 'show <id>', description: 'Show a specific queue item' }
+      { flag: 'show <id>', description: 'Show a specific queue item' },
+      { flag: 'notify <id> <brand>', description: 'Re-post item to #content-queue with image' }
     ]),
-    examples: ['phantom queue', 'phantom queue list <brand>', 'phantom queue show gen_1234'],
+    examples: ['phantom queue', 'phantom queue list <brand>', 'phantom queue show gen_1234', 'phantom queue notify gen_1234 givecare'],
     run: async (args: string[], ctx) => {
       const { run } = await import('../commands/queue')
       return run(args, ctx)
@@ -141,6 +142,46 @@ export const commands: CommandDefinition[] = [
     examples: ['phantom brand init newbrand'],
     run: async (args: string[], ctx) => {
       const { run } = await import('../commands/brand')
+      return run(args, ctx)
+    }
+  },
+  {
+    name: 'brief',
+    summary: 'Generate a daily research digest for a brand',
+    usage: 'brief <brand> [options]',
+    acceptsBrand: true,
+    options: commandOptions([
+      { flag: '--topic <text>', description: 'Focus on a specific subtopic' },
+      { flag: '--channel', description: 'Post digest to Discord webhook' },
+      { flag: '--dry-run', description: 'Skip saving/posting output' }
+    ]),
+    examples: [
+      'phantom brief givecare',
+      'phantom brief givecare --topic "caregiver burnout"',
+      'phantom brief givecare --channel'
+    ],
+    run: async (args: string[], ctx) => {
+      const { run } = await import('../commands/brief')
+      return run(args, ctx)
+    }
+  },
+  {
+    name: 'blog',
+    summary: 'Generate a long-form blog post for a brand',
+    usage: 'blog <brand> "<topic>" [options]',
+    acceptsBrand: true,
+    options: commandOptions([
+      { flag: '--publish', description: 'Write post to brand publish_path' },
+      { flag: '--dry-run', description: 'Skip saving/publishing' }
+    ]),
+    examples: [
+      'phantom blog givecare "caregiver burnout"',
+      'phantom blog givecare "caregiver burnout" --publish',
+      'phantom blog givecare "caregiver burnout" --dry-run'
+    ],
+    preflight: () => requireEnv('GEMINI_API_KEY'),
+    run: async (args: string[], ctx) => {
+      const { run } = await import('../commands/blog')
       return run(args, ctx)
     }
   }
