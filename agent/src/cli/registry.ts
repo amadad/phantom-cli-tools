@@ -179,6 +179,25 @@ export const commands: CommandDefinition[] = [
     }
   },
   {
+    name: 'moodboard',
+    aliases: ['mood', 'grid'],
+    summary: 'Generate a 3×3 image grid for fast visual selection',
+    usage: 'moodboard <brand> "<topic>" [options]',
+    acceptsBrand: true,
+    options: commandOptions([
+      { flag: '--json', description: 'Output result as JSON' }
+    ]),
+    examples: [
+      'phantom moodboard givecare "caregiver burnout"',
+      'phantom moodboard givecare "caregiver burnout" --json'
+    ],
+    preflight: () => requireEnv('GEMINI_API_KEY'),
+    run: async (args: string[], ctx) => {
+      const { run } = await import('../commands/moodboard-cmd')
+      return run(args, ctx)
+    }
+  },
+  {
     name: 'grade',
     aliases: ['eval'],
     summary: 'Score content against the brand rubric',
