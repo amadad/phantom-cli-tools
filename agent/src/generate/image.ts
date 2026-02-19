@@ -1,184 +1,335 @@
 /**
- * Image generation by type
- * Uses provider architecture to support multiple image generation APIs
+ * Image generation by type — prompt-only (no reference images)
+ *
+ * Builds prompts from brand visual config (visual.image + palette).
+ * SCTY uses its modular prompt_system for fine-grained control.
  */
 
-import { readFileSync, existsSync } from 'fs'
-import { join } from 'path'
 import type { ImageType } from './classify'
-import { generatePoster, getTemplateAspectRatio, type AspectRatio } from '../composite/poster'
+import { generatePoster, type AspectRatio } from '../composite/poster'
 import { getImageContext } from '../eval/learnings'
-import { getBrandDir } from '../core/paths'
-import { createImageProvider, type ReferenceImage } from './providers'
+import { loadBrandVisual } from '../core/visual'
+import { loadBrand } from '../core/brand'
+import { createImageProvider } from './providers'
+import sharp from 'sharp'
 
 export interface ImageResult {
   b64: string
   prompt: string
   model: string
-  reference?: string
   creditsUsed?: number
   creditsRemaining?: number
 }
 
-interface BrandVisual {
-  palette?: Record<string, string>
-  fonts?: { headline?: string; body?: string }
-  logo?: string  // Path to logo file
+// ── Universal image quality rules (not brand-specific) ──────────────────────
+
+const IMAGE_RULES = `IMAGE RULES (apply to all output, all brands):
+Do not look like AI-generated art. Aim for intentional, authored visual work.
+
+Kill aesthetics (never produce):
+- Oversaturated, HDR-glow look
+- Plastic or waxy skin textures
+- Perfect bilateral symmetry
+- Lens flare or volumetric god rays (unless explicitly requested)
+- Stock photography composition (centered subject, blurred background, forced smile)
+- Midjourney house style: ornate, overdetailed, fantasy-illustration feel
+- Uncanny valley faces or hands
+- Generic "concept art" lighting (rim light + blue/orange split)
+
+Composition:
+- Off-center subjects. Asymmetry is default.
+- Leave breathing room. Not every pixel needs detail.
+- One focal point per image. Don't crowd the frame.
+- Crop with intention — tight crops and negative space both work, but commit.
+
+Texture and feel:
+- Prefer material imperfection: grain, fiber, print artifacts, paper texture
+- Flat > glossy by default. Matte surfaces read as more authored.
+- If photographic: natural light, editorial grade, not commercial/advertising
+- If abstract: gestural marks, hand-worked quality, not algorithmically smooth
+
+DO NOT include text, letters, words, logos, or watermarks unless explicitly requested.`
+
+// ── SCTY modular prompt builder ─────────────────────────────────────────────
+
+/** Preset combos per imageType — each run picks one at random for variety */
+const SCTY_PRESETS: Record<string, { subjects: string[]; forms: string[]; textures: string[] }> = {
+  photo: {
+    subjects: ['symbol', 'conceptual_diagram', 'celestial', 'iconic_silhouette'],
+    forms: ['techno', 'cosmic', 'duotone', 'vector'],
+    textures: ['photocopy', 'crosshatch', 'overprint', 'future'],
+  },
+  poster: {
+    subjects: ['grid', 'mass', 'iconic_silhouette', 'conceptual_diagram'],
+    forms: ['geometric', 'duotone', 'collage', 'cosmic'],
+    textures: ['halftone', 'overprint', 'risograph', 'crosshatch'],
+  },
+  abstract: {
+    subjects: ['abstract', 'celestial', 'letterform', 'conceptual_diagram'],
+    forms: ['gestural', 'collage', 'cosmic', 'halftone'],
+    textures: ['risograph', 'ink_bleed', 'overprint', 'paper'],
+  },
 }
 
-/**
- * Reference images per type (relative to brands/<brand>/styles/)
- * Note: 'video' type has no reference - relies on prompt for style (Super 8 etc)
- */
-const REFERENCES: Partial<Record<ImageType, string>> = {
-  photo: 'ref_13_style09.png',    // Warm editorial portrait
-  poster: 'ref_08_style04.png',   // Clean bold shapes
-  abstract: 'ref_09_style05.png'  // Warm textural wall art
-  // video: no reference - use prompt only
-}
-
-/**
- * Load reference image as base64
- */
-function loadReference(brandName: string, imageType: ImageType): ReferenceImage | null {
-  const filename = REFERENCES[imageType]
-
-  // Some types (like 'video') don't use reference images
-  if (!filename) {
-    console.log(`[image] No reference for type: ${imageType} (using prompt only)`)
-    return null
-  }
-
-  const refPath = join(getBrandDir(brandName.toLowerCase()), 'styles', filename)
-
-  if (!existsSync(refPath)) {
-    console.log(`[image] Reference not found: ${refPath}`)
-    return null
-  }
-
-  const buffer = readFileSync(refPath)
-  const ext = filename.split('.').pop()?.toLowerCase()
-  const mimeType = ext === 'png' ? 'image/png' : 'image/jpeg'
-
-  console.log(`[image] Using reference: ${filename}`)
-  return { b64: buffer.toString('base64'), mimeType, filename }
-}
-
-/**
- * Build prompt based on image type
- */
-function buildPrompt(
+/** Map imageType to SCTY prompt_system modules — rotates through expanded vocabulary */
+function buildSctyPrompt(
   imageType: ImageType,
   direction: string,
-  brand: { name: string; visual?: BrandVisual },
-  headline?: string
+  promptSystem: any,
+  learnings: string,
+  knockout?: boolean,
 ): string {
-  const palette = brand.visual?.palette || {}
-  const fonts = brand.visual?.fonts || {}
+  const core = (promptSystem.core_aesthetic ?? []).join('. ')
+  const composition = (promptSystem.composition ?? []).join('. ')
+  const depth = (promptSystem.depth ?? []).join('. ')
 
-  // Inject learnings from past evaluations
-  const learningsContext = getImageContext(brand.name.toLowerCase())
+  const formModes = promptSystem.form_modes ?? {}
+  const textureModes = promptSystem.texture_modes ?? {}
+  const subjectTypes = promptSystem.subject_types ?? {}
+
+  if (imageType === 'video') {
+    return `${IMAGE_RULES}\n\n${direction}\n${learnings}`
+  }
+
+  // Pick from preset pools for this imageType
+  const preset = SCTY_PRESETS[imageType] ?? SCTY_PRESETS.abstract
+  const subjectKey = preset.subjects[Math.floor(Math.random() * preset.subjects.length)]
+  const formKey = preset.forms[Math.floor(Math.random() * preset.forms.length)]
+  const textureKey = preset.textures[Math.floor(Math.random() * preset.textures.length)]
+
+  const subject = subjectTypes[subjectKey] ?? subjectKey
+  const form = formModes[formKey] ?? formKey
+  const texture = textureModes[textureKey] ?? textureKey
+
+  // Duotone mode: relax monochrome constraint
+  const colorRule = formKey === 'duotone'
+    ? 'Duotone only — single spot color (vermillion, deep red, or signal orange) plus black. No full color. No text or letters.'
+    : 'Monochrome only. No text or letters. No color.'
+
+  // Knockout mode: instruct pure solid background for clean removal
+  const knockoutRule = knockout
+    ? '\nBACKGROUND: Pure solid white (#FFFFFF) background. Subject floats on clean white field with NO texture, NO grain, NO gradients in the background area. Sharp separation between subject and background.'
+    : ''
+
+  return `${IMAGE_RULES}
+
+Create a ${subject} for this concept: "${direction}"
+
+AESTHETIC: ${core}
+FORM: ${form}
+TEXTURE: ${texture}
+COMPOSITION: ${composition}
+DEPTH: ${depth}
+${knockoutRule}
+${colorRule}
+Output intent: social media post.
+${learnings}`
+}
+
+// ── Generic prompt builder ──────────────────────────────────────────────────
+
+function buildGenericPrompt(
+  imageType: ImageType,
+  direction: string,
+  style: string,
+  mood: string,
+  prefer: string[],
+  avoid: string[],
+  paletteInstructions: string,
+  palette: Record<string, string | undefined>,
+  learnings: string,
+): string {
+  const paletteBlock = paletteInstructions
+    || `Colors: ${palette.background ?? '#FDFBF7'} background, ${palette.primary ?? '#1E1B16'} primary, ${palette.accent ?? '#5046E5'} accent`
+
+  const preferBlock = prefer.length > 0 ? `\nPREFER: ${prefer.join(', ')}` : ''
+  const avoidBlock = avoid.length > 0
+    ? `\nDO NOT include: ${avoid.join(', ')}`
+    : ''
 
   switch (imageType) {
     case 'photo':
-      return `Editorial fashion photography. Match the style, lighting, and mood of the reference image.
+      return `${IMAGE_RULES}
 
-Scene: ${direction}
+Create an editorial photograph. ${style}. Mood: ${mood}.
 
-Style (from reference):
-- Warm color tones, editorial lighting
-- Empowered, confident mood - NOT sad or defeated
-- Fashion editorial feel
-- Shallow depth of field
+Subject: ${direction}
 
-DO NOT include text or logos in the image.
-${learningsContext}`
+${paletteBlock}${preferBlock}${avoidBlock}
+${learnings}`
 
     case 'poster':
-      // Shapes only - will be placed in middle zone of poster
-      return `Create abstract art inspired by the bold shapes in the reference image.
+      return `${IMAGE_RULES}
+
+Create abstract art. ${style}.
+
+Concept: ${direction}
 
 RULES:
-- ONLY abstract shapes - NO text, NO letters, NO words
-- Fill the entire canvas with shapes
+- ONLY abstract shapes — NO text, NO letters, NO words
+- Fill the entire canvas
 
-COLORS (use all of these):
-- ${palette.background || '#FDFBF7'} cream (background/negative space)
-- ${palette.primary || '#1E1B16'} deep brown (main shapes)
-- ${palette.accent || '#5046E5'} electric indigo (accent shapes)
-- ${palette.secondary || '#3D3929'} warm olive (secondary shapes)
-
-STYLE: Henri Matisse paper cutouts. Bold, colorful, overlapping geometric forms.
-${learningsContext}`
+${paletteBlock}${preferBlock}${avoidBlock}
+${learnings}`
 
     case 'abstract':
-      return `Create a purely ABSTRACT texture inspired by the reference image style.
+      return `${IMAGE_RULES}
 
-IMPORTANT: Do NOT include people, faces, or recognizable objects. This must be abstract art only.
+Create an abstract texture, NO people or recognizable objects. ${style}. Mood: ${mood}.
 
-Emotional concept to evoke: ${direction}
+Emotional concept: ${direction}
 
-Style (match the reference):
-- Organic, flowing sculptural forms
-- Warm neutral palette (browns, tans, cream)
-- Textural, layered quality like felt or textile art
-- ${palette.accent || '#5046E5'} as subtle accent
-- Contemplative, quiet mood
-
-Think: abstract wall sculpture, textile art, organic shapes. NO photography, NO people.
-${learningsContext}`
+${paletteBlock}${preferBlock}${avoidBlock}
+${learnings}`
 
     case 'video':
-      // Video frames: use prompt directly without reference image override
-      // The brief's image_prompt defines the aesthetic (Super 8, etc)
-      return `${direction}
+      return `${IMAGE_RULES}
 
-DO NOT include text, logos, or watermarks in the image.
-${learningsContext}`
+${direction}
+${learnings}`
   }
 }
 
+// ── Main prompt builder ─────────────────────────────────────────────────────
+
+function buildPrompt(
+  imageType: ImageType,
+  direction: string,
+  brandName: string,
+  headline?: string,
+  knockout?: boolean,
+): string {
+  const visual = loadBrandVisual(brandName)
+  const brand = loadBrand(brandName)
+  const learnings = getImageContext(brandName.toLowerCase())
+
+  // SCTY: use modular prompt system if available
+  const promptSystem = (brand as any).visual?.prompt_system
+  if (promptSystem) {
+    return buildSctyPrompt(imageType, direction, promptSystem, learnings, knockout)
+  }
+
+  // All other brands: build from visual.image config
+  const img = visual.image ?? { style: '', mood: '', avoid: [], prefer: [] }
+  return buildGenericPrompt(
+    imageType,
+    direction,
+    img.style,
+    img.mood,
+    img.prefer,
+    img.avoid,
+    img.palette_instructions ?? '',
+    visual.palette,
+    learnings,
+  )
+}
+
+// ── Knockout (background removal via sharp threshold) ──────────────────────
+
 /**
- * Generate image using provider architecture
- * Supports multiple providers: gemini (default), reve
+ * Remove near-white or near-black background from an image using sharp.
+ * For SCTY monochrome output: detects whether bg is light or dark,
+ * then thresholds to alpha.
+ */
+async function knockoutBackground(b64: string): Promise<string> {
+  const input = Buffer.from(b64, 'base64')
+  const { data, info } = await sharp(input)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true })
+
+  const pixels = new Uint8Array(data)
+  const total = info.width * info.height
+
+  // Sample corners to detect if background is light or dark
+  let cornerSum = 0
+  const cornerPixels = [
+    0, // top-left
+    (info.width - 1) * 4, // top-right
+    (total - info.width) * 4, // bottom-left
+    (total - 1) * 4, // bottom-right
+  ]
+  for (const offset of cornerPixels) {
+    cornerSum += pixels[offset] + pixels[offset + 1] + pixels[offset + 2]
+  }
+  const isLightBg = cornerSum / (4 * 3) > 128
+
+  // Threshold: make matching pixels transparent
+  const threshold = 30 // tolerance for near-white/near-black
+  for (let i = 0; i < pixels.length; i += 4) {
+    const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2]
+    if (isLightBg) {
+      // Remove near-white
+      if (r > 255 - threshold && g > 255 - threshold && b > 255 - threshold) {
+        pixels[i + 3] = 0
+      }
+    } else {
+      // Remove near-black
+      if (r < threshold && g < threshold && b < threshold) {
+        pixels[i + 3] = 0
+      }
+    }
+  }
+
+  const result = await sharp(Buffer.from(pixels), {
+    raw: { width: info.width, height: info.height, channels: 4 },
+  })
+    .png()
+    .toBuffer()
+
+  return result.toString('base64')
+}
+
+// ── Generate ────────────────────────────────────────────────────────────────
+
+export interface GenerateImageOptions {
+  imageType: ImageType
+  direction: string
+  brandName: string
+  headline?: string
+  template?: string
+  ratio?: AspectRatio
+  /** Remove background — render subject on transparent field */
+  knockout?: boolean
+}
+
+/**
+ * Generate image using provider architecture (prompt-only, no reference images).
+ * Supports multiple providers: gemini (default), reve.
  * Set via env: IMAGE_PROVIDER=reve or IMAGE_PROVIDER=gemini
  */
 export async function generateImage(
   imageType: ImageType,
   direction: string,
-  brand: { name: string; visual?: BrandVisual; style?: any },
+  brandName: string,
   headline?: string,
-  template?: string,  // Template name for poster type
-  ratio?: AspectRatio  // Aspect ratio variant
+  template?: string,
+  ratio?: AspectRatio,
+  knockout?: boolean,
 ): Promise<ImageResult | null> {
-  const prompt = buildPrompt(imageType, direction, brand, headline)
+  const prompt = buildPrompt(imageType, direction, brandName, headline, knockout)
   console.log(`[image] Type: ${imageType}`)
   console.log(`[image] Direction: ${direction.slice(0, 80)}...`)
 
-  // Load reference image
-  const reference = loadReference(brand.name, imageType)
-
-  // Determine aspect ratio based on type and ratio parameter
-  let aspectRatio = '3:4'  // Default
-  if (imageType === 'poster' && template) {
-    aspectRatio = getTemplateAspectRatio(template, ratio)
-  } else if (imageType === 'video' && ratio === 'portrait') {
-    aspectRatio = '9:16'  // Vertical video for Shorts/Reels
+  // Determine aspect ratio
+  let aspectRatio = '3:4'
+  if (imageType === 'video' && ratio === 'portrait') {
+    aspectRatio = '9:16'
   } else if (ratio === 'portrait') {
-    aspectRatio = '3:4'  // Portrait photos
+    aspectRatio = '3:4'
   } else if (ratio === 'landscape') {
-    aspectRatio = '16:9'  // Landscape
+    aspectRatio = '16:9'
   } else if (ratio === 'square') {
-    aspectRatio = '1:1'  // Square
+    aspectRatio = '1:1'
   }
   console.log(`[image] Aspect ratio: ${aspectRatio}`)
 
-  // Provider selection: try providers in order until one succeeds
+  // Provider selection
   const providerOrder = process.env.IMAGE_PROVIDER
-    ? [process.env.IMAGE_PROVIDER.toLowerCase(), 'gemini']  // Try specified first, fallback to gemini
-    : ['gemini', 'reve']  // Default: gemini first, reve fallback
+    ? [process.env.IMAGE_PROVIDER.toLowerCase(), 'gemini']
+    : ['gemini', 'reve']
 
-  const uniqueProviders = [...new Set(providerOrder)]  // Remove duplicates
+  const uniqueProviders = [...new Set(providerOrder)]
 
   for (const providerName of uniqueProviders) {
     try {
@@ -194,45 +345,42 @@ export async function generateImage(
         prompt,
         imageType,
         aspectRatio,
-        reference: reference || undefined
       })
 
       console.log(`[image] Generated with ${providerName}/${result.model}`)
 
       let finalB64 = result.b64
 
-      // For posters, composite into template
+      // For posters, composite into brand frame
       if (imageType === 'poster' && template) {
-        console.log(`[image] Compositing into template: ${template}`)
+        console.log(`[image] Compositing into poster: ${brandName}`)
         const contentImage = Buffer.from(result.b64, 'base64')
         const posterHeadline = headline || direction.split('.')[0]
 
-        // Logo path (relative to brand dir)
-        const logoSvg = brand.style?.logo?.svg
-        const logoPath = logoSvg
-          ? join(getBrandDir(brand.name.toLowerCase()), logoSvg)
-          : undefined
-
         const final = await generatePoster({
-          template,
+          brand: brandName.toLowerCase(),
           ratio,
           headline: posterHeadline,
           contentImage,
-          logoPath,
-          style: brand.style,
         })
 
         finalB64 = final.toString('base64')
         console.log(`[image] Text composited`)
       }
 
+      // Knockout: remove background via threshold
+      if (knockout) {
+        console.log(`[image] Removing background (knockout)...`)
+        finalB64 = await knockoutBackground(finalB64)
+        console.log(`[image] Background removed`)
+      }
+
       return {
         b64: finalB64,
         prompt,
         model: result.model,
-        reference: reference?.filename,
         creditsUsed: result.creditsUsed,
-        creditsRemaining: result.creditsRemaining
+        creditsRemaining: result.creditsRemaining,
       }
     } catch (e: any) {
       console.error(`[image] ${providerName} failed: ${e.message?.slice(0, 100)}`)

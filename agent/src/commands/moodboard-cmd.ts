@@ -12,14 +12,13 @@
  * Cancel custom_id format:  plx:{queueId}:{brand}
  */
 
-import { GoogleGenAI } from '@google/genai'
 import sharp from 'sharp'
-import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'fs'
-import { loadBrand, resolvePalette } from '../core/brand'
+import { writeFileSync } from 'fs'
 import { join } from '../core/paths'
 import { slugify, createSessionDir } from '../core/session'
 import { parseArgs } from '../cli/args'
-import { loadReferences, generateVariation, type StyleVariation } from '../generate/style-selection'
+import { generateImage } from '../generate/image'
+import { loadBrandVisual } from '../core/visual'
 import type { CommandContext } from '../cli/types'
 
 export interface MoodboardResult {
@@ -224,47 +223,47 @@ export async function run(
   console.log(`[moodboard] Brand: ${brand}, Topic: "${topic}"`)
   console.log(`[moodboard] Output: ${outputDir}`)
 
-  // Load brand config + palette
-  const brandConfig = loadBrand(brand)
-  const palette = resolvePalette(brandConfig)
-  const accentColor = palette.accent ?? '#5046E5'
-  const bgColor = palette.background ?? '#FDFBF7'
+  // Load brand visual for palette
+  const visual = loadBrandVisual(brand)
+  const accentColor = visual.palette.accent ?? '#5046E5'
+  const bgColor = visual.palette.background ?? '#FDFBF7'
 
-  // Load reference styles
-  const refs = loadReferences(brand)
-  if (refs.length === 0) throw new Error(`No reference styles found for brand: ${brand}`)
+  const VARIATION_SEEDS = [
+    'emphasize texture and materiality',
+    'focus on geometric forms',
+    'high contrast, minimal composition',
+    'organic flowing shapes',
+    'layered, collage-like depth',
+    'bold, poster-like simplicity',
+    'intricate pattern and repetition',
+    'soft, atmospheric quality',
+    'dynamic tension and movement',
+  ]
 
-  // Build 9-slot ref list (cycle through refs)
-  const TARGET = 9
-  const slotRefs: StyleVariation[] = []
-  for (let i = 0; i < TARGET; i++) {
-    slotRefs.push(refs[i % refs.length])
-  }
-
-  // Init Gemini
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) throw new Error('GEMINI_API_KEY not set')
-  const ai = new GoogleGenAI({ apiKey })
-
-  console.log(`[moodboard] Generating ${TARGET} variations in parallel…`)
+  console.log(`[moodboard] Generating ${VARIATION_SEEDS.length} variations in parallel…`)
   const start = Date.now()
 
-  // Generate all 9 in parallel
   const results = await Promise.all(
-    slotRefs.map((ref, i) =>
-      generateVariation(ai, topic, ref, palette, 'flash').then(r => {
-        if (r.image) console.log(`  ✓ Cell ${i + 1}`)
-        else console.log(`  ✗ Cell ${i + 1}: ${r.error}`)
-        return r
-      })
-    )
+    VARIATION_SEEDS.map(async (seed, i) => {
+      const variedTopic = `${topic}. Variation emphasis: ${seed}`
+      const result = await generateImage('abstract', variedTopic, brand)
+      if (result) {
+        console.log(`  cell ${i + 1} OK`)
+        return Buffer.from(result.b64, 'base64')
+      }
+      console.log(`  cell ${i + 1} FAIL`)
+      return null
+    })
   )
 
   const elapsed = ((Date.now() - start) / 1000).toFixed(1)
   console.log(`[moodboard] Generated in ${elapsed}s`)
 
-  // Filter to successful, take up to 9
-  const successful = results.filter(r => r.image).slice(0, 9)
+  const successful: Buffer[] = []
+  for (const r of results) {
+    if (r !== null) successful.push(r)
+    if (successful.length >= 9) break
+  }
   if (successful.length === 0) throw new Error('All image generations failed')
 
   console.log(`[moodboard] ${successful.length}/9 images generated`)
@@ -273,14 +272,13 @@ export async function run(
   const cellPaths: string[] = []
   for (let i = 0; i < successful.length; i++) {
     const p = join(outputDir, `cell-${i + 1}.png`)
-    writeFileSync(p, successful[i].image!)
+    writeFileSync(p, successful[i])
     cellPaths.push(p)
   }
 
   // Build 3×3 grid
   console.log('[moodboard] Compositing grid…')
-  const cellBuffers = successful.map(r => r.image!)
-  const grid = await buildGrid(cellBuffers, bgColor, accentColor)
+  const grid = await buildGrid(successful, bgColor, accentColor)
   const gridPath = join(outputDir, 'moodboard.png')
   writeFileSync(gridPath, grid)
   console.log(`[moodboard] Grid saved: ${gridPath}`)

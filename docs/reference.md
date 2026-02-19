@@ -56,30 +56,54 @@
 | Threads | ~60 days | Manual |
 | YouTube | ~1 hour | Auto |
 
-## Template System
+## Visual System
 
-| Template | Purpose | When to Use |
-|----------|---------|-------------|
-| kunz | Layered typography | Bold text-driven posts |
-| instax-social | Polaroid aesthetic | Lifestyle content |
-| brand-system | <brand> modular prompts | Abstract visuals |
+All visual config lives in brand YAML `visual:` section. No build step.
 
-### Kunz Grid
+### Named Layouts
 
+| Layout | Image | Text |
+|--------|-------|------|
+| `split` | Side/stacked | md-lg headline |
+| `overlay` | Full canvas, dimmed | lg headline floats |
+| `type-only` | None | display headline |
+| `card` | Top portion | Headline below |
+| `full-bleed` | Full canvas | Small label |
+
+### Brand Visual Config
+
+```yaml
+visual:
+  palette: { background, primary, accent, secondary, warm, dark, light }
+  typography:
+    headline: { font, fontFile, weight, lineHeight, sizes: { sm, md, lg, display } }
+  logo: { light, dark, colorOnLight, colorOnDark }
+  layouts: [split, overlay, type-only, card]
+  density: relaxed | moderate | tight
+  alignment: center | left | asymmetric
+  background: light | dark | warm
+  paletteRotation: 4
+  image:
+    style: "core aesthetic description"
+    mood: "emotional tone"
+    avoid: [text, logos, ...]
+    prefer: [abstract textures, editorial, ...]
+    palette_instructions: "how to use colors beyond hex"
+  prompt_system:              # Optional (SCTY uses this for modular prompt composition)
+    core_aesthetic: [...]
+    subject_types: { abstract, symbol, grid, conceptual_diagram, celestial, ... }
+    form_modes: { geometric, typographic, duotone, collage, cosmic, ... }
+    texture_modes: { halftone, photocopy, overprint, crosshatch, ... }
+    composition: [...]
+    depth: [...]
 ```
-A1-A6: Primary 6-column grid (typography)
-B1-B5: Secondary 5-column grid (offset tension)
-M1-M12: Mark grid (12x12 for glyphs)
-```
 
-### Mark Vocabulary
+### Rendering (4-layer canvas)
 
-| Mark | Semantic |
-|------|----------|
-| `*` `†` | Footnote, invisible labor |
-| `+` `×` | Accumulation, growth |
-| `:` `/` `~` | Ratio, transformation |
-| `—` `\|` | Time, duration |
+1. GraphicLayer — background fill, gradient strip
+2. ImageLayer — content image in layout zone
+3. Logo — brand mark (z-above image)
+4. TypeLayer — headline text with brand typography
 
 ## Environment Variables
 
@@ -122,9 +146,22 @@ voice:
   avoid_phrases               # Never-use words
 
 visual:
-  palette                     # Colors
-  reference_styles            # Visual modes with mood keywords
-  image_generation            # Model, aspect ratio
+  palette:                    # Colors (background, primary, accent, secondary, warm, dark, light)
+  typography:
+    headline:                 # Font, fontFile, weight, lineHeight, sizes
+  logo:                       # light, dark, colorOnLight, colorOnDark
+  layouts:                    # Allowed named layouts
+  density:                    # relaxed | moderate | tight
+  alignment:                  # center | left | asymmetric
+  background:                 # light | dark | warm
+  paletteRotation:            # Number of palette variants
+  image:                      # Image generation prompt config
+    style:                    # Core aesthetic description
+    mood:                     # Emotional tone
+    avoid: []                 # Hard exclusions
+    prefer: []                # Soft preferences
+    palette_instructions:     # Color usage guidance
+  prompt_system:              # Optional modular prompt system (SCTY)
 
 guardrails:
   pursue, reject, never       # Quality controls

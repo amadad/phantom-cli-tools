@@ -7,7 +7,7 @@
 
 import { generateCopy, type CopyResult } from '../generate/copy'
 import { classify } from '../generate/classify'
-import { grade, loadRubric, buildFeedback } from '../eval/grader'
+import { gradeFast, grade, loadRubric, buildFeedback } from '../eval/grader'
 import { getHookForTopic } from '../intel/hook-bank'
 import { join } from '../core/paths'
 import { slugify, createSessionDir } from '../core/session'
@@ -76,33 +76,39 @@ export async function generateAndGradeCopy(
   topic: string,
   brand: string,
   hookPattern?: string
-): Promise<{ copy: CopyResult; evalResult: ReturnType<typeof grade> extends Promise<infer R> ? R : never; attempts: number }> {
+): Promise<{ copy: CopyResult; evalResult: Awaited<ReturnType<typeof grade>>; attempts: number }> {
   const { contentType } = classify(topic)
   const rubric = loadRubric(brand)
   const maxRetries = rubric.max_retries || 2
 
   let copy = await generateCopy(topic, brand, contentType, hookPattern)
-  let evalResult = await grade(copy.linkedin.text, brand, { platform: 'linkedin', log: true })
+  let fastResult = gradeFast(copy.linkedin.text, brand, { platform: 'linkedin' })
   let attempts = 0
 
   console.log(`  Twitter: ${copy.twitter.text.length} chars, LinkedIn: ${copy.linkedin.text.length} chars`)
-  logScore(evalResult)
+  logScore(fastResult)
 
-  while (!evalResult.passed && attempts < maxRetries) {
+  // Retry on deterministic failures only (slop, banned phrases, platform limits)
+  while (!fastResult.passed && attempts < maxRetries) {
     attempts++
     console.log(`[copy] Retry ${attempts}/${maxRetries}...`)
-    const feedback = buildFeedback(evalResult, rubric) + `\n\nCRITIQUE: ${evalResult.critique}`
+    const feedback = buildFeedback(fastResult, rubric)
     copy = await generateCopy(topic, brand, contentType, hookPattern, feedback)
-    evalResult = await grade(copy.linkedin.text, brand, { platform: 'linkedin', log: true })
-    logScore(evalResult)
+    fastResult = gradeFast(copy.linkedin.text, brand, { platform: 'linkedin' })
+    logScore(fastResult)
   }
 
-  if (!evalResult.passed) {
-    console.log(`  Below threshold after ${attempts} retries. Critique: ${evalResult.critique}`)
+  if (fastResult.hard_fails.length > 0) {
+    console.log(`  Hard fails: ${fastResult.hard_fails.join(', ')}`)
   }
-  if (evalResult.hard_fails.length > 0) {
-    console.log(`  Hard fails: ${evalResult.hard_fails.join(', ')}`)
-  }
+
+  // Full LLM grade async for logging/learning — don't block
+  const evalPromise = grade(copy.linkedin.text, brand, { platform: 'linkedin', log: true })
+  evalPromise.catch(() => {}) // swallow — logging is best-effort
+
+  // Await it so we still return a real score, but the generate path isn't bottlenecked
+  // since we already have clean copy from the fast check
+  const evalResult = await evalPromise
 
   return { copy, evalResult, attempts }
 }

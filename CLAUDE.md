@@ -10,7 +10,7 @@ CLI design system docs: `docs/cli/overview.md`
 cd agent
 # Atomic primitives (agent-composable, each returns JSON with --json)
 npx tsx src/cli.ts copy <brand> "topic"         # Generate platform copy + eval
-npx tsx src/cli.ts image <brand> "topic"        # Generate brand image
+npx tsx src/cli.ts image <brand> "topic"        # Generate brand image (--knockout for transparent)
 npx tsx src/cli.ts poster <brand> --image <path> --headline "text"  # Platform posters
 npx tsx src/cli.ts enqueue <brand> --topic "t" --copy <p> --image <p>  # Add to queue
 npx tsx src/cli.ts grade <brand> "text"         # Eval: score against rubric
@@ -41,6 +41,7 @@ Each primitive returns structured JSON with `--json`. Agent orchestrates:
 # Steps 1a + 1b run in parallel
 phantom copy givecare "topic" --json        # → { headline, twitter, linkedin, ... }
 phantom image givecare "topic" --quick --json # → { imagePath, style, model }
+# --knockout for transparent PNG (bg removed via sharp threshold)
 
 # Sequential steps
 phantom grade givecare "text" --json         # → { score, passed, dimensions }
@@ -55,12 +56,12 @@ Copy and image are parallelizable. Failure is isolated — if image gen fails, c
 
 ```
 agent/src/
-├── core/       brand, paths, session, types, json, http
+├── core/       brand, visual, paths, session, types, json, http
 ├── intel/      pipeline, enrich-apify, detect-outliers, extract-hooks
-├── generate/   copy, image, classify, style-selection, upscale
+├── generate/   copy, image, classify, upscale, providers/
 ├── video/      video pipeline, conform, providers/ (replicate/kling)
 ├── eval/       grader, image-grader, learnings
-├── composite/  poster, templates
+├── composite/  poster, layouts, renderer/ (canvas compositor)
 ├── publish/    social, twitter/linkedin/facebook/instagram/threads
 ├── cli/        args, flags, output, registry, schemas, errors
 ├── commands/   explore, copy-cmd, image-cmd, poster-cmd, enqueue-cmd, intel, post, video, queue, brand
@@ -71,14 +72,14 @@ brands/<name>/
 ├── <name>-rubric.yml  # Eval dimensions + threshold
 ├── queue.json         # Per-brand post queue
 ├── assets/            # logo.svg, fonts/
-├── styles/            # Reference images for style transfer
+├── styles/            # Style reference images (visual direction)
 ├── intel/             # hooks.json, outliers.json, influencers.json
 └── learnings.json     # Aggregated feedback loop
 
 output/
 ├── YYYY-MM-DD/        # Daily sessions
 │   └── topic-slug/
-│       ├── selected.png   # Generated image
+│       ├── selected.png   # Generated image (transparent if --knockout)
 │       ├── copy.md        # Human-readable copy
 │       ├── copy.json      # Machine-readable copy (for enqueue)
 │       ├── twitter.png    # Platform poster
@@ -93,8 +94,8 @@ output/
 |-------|------|
 | Intel | Influencers → Apify → Outliers (50x+ median) → Hooks |
 | Copy | Topic → Classify → Voice + Hooks + Learnings → Gemini → Eval → Retry |
-| Image | Topic → Load refs → Style selection → Generate → Upscale |
-| Poster | Image + Headline → Template → Platform-specific ratios |
+| Image | Topic → Classify → Brand prompt (visual.image / prompt_system) → Generate → [Knockout] → [Upscale] |
+| Poster | Image + Headline → Named layout → Platform-specific ratios |
 | Enqueue | Copy.json + Image → Queue item (stage: review) |
 | Post | Queue → Rate limit → Platform API → Done/Failed |
 | Video | Brief → Images → Kling animation → TTS → Conform → Stitch |
@@ -109,8 +110,69 @@ import { generateAndGradeCopy } from './commands/copy-cmd'   // Copy + eval retr
 import { generateFinals } from './commands/poster-cmd'       // Self-contained: takes brand name
 import { parseArgs } from './cli/args'                       // Shared arg parser
 import { createSessionDir, slugify } from './core/session'   // Session dir helper
-import { resolvePalette } from './core/brand'                // Palette fallback logic
+import { loadBrandVisual } from './core/visual'               // BrandVisual config loader
+import { resolvePalette } from './core/brand'                // Palette from visual config
 ```
+
+## Visual System
+
+Single source of truth: `visual:` section in brand YAML. No build step, no tokens pipeline.
+
+```typescript
+import { loadBrandVisual } from './core/visual'
+const v = loadBrandVisual('givecare')
+// → { palette, typography, logo, layouts, density, alignment, background, paletteRotation }
+```
+
+### Named Layouts
+Brand YAML declares allowed layouts. `pickLayout()` selects deterministically from topic hash.
+
+| Layout | Image | Text | Use |
+|--------|-------|------|-----|
+| `split` | Side/stacked | md-lg headline | Default image+text |
+| `overlay` | Full canvas, dimmed | lg headline floats | High-impact |
+| `type-only` | None | display headline | Text-forward |
+| `card` | Top portion | Headline below | Image-dominant |
+| `full-bleed` | Full canvas | Small label | Image IS the post |
+
+### Rendering Pipeline
+`composite/renderer/` — 4-layer node-canvas compositor:
+1. **GraphicLayer** — background fill, gradient strip
+2. **ImageLayer** — content image placed in layout zone
+3. **Logo** — brand logo (drawn after image for z-order)
+4. **TypeLayer** — headline text with brand typography
+
+### Brand Visual Config
+```yaml
+visual:
+  palette: { background, primary, accent, secondary, warm, dark, light }
+  typography:
+    headline: { font, fontFile, weight, lineHeight, sizes: { sm, md, lg, display } }
+  logo: { light, dark, colorOnLight, colorOnDark }
+  layouts: [split, overlay, type-only, card]
+  density: moderate     # relaxed | moderate | tight
+  alignment: center     # center | left | asymmetric
+  background: warm      # light | dark | warm
+  paletteRotation: 4
+  image:                # Image generation prompt config
+    style: "..."        # Core aesthetic description
+    mood: "..."         # Emotional tone
+    avoid: [...]        # Hard exclusions (text, logos, etc.)
+    prefer: [...]       # Soft preferences (textures, forms, etc.)
+    palette_instructions: "..."  # Color usage guidance
+  prompt_system:        # Optional modular prompt system (SCTY)
+    core_aesthetic: [...]
+    subject_types: { abstract, symbol, grid, conceptual_diagram, celestial, ... }
+    form_modes: { geometric, typographic, duotone, collage, cosmic, ... }
+    texture_modes: { halftone, photocopy, overprint, crosshatch, ... }
+```
+
+### Image Generation
+Prompt-only — brand YAML `visual.image` + `visual.prompt_system` drive the aesthetic. No reference images needed.
+
+- **Generic brands**: `buildGenericPrompt()` composes from `image.style`, `image.mood`, `image.prefer`, `image.avoid`
+- **SCTY**: `buildSctyPrompt()` randomly selects from curated subject/form/texture pools per image type
+- **`--knockout`**: Prompts for solid white background, then sharp threshold removes it → transparent PNG
 
 ## Env
 
@@ -130,11 +192,10 @@ npx tsx src/cli.ts brand init <name>
 ```
 
 Then edit:
-1. `brands/<name>/<name>-brand.yml` - voice, visual, platforms
+1. `brands/<name>/<name>-brand.yml` - voice, visual (including `image:` config), platforms
 2. `brands/<name>/<name>-rubric.yml` - eval dimensions
-3. `brands/<name>/styles/` - reference images
-4. `brands/<name>/assets/logo.svg`
-5. Env vars: `TWITTER_<NAME>_API_KEY`, etc.
+3. `brands/<name>/assets/logo.svg` + fonts/
+4. Env vars: `TWITTER_<NAME>_API_KEY`, etc.
 
 Template lives at `brands/_template/`.
 

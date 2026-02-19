@@ -6,12 +6,12 @@
  */
 
 import { readFileSync, existsSync, writeFileSync } from 'fs'
-import { loadBrand } from '../core/brand'
+import { loadBrandVisual } from '../core/visual'
 import { getBrandDir, join } from '../core/paths'
 import { slugify, createSessionDir } from '../core/session'
 import { parseArgs } from '../cli/args'
 import { generatePoster } from '../composite/poster'
-import type { BrandProfile } from '../core/types'
+import type { AspectRatio } from '../composite/renderer/render'
 import type { CommandContext } from '../cli/types'
 
 export interface PosterCommandResult {
@@ -20,26 +20,38 @@ export interface PosterCommandResult {
   outputDir: string
 }
 
+/** Platform → aspect ratio mapping */
+const PLATFORM_RATIOS: Record<string, AspectRatio> = {
+  twitter: 'landscape',
+  instagram: 'portrait',
+  story: 'story',
+}
+
 export async function run(args: string[], _ctx?: CommandContext): Promise<PosterCommandResult> {
   const parsed = parseArgs(args, ['image', 'headline'])
   const brand = parsed.brand
   const imagePath = parsed.flags.image
   const headline = parsed.flags.headline
   const noLogo = parsed.booleans.has('no-logo')
+  const noImage = parsed.booleans.has('no-image')
 
-  if (!imagePath) throw new Error('Missing --image. Usage: poster <brand> --image <path> --headline "<text>"')
+  if (!noImage && !imagePath) throw new Error('Missing --image (or use --no-image for type-only). Usage: poster <brand> --image <path> --headline "<text>"')
   if (!headline) throw new Error('Missing --headline. Usage: poster <brand> --image <path> --headline "<text>"')
-  if (!existsSync(imagePath)) throw new Error(`Image not found: ${imagePath}`)
+  if (imagePath && !existsSync(imagePath)) throw new Error(`Image not found: ${imagePath}`)
 
-  console.log(`[poster] Brand: ${brand}`)
+  console.log(`[poster] Brand: ${brand}${noImage ? ' (type-only)' : ''}`)
   console.log(`[poster] Headline: "${headline.slice(0, 50)}${headline.length > 50 ? '...' : ''}"`)
 
-  const contentImage = readFileSync(imagePath)
+  const contentImage = (!noImage && imagePath) ? readFileSync(imagePath) : undefined
   const outputDir = createSessionDir(`poster-${slugify(headline, 30)}`)
 
-  const outputs = await generateFinals(brand, headline, contentImage, { noLogo, outputDir })
+  const outputs = await generateFinals(brand, headline, contentImage, { noLogo, outputDir, topic: headline })
 
-  return { outputs, logoUsed: !noLogo, outputDir }
+  const visual = loadBrandVisual(brand)
+  const isDark = visual.background === 'dark'
+  const actualLogoPath = isDark ? visual.logo.dark : visual.logo.light
+  const logoUsed = !noLogo && !!actualLogoPath && existsSync(actualLogoPath)
+  return { outputs, logoUsed, outputDir }
 }
 
 /**
@@ -49,85 +61,36 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Poster
 export async function generateFinals(
   brandName: string,
   headline: string,
-  contentImage: Buffer,
-  opts: { noLogo?: boolean; outputDir: string }
+  contentImage: Buffer | undefined,
+  opts: { noLogo?: boolean; outputDir: string; topic?: string }
 ): Promise<Record<string, string>> {
-  const brandConfig = loadBrand(brandName)
-  const { noLogo = false, outputDir } = opts
+  const visual = loadBrandVisual(brandName)
+  const { noLogo = false, outputDir, topic } = opts
 
-  const templateOverrides = brandConfig.style?.templates || (brandConfig as any).visual?.templates
-  const defaultPlatforms = [
-    { name: 'twitter', template: 'banner', ratio: 'landscape' as const, logo: true },
-    { name: 'instagram', template: 'polaroid', ratio: 'portrait' as const, logo: false },
-    { name: 'story', template: 'polaroid', ratio: 'story' as const, logo: true },
-  ]
-  const platforms = templateOverrides ?? defaultPlatforms
-
-  const typography = brandConfig.style?.typography?.headline || (brandConfig as any).visual?.typography?.headline
-  const brandFonts = typography ? {
-    headline: { name: typography.font?.toLowerCase() || 'alegreya', weight: typography.weight || 400 }
-  } : undefined
-
-  const logoPath = resolveLogoPath(brandName, brandConfig)
-  const posterStyle = resolvePosterStyle(brandConfig)
+  // Resolve logo path
+  const isDark = visual.background === 'dark'
+  const logoPath = noLogo ? undefined : (isDark ? visual.logo.dark : visual.logo.light)
 
   const outputs: Record<string, string> = {}
 
-  for (const platform of platforms) {
+  for (const [platform, ratio] of Object.entries(PLATFORM_RATIOS)) {
     try {
-      const useLogo = !noLogo && platform.logo
       const poster = await generatePoster({
-        template: platform.template,
-        ratio: platform.ratio,
+        brand: brandName,
         headline,
         contentImage,
-        logoPath: useLogo ? logoPath : undefined,
-        fonts: brandFonts,
-        style: posterStyle,
+        ratio,
+        logoPath,
+        topic,
       })
-      const outPath = join(outputDir, `${platform.name}.png`)
+      const outPath = join(outputDir, `${platform}.png`)
       writeFileSync(outPath, poster)
-      outputs[platform.name] = outPath
-      console.log(`  OK ${platform.name}.png${useLogo ? '' : ' (no logo)'}`)
+      outputs[platform] = outPath
+      console.log(`  OK ${platform}.png${noLogo ? ' (no logo)' : ''}`)
     } catch (e: any) {
-      console.log(`  FAIL ${platform.name}: ${e.message}`)
+      console.log(`  FAIL ${platform}: ${e.message}`)
     }
   }
 
   return outputs
-}
-
-function resolveLogoPath(brandName: string, brand: BrandProfile): string | undefined {
-  const logoSvg = brand.style?.logo?.svg
-  if (logoSvg) return join(getBrandDir(brandName), logoSvg)
-
-  const defaultSvg = join(getBrandDir(brandName), 'assets', 'logo.svg')
-  const defaultPng = join(getBrandDir(brandName), 'assets', 'logo.png')
-  if (existsSync(defaultSvg)) return defaultSvg
-  if (existsSync(defaultPng)) return defaultPng
-  return undefined
-}
-
-function resolvePosterStyle(brand: BrandProfile) {
-  if (brand.style) return brand.style
-  const vp = brand.visual?.palette
-  if (!vp) return undefined
-  return {
-    colors: {
-      dark: vp.primary || '#000000',
-      light: vp.secondary || '#FFFFFF',
-      accent: vp.accent || vp.primary || '#000000',
-      backgrounds: {
-        warm: vp.secondary || '#FFFFFF',
-        cream: vp.secondary || '#FFFFFF',
-        dark: vp.primary || '#000000'
-      }
-    },
-    logo: {
-      colors: {
-        onLight: vp.primary || '#000000',
-        onDark: vp.secondary || '#FFFFFF'
-      }
-    }
-  }
 }

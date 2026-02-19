@@ -87,11 +87,11 @@ Each step is independently retriable. Agent inspects JSON, decides next step.
 ```
 agent/src/
 ├── commands/   explore, copy-cmd, image-cmd, poster-cmd, enqueue-cmd, intel, post, queue, brand
-├── core/       brand, paths, session, types, json
+├── core/       brand, visual, paths, session, types, json
 ├── cli/        args, flags, output, registry, schemas, errors
 ├── generate/   copy, image, classify, style-selection, upscale
 ├── eval/       grader, image-grader, learnings
-├── composite/  poster, templates
+├── composite/  poster, layouts, renderer/ (4-layer canvas)
 ├── publish/    twitter, linkedin, facebook, instagram, threads
 ├── intel/      pipeline, enrich-apify, detect-outliers, extract-hooks
 ├── queue/      per-brand file-based queue
@@ -113,6 +113,34 @@ output/YYYY-MM-DD/topic-slug/
 ├── instagram.png
 └── story.png
 ```
+
+## Visual System
+
+All visual config lives in the brand YAML `visual:` section. Single source of truth — no build step, no token pipeline.
+
+```yaml
+visual:
+  palette: { background, primary, accent, secondary, warm, dark, light }
+  typography:
+    headline: { font, fontFile, weight, lineHeight, sizes: { sm, md, lg, display } }
+  logo: { light, dark, colorOnLight, colorOnDark }
+  layouts: [split, overlay, type-only, card]
+  density: moderate        # relaxed | moderate | tight
+  alignment: center        # center | left | asymmetric
+  background: warm         # light | dark | warm
+```
+
+### Named Layouts
+
+| Layout | Image | Text |
+|--------|-------|------|
+| `split` | Side-by-side or stacked | md-lg headline |
+| `overlay` | Full canvas, dimmed | lg headline floats |
+| `type-only` | None | display headline |
+| `card` | Top portion | Headline below |
+| `full-bleed` | Full canvas | Small label |
+
+Layout selected deterministically from topic hash over brand's allowed layouts. Rendered via 4-layer node-canvas compositor (GraphicLayer → ImageLayer → Logo → TypeLayer).
 
 ## Adding a Brand
 

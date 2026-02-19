@@ -13,6 +13,9 @@ npx tsx src/cli.ts copy <brand> "weekend self-care reset" --json
 # Step 1b: Generate image (can run in parallel with 1a)
 npx tsx src/cli.ts image <brand> "weekend self-care reset" --quick --json
 
+# Step 1b alt: Generate knockout image (transparent background)
+npx tsx src/cli.ts image <brand> "weekend self-care reset" --quick --knockout --json
+
 # Step 2: Grade copy quality
 npx tsx src/cli.ts grade <brand> "$(cat output/.../copy.md)" --json
 
@@ -31,28 +34,40 @@ Each step is independently retriable. Agent inspects JSON, decides next step.
 ## One-Shot Wrapper
 
 ```bash
-# Full explore (moodboard → select → upscale → copy → grade → poster → enqueue)
+# Full explore (generate → upscale → copy → grade → poster → enqueue)
 npx tsx src/cli.ts explore <brand> "weekend self-care reset"
 
-# Quick mode (agent picks from refs → 1 generation)
+# Quick mode (skip upscale)
 npx tsx src/cli.ts explore <brand> "weekend self-care reset" --quick
-
-# Force specific style (skip selection entirely)
-npx tsx src/cli.ts explore <brand> "weekend self-care reset" --style style04
 
 # Use Gemini 3 Pro for higher quality
 npx tsx src/cli.ts explore <brand> "weekend self-care reset" --pro
 ```
 
-## Image Modes
+## Image Generation
 
-| Mode | Flag | Flow | Speed | Cost |
-|------|------|------|-------|------|
-| Full | (default) | 8 variations → moodboard → agent picks → upscale | ~60s | ~$0.003 (flash) |
-| Quick | `--quick` | Agent picks from refs → 1 generation → upscale | ~20s | ~$0.001 |
-| Style | `--style NAME` | Use specified style → 1 generation → upscale | ~15s | ~$0.001 |
+Prompt-only — no reference images needed. Brand visual config drives the aesthetic:
 
-Combine with `--pro` for Gemini 3 Pro quality (+~$0.04/generation).
+- **Generic brands**: `visual.image` config (style, mood, prefer, avoid, palette_instructions)
+- **SCTY**: Modular `visual.prompt_system` — subject types, form modes, texture modes composed per-run with random rotation for variety
+
+| Flag | Effect |
+|------|--------|
+| `--quick` | Skip upscale step |
+| `--pro` | Use Gemini 3 Pro model |
+| `--knockout` | Remove background → transparent PNG |
+
+### SCTY Prompt System
+
+Each generation randomly selects from curated pools per image type:
+
+| Image Type | Subject Pool | Form Pool | Texture Pool |
+|------------|-------------|-----------|--------------|
+| photo | symbol, conceptual_diagram, celestial, iconic_silhouette | techno, cosmic, duotone, vector | photocopy, crosshatch, overprint, future |
+| poster | grid, mass, iconic_silhouette, conceptual_diagram | geometric, duotone, collage, cosmic | halftone, overprint, risograph, crosshatch |
+| abstract | abstract, celestial, letterform, conceptual_diagram | gestural, collage, cosmic, halftone | risograph, ink_bleed, overprint, paper |
+
+When `duotone` form is selected, color constraint relaxes to single spot color + black.
 
 ## Pipeline
 
@@ -63,10 +78,12 @@ INPUT: topic + brand
     |  IMAGE  |       |  COPY   |     (parallel)
     +---------+       +---------+
          |                 |
-    Load refs         Classify topic
-    Style select      Build voice context
-    Generate          Generate per-platform
-    Upscale           Grade + retry
+    Classify topic     Classify topic
+    Build prompt       Build voice context
+    from brand YAML    Generate per-platform
+    Generate           Grade + retry
+    [Knockout]
+    [Upscale]
          |                 |
          +--------+--------+
                   |
@@ -74,7 +91,7 @@ INPUT: topic + brand
              | POSTER  |
              +---------+
                   |
-             Template + headline + logo
+             Named layout + headline + logo
              Platform-specific ratios
                   |
              +---------+
@@ -84,13 +101,12 @@ INPUT: topic + brand
              Queue item (stage: review)
                   |
 OUTPUT: output/YYYY-MM-DD/topic-slug/
-        ├── moodboard.png      (full mode only)
-        ├── selected.png       (upscaled content image)
+        ├── selected.png       (content image, or transparent if --knockout)
         ├── copy.md            (human-readable)
         ├── copy.json          (machine-readable)
         ├── twitter.png        (banner, 1200x675)
-        ├── instagram.png      (polaroid, 1080x1080)
-        └── story.png          (polaroid, 1080x1920)
+        ├── instagram.png      (portrait, 1080x1350)
+        └── story.png          (story, 1080x1920)
 ```
 
 ## Shared Functions
@@ -102,42 +118,25 @@ The atomic commands export self-contained functions for reuse:
 import { generateBrandImage } from './commands/image-cmd'
 import { generateAndGradeCopy } from './commands/copy-cmd'
 import { generateFinals } from './commands/poster-cmd'
+import { loadBrandVisual } from './core/visual'        // Visual config loader
+import { pickLayout, computeLayout } from './composite/layouts'
 ```
 
 `explore` is a thin orchestrator that calls these — ~160 LOC.
 
-## Cost
+## Named Layouts
 
-| Mode | Per Run | Notes |
-|------|---------|-------|
-| Flash (default) | ~$0.003 | Experimental model, free variations |
-| Pro (--pro) | ~$0.25 | Higher quality, $0.04/variation |
+Layout is selected deterministically from topic hash over the brand's allowed layouts.
 
-## Style References
+| Layout | Image | Text | Use |
+|--------|-------|------|-----|
+| `split` | Side-by-side or stacked | md-lg headline | Default image+text |
+| `overlay` | Full canvas, dimmed | lg headline floats | High-impact |
+| `type-only` | None | display headline | Text-forward |
+| `card` | Top portion | Headline below | Image-dominant |
+| `full-bleed` | Full canvas | Small label | Image IS the post |
 
-Located in `brands/<brand>/styles/`:
-
-| File | Style |
-|------|-------|
-| ref_07_style03.png | Organic, calming textures |
-| ref_08_style04.png | Matisse paper cutouts |
-| ref_09_style05.png | Abstract textile art |
-| ref_10_style06.png | Warm minimalist |
-| ref_12_style08.png | Wire sculpture |
-| ref_13_style09.png | Editorial portrait |
-
-Archived styles in `styles/archive/`.
-
-## Templates
-
-| Template | Use Case | Ratios |
-|----------|----------|--------|
-| polaroid | Instagram, Story | square, portrait, story |
-| banner | Twitter, LinkedIn | landscape, wide |
-| quote | Text-heavy | square, portrait, story |
-| editorial | Magazine style | square, portrait, landscape |
-| split | Balanced layout | square, portrait, landscape |
-| minimal | Clean, modern | square, portrait |
+Platform ratios: `twitter: landscape`, `instagram: portrait`, `story: story`
 
 ## Environment Variables
 

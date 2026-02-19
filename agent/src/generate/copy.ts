@@ -60,6 +60,36 @@ function buildPlatformLimits(brand: BrandProfile): string {
 - Threads: max ${th?.max_chars ?? 500} chars, ${th?.hashtags ?? 2}-${(th?.hashtags ?? 2) + 1} hashtags (without #)`
 }
 
+// ── Writing quality (universal, not brand-specific) ─────────────────────────
+
+const WRITING_RULES = `WRITING RULES (apply to all output, all platforms):
+Do not sound like AI. Write like a specific human with opinions.
+
+Kill words (never use): additionally, moreover, furthermore, delve, crucial,
+vital, pivotal, landscape, tapestry, testament, showcase, foster, seamless,
+robust, leverage, utilize, holistic, comprehensive, innovative, cutting-edge,
+groundbreaking, game-changing, nuanced, multifaceted, realm, embark,
+navigate, unlock, empower, harness, noteworthy, notably, ultimately,
+essentially, fundamentally
+
+Kill patterns:
+- Zero em dashes. Use commas, periods, or colons.
+- Never "It's not just X, it's Y"
+- Never "serves as" or "stands as"
+- Never -ing pileups ("highlighting, showcasing, ensuring...")
+- Never start with "In today's" or "In a world where"
+
+Sentence rhythm:
+- Vary length wildly. 4 words. Then 22. Fragment. Then a breath.
+- Max one rhetorical triple per post.
+- No uniform cadence. Break patterns.
+
+Tone:
+- Have opinions. "I don't know what to make of this" beats neutral reporting.
+- Show uncertainty, mixed feelings, specificity.
+- State things. Skip "It's worth noting that..." and say the thing.
+- Use "you" and "I" when it fits. Address the reader.`
+
 /**
  * Generate copy for all platforms
  */
@@ -89,7 +119,9 @@ export async function generateCopy(
   // Platform limits from brand config
   const platformLimits = buildPlatformLimits(brand)
 
-  const prompt = `${voiceContext}
+  const prompt = `${WRITING_RULES}
+
+${voiceContext}
 ${learningsContext}
 
 Write about: ${topic}
@@ -106,7 +138,6 @@ FORMATTING RULES for LinkedIn/Instagram/Threads:
 - Vary the rhythm: some lines stand alone, some cluster in 2-3 sentence groups
 - Use blank lines to create breathing room, not after every line
 - Mix short punches (5 words) with medium builds (15-20 words)
-- Think poetry: tension, release, tension, release. Not metronome.
 - Group related thoughts, then pause. Let one line land hard alone.
 - NO walls of text, but NO robotic staccato either
 Requirements for imageDirection:

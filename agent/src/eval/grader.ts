@@ -86,6 +86,55 @@ export function loadRubric(brandName: string): Rubric {
 }
 
 // =============================================================================
+// ANTI-SLOP — universal across all brands (no LLM needed)
+// =============================================================================
+
+/** Words that are hard signals of AI-generated copy */
+const SLOP_WORDS = [
+  'additionally', 'moreover', 'furthermore', 'delve', 'crucial', 'vital',
+  'pivotal', 'landscape', 'tapestry', 'testament', 'underscore', 'showcase',
+  'foster', 'garner', 'intricate', 'vibrant', 'seamless', 'robust',
+  'leverage', 'utilize', 'facilitate', 'paradigm', 'synergy', 'holistic',
+  'comprehensive', 'innovative', 'cutting-edge', 'groundbreaking',
+  'game-changing', 'best-in-class', 'world-class', 'state-of-the-art',
+  'meticulous', 'nuanced', 'multifaceted', 'realm', 'embark', 'noteworthy',
+  'notably', 'ultimately', 'essentially', 'fundamentally',
+  'navigate', 'unlock', 'empower', 'harness',
+]
+
+/** Structural patterns that betray AI authorship */
+const SLOP_PATTERNS: { pattern: RegExp; reason: string }[] = [
+  { pattern: /—/g, reason: 'em dash (zero allowed)' },
+  { pattern: /it'?s not just .{1,30}, it'?s/i, reason: '"not just X, it\'s Y" cliche' },
+  { pattern: /serves as a?\s/i, reason: '"serves as" filler' },
+  { pattern: /stands as a?\s/i, reason: '"stands as" filler' },
+]
+
+export interface SlopResult {
+  words: string[]
+  patterns: string[]
+}
+
+/** Detect slop words and structural patterns. Returns findings (empty = clean). */
+export function checkSlop(text: string): SlopResult {
+  const lower = text.toLowerCase()
+  const words = SLOP_WORDS.filter(w => {
+    const re = new RegExp(`\\b${w}\\b`, 'i')
+    return re.test(lower)
+  })
+
+  const patterns: string[] = []
+  for (const { pattern, reason } of SLOP_PATTERNS) {
+    if (pattern.test(text)) {
+      patterns.push(reason)
+    }
+    pattern.lastIndex = 0 // reset global regex
+  }
+
+  return { words, patterns }
+}
+
+// =============================================================================
 // HARD FAIL CHECKS (no LLM needed)
 // =============================================================================
 
@@ -208,6 +257,52 @@ export function computeScore(
 // MAIN GRADER
 // =============================================================================
 
+/**
+ * Fast grade — deterministic checks only (no LLM call).
+ * Use in the hot path for quick pass/fail on slop, banned phrases, platform limits.
+ */
+export function gradeFast(
+  content: string,
+  brandName: string,
+  options: GradeOptions = {}
+): EvalResult {
+  const rubric = loadRubric(brandName)
+
+  const hardFails = checkBannedPhrases(content, rubric.banned_phrases)
+
+  const slop = checkSlop(content)
+  if (slop.words.length > 0) {
+    hardFails.push(`slop words: ${slop.words.join(', ')}`)
+  }
+  if (slop.patterns.length > 0) {
+    hardFails.push(`slop patterns: ${slop.patterns.join(', ')}`)
+  }
+
+  const redFlags = checkRedFlags(content, rubric.red_flag_patterns)
+  const redFlagPenalty = redFlags.reduce((sum, rf) => sum + rf.penalty, 0)
+
+  const hashtags = content.match(/#\w+/g) || []
+  const platformIssues = options.platform
+    ? checkPlatformLimits(content, hashtags, options.platform, rubric.platforms)
+    : []
+
+  const passed = hardFails.length === 0 && redFlags.length === 0 && platformIssues.length === 0
+
+  return {
+    passed,
+    score: passed ? 80 : 0, // nominal score; full grade gives real score
+    dimensions: {},
+    hard_fails: hardFails,
+    red_flags: redFlags,
+    platform_issues: platformIssues,
+    critique: hardFails.length > 0 ? `Hard fails: ${hardFails.join(', ')}` : '',
+  }
+}
+
+/**
+ * Full grade — deterministic checks + LLM-as-judge.
+ * Use for logging, learning loop, and detailed scoring. Not needed in hot path.
+ */
 export async function grade(
   content: string,
   brandName: string,
@@ -215,36 +310,40 @@ export async function grade(
 ): Promise<EvalResult> {
   const rubric = loadRubric(brandName)
 
-  // 1. Check banned phrases (hard fail)
+  // 1. Deterministic checks
   const hardFails = checkBannedPhrases(content, rubric.banned_phrases)
 
-  // 2. Check red flag patterns
+  const slop = checkSlop(content)
+  if (slop.words.length > 0) {
+    hardFails.push(`slop words: ${slop.words.join(', ')}`)
+  }
+  if (slop.patterns.length > 0) {
+    hardFails.push(`slop patterns: ${slop.patterns.join(', ')}`)
+  }
+
   const redFlags = checkRedFlags(content, rubric.red_flag_patterns)
   const redFlagPenalty = redFlags.reduce((sum, rf) => sum + rf.penalty, 0)
 
-  // 3. Check platform limits
   const hashtags = content.match(/#\w+/g) || []
   const platformIssues = options.platform
     ? checkPlatformLimits(content, hashtags, options.platform, rubric.platforms)
     : []
 
-  // 4. LLM-as-Judge for dimensions
+  // 2. LLM-as-Judge for dimensions
   const judge = await judgeContent(content, rubric)
 
-  // Extract dimensions dynamically from rubric
   const dimensions: Record<string, number> = {}
   for (const dim of Object.keys(rubric.dimensions)) {
     const val = judge[dim]
     dimensions[dim] = typeof val === 'number' ? val : 5
   }
 
-  // 5. Compute final score
+  // 3. Compute final score
   const weights = Object.fromEntries(
     Object.entries(rubric.dimensions).map(([k, v]) => [k, v.weight])
   )
   const score = computeScore(dimensions, weights, redFlagPenalty)
 
-  // 6. Determine pass/fail
   const passed = hardFails.length === 0 && score >= rubric.threshold
 
   const result: EvalResult = {
@@ -258,7 +357,6 @@ export async function grade(
     suggestion: judge.suggestion
   }
 
-  // 7. Log if enabled
   if (options.log) {
     logEval(brandName, content, result)
   }

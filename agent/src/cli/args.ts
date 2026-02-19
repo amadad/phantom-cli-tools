@@ -4,7 +4,7 @@
  * Handles the common pattern: <brand> "<topic>" --flag value --bool
  */
 
-import { getDefaultBrand } from '../core/paths'
+import { getDefaultBrand, discoverBrands } from '../core/paths'
 
 export interface ParsedArgs {
   brand: string
@@ -55,14 +55,21 @@ export function parseArgs(args: string[], knownFlags: string[] = []): ParsedArgs
   }
 
   // Extract brand + topic from positionals
+  // When only one positional is given, check if it's a known brand name
+  // before assuming it's a topic (prevents wrong-brand writes/posts)
   let brand = getDefaultBrand()
   let topic = ''
+  const knownBrands = discoverBrands()
 
   if (positional.length >= 2) {
     brand = positional[0]
     topic = positional.slice(1).join(' ')
   } else if (positional.length === 1) {
-    topic = positional[0]
+    if (knownBrands.includes(positional[0])) {
+      brand = positional[0]
+    } else {
+      topic = positional[0]
+    }
   }
 
   // Quoted string in raw args overrides topic

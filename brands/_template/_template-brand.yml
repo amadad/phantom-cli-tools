@@ -22,28 +22,38 @@ platforms:
     max_chars: 500
     hashtags: 2
 
-# Visual system (used by poster.ts)
-style:
-  colors:
+# Visual system
+visual:
+  palette:
+    background: "#FDFBF7"
+    primary: "#1E1B16"
+    accent: "#5046E5"
+    secondary: "#3D3929"
+    warm: "#FCEEE3"
     dark: "#111111"
     light: "#F7F7F2"
-    accent: "#4F46E5"
-    backgrounds:
-      warm: "#F5EEE6"
-      cream: "#FFFDF9"
-      dark: "#111111"
 
   typography:
     headline:
-      font: "Alegreya"
+      font: Alegreya
       weight: 400
-      scale:
-        large: 0.04
-        medium: 0.032
-        small: 0.025
+      lineHeight: 1.15
+      sizes: { sm: 28, md: 50, lg: 84, display: 136 }
 
   logo:
-    svg: "assets/logo.svg"
-    colors:
-      onLight: "#111111"
-      onDark: "#FFFFFF"
+    light: assets/logo.svg
+    colorOnLight: "#1E1B16"
+    colorOnDark: "#FDFBF7"
+
+  layouts: [split, overlay, type-only, card]
+  density: moderate
+  alignment: center
+  background: light
+  paletteRotation: 4
+
+  image:
+    style: "__DESCRIBE_CORE_AESTHETIC__"
+    mood: "__DESCRIBE_EMOTIONAL_TONE__"
+    avoid: [text, logos]
+    prefer: []
+    palette_instructions: ""

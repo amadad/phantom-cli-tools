@@ -12,14 +12,19 @@ import type { PixelZone } from '../types'
 export interface ImageLayerOptions {
   ctx: CanvasRenderingContext2D
   zone: PixelZone
-  contentImage: Buffer
+  contentImage?: Buffer
+  /** Image dimming amount (0 = full brightness, 1 = invisible) */
+  imageDim?: number
 }
 
 /**
  * Draw the content image into the image zone, cropped to fill (cover behavior).
+ * No-op when contentImage is absent or zone is empty (type-only posts).
  */
 export async function drawImageLayer(options: ImageLayerOptions): Promise<void> {
-  const { ctx, zone, contentImage } = options
+  const { ctx, zone, contentImage, imageDim } = options
+
+  if (!contentImage || zone.width <= 0 || zone.height <= 0) return
 
   const img = await loadImage(contentImage)
 
@@ -40,6 +45,8 @@ export async function drawImageLayer(options: ImageLayerOptions): Promise<void> 
   ctx.beginPath()
   ctx.rect(zone.x, zone.y, zone.width, zone.height)
   ctx.clip()
+  ctx.globalAlpha = Math.max(0.3, 1 - (imageDim ?? 0))
   ctx.drawImage(img as any, offsetX, offsetY, drawWidth, drawHeight)
+  ctx.globalAlpha = 1.0
   ctx.restore()
 }

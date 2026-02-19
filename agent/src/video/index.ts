@@ -91,7 +91,7 @@ export async function generateVideoFromBrief(
     const imageResult = await generateImage(
       'video',  // Video type: no style reference, prompt-driven aesthetic
       scene.image_prompt,
-      brand,
+      brief.meta.brand,
       '',  // No headline for video
       undefined,
       'portrait'  // 9:16 aspect ratio (portrait = 9:16)

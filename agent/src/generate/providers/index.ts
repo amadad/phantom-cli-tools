@@ -16,8 +16,8 @@ export interface ImageGenerationRequest {
   prompt: string
   imageType: ImageType
   aspectRatio: string  // Aspect ratio string like '3:4', '16:9', etc.
+  /** @deprecated Reference images are no longer used — prompts encode brand style directly */
   reference?: ReferenceImage
-  additionalReferences?: ReferenceImage[]
 }
 
 export interface ImageGenerationResult {

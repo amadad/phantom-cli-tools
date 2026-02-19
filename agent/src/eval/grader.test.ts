@@ -3,6 +3,7 @@ import {
   checkBannedPhrases,
   checkRedFlags,
   checkPlatformLimits,
+  checkSlop,
   computeScore,
   buildFeedback,
   type RedFlagPattern,
@@ -37,6 +38,42 @@ describe('checkBannedPhrases', () => {
 
   it('handles empty text', () => {
     expect(checkBannedPhrases('', ['banned'])).toEqual([])
+  })
+})
+
+describe('checkSlop', () => {
+  it('detects em dashes', () => {
+    const result = checkSlop('The problem — and it is one — needs fixing')
+    expect(result.patterns).toContain('em dash (zero allowed)')
+  })
+
+  it('detects slop words', () => {
+    const result = checkSlop('We need to leverage this innovative framework to unlock growth')
+    expect(result.words).toContain('leverage')
+    expect(result.words).toContain('innovative')
+    expect(result.words).toContain('unlock')
+  })
+
+  it('detects "not just X, it\'s Y" pattern', () => {
+    const result = checkSlop("It's not just a tool, it's a revolution")
+    expect(result.patterns.some(p => p.includes('not just X'))).toBe(true)
+  })
+
+  it('returns clean for human-sounding copy', () => {
+    const result = checkSlop('Monday is hard. The mental load is heavy. Pick one thing to let go of today.')
+    expect(result.words).toEqual([])
+    expect(result.patterns).toEqual([])
+  })
+
+  it('catches word boundaries correctly', () => {
+    // "realm" should not match "really"
+    const result = checkSlop('This is really good')
+    expect(result.words).not.toContain('realm')
+  })
+
+  it('detects "serves as" filler', () => {
+    const result = checkSlop('This serves as a reminder to rest')
+    expect(result.patterns.some(p => p.includes('serves as'))).toBe(true)
   })
 })
 

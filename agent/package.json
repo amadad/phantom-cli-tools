@@ -13,9 +13,6 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.967.0",
     "@cartesia/cartesia-js": "^2.2.9",
-    "@fontsource/alegreya": "^5.2.8",
-    "@fontsource/gabarito": "^5.2.8",
-    "@fontsource/space-grotesk": "^5.2.10",
     "@google/genai": "^0.14.0",
     "apify-client": "^2.11.0",
     "canvas": "^3.2.1",
@@ -25,12 +22,12 @@
     "open": "^11.0.0",
     "replicate": "^1.4.0",
     "rss-parser": "^3.13.0",
-    "satori": "^0.18.3",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.18.12",
+    "@vitest/coverage-v8": "^4.0.18",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
     "vitest": "^4.0.17"

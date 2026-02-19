@@ -1,9 +1,8 @@
 /**
- * composite: Template compositing
+ * composite: Poster generation
  */
 
-export { generatePoster, getTemplateAspectRatio, listTemplatesWithVariants } from './poster'
-export type { AspectRatio } from './poster'
-
-export { TEMPLATES, ASPECT_RATIOS, zoneToPixels } from './templates'
-export type { TemplateConfig, TemplateVariant, ZonePercent } from './templates'
+export { generatePoster } from './poster'
+export { ASPECT_RATIOS, type AspectRatio } from './renderer/render'
+export { pickLayout, computeLayout, buildPalette } from './layouts'
+export type { LayoutResult, PixelZone } from './layouts'

@@ -42,20 +42,7 @@ export class GeminiProvider implements ImageProvider {
 
         console.log(`[gemini] Config:`, JSON.stringify(config))
 
-        // Build parts: reference image (if available) + text prompt
-        const parts: any[] = []
-
-        if (request.reference) {
-          parts.push({
-            inlineData: {
-              mimeType: request.reference.mimeType,
-              data: request.reference.b64
-            }
-          })
-          parts.push({ text: `Reference image above. ${request.prompt}` })
-        } else {
-          parts.push({ text: request.prompt })
-        }
+        const parts: any[] = [{ text: request.prompt }]
 
         const response = await ai.models.generateContent({
           model,

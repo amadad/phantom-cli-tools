@@ -68,11 +68,20 @@ slugify(text, maxLen?)        // → "caregiver-burnout"
 createSessionDir(slug, suffix?) // → output/2026-02-18/caregiver-burnout-quick/
 ```
 
+### core/visual.ts — Brand Visual System
+```typescript
+loadBrandVisual(name)    // Loads visual: from brand YAML, applies defaults, resolves paths
+```
+
+Single source of truth for all visual config. No build step.
+
+`BrandVisual` includes: palette, typography (headline font + sizes), logo paths, allowed layouts, density, alignment, background mode, palette rotation count.
+
 ### core/brand.ts — Brand Configuration
 ```typescript
 loadBrand(name?)         // Loads YAML, mtime-cached
-resolvePalette(brand)    // visual.palette vs style.colors fallback
-getPromptOverride(brand) // visual.prompt_override vs style.prompt_override
+resolvePalette(brand)    // Reads from visual.palette via loadBrandVisual()
+getPromptOverride(brand) // visual.prompt_override
 buildBrandContext(brand)  // Short context string for AI prompts
 detectFrameType(topic)   // announcement | tip | thought | event
 buildVoiceContext(brand, frameType) // Full voice prompt
@@ -154,21 +163,38 @@ Topic → classify(topic) → contentType
 
 ### Image Generation (`image-cmd.ts`)
 ```
-Topic + Brand → loadBrand() → resolvePalette()
-            → loadReferences(brand) → style refs
-            → [force|quick|full] mode selection
-            → generateVariation() via Gemini
-            → upscaleImage() via Replicate
+Topic + Brand → classify(topic) → imageType
+            → buildPrompt(imageType, direction, brand)
+              → SCTY: modular prompt_system (random preset rotation)
+              → Generic: visual.image config (style, mood, prefer, avoid)
+            → generateImage() via provider (Gemini/Reve)
+            → [--knockout] knockoutBackground() via sharp threshold
+            → [!--quick] upscaleImage() via Replicate
             → write selected.png
 ```
 
 ### Poster Generation (`poster-cmd.ts`)
 ```
-Image + Headline + Brand → loadBrand()
-                        → resolveLogoPath()
-                        → resolvePosterStyle()
-                        → generatePoster() per platform
+Image + Headline + Brand → loadBrandVisual()
+                        → generatePoster() per platform ratio
+                          → pickLayout() from visual.layouts
+                          → computeLayout() → zones
+                          → renderComposition() (4-layer canvas)
                         → write twitter.png, instagram.png, story.png
+```
+
+### Rendering Pipeline (`composite/renderer/`)
+```
+renderComposition()
+  → loadBrandVisual() + registerFont()
+  → pickLayout(visual.layouts, topic, hasImage)
+  → computeLayout(layoutName, w, h, visual, topic)
+  → BrandFrame (4-layer canvas):
+    L1: GraphicLayer (bg fill, gradient strip)
+    L2: ImageLayer (content image in zone)
+    L3: Logo (brand mark, z-above image)
+    L4: TypeLayer (headline text)
+  → PNG buffer
 ```
 
 ## Social Posting

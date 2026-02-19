@@ -32,7 +32,7 @@ Writes: `copy.md` (human) + `copy.json` (machine) to session dir.
 
 ### `image`
 
-Generate a brand-consistent image for a topic.
+Generate a brand-consistent image for a topic. Prompt-only — no reference images needed. Brand visual config (`visual.image` + `visual.prompt_system`) drives the aesthetic.
 
 ```bash
 npx tsx src/cli.ts image <brand> "<topic>" [options]
@@ -40,8 +40,8 @@ npx tsx src/cli.ts image <brand> "<topic>" [options]
 
 Options:
 - `--pro` use Gemini 3 Pro model
-- `--quick` skip moodboard, agent picks from refs
-- `--style <name>` force specific style
+- `--quick` skip upscale
+- `--knockout` remove background — output transparent PNG
 
 Aliases: `img`
 
@@ -57,10 +57,13 @@ npx tsx src/cli.ts poster <brand> --image <path> --headline "<text>" [options]
 
 Options:
 - `--no-logo` disable logo overlay
+- `--no-image` type-only mode (no content image)
 
 Aliases: `finals`
 
 Returns: `{ outputs: { twitter, instagram, story }, logoUsed, outputDir }`
+
+Layout is selected deterministically from topic hash over the brand's allowed layouts (`visual.layouts` in brand YAML).
 
 ### `enqueue`
 
@@ -102,7 +105,7 @@ npx tsx src/cli.ts explore <brand> "<topic>" [options]
 Options:
 - `--pro`
 - `--quick`
-- `--style <name>`
+- `--knockout` remove background from generated image
 - `--no-logo`
 
 Aliases: `gen`, `generate`

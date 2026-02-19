@@ -25,11 +25,22 @@ export function loadQueue(brand?: string): QueueItem[] {
   if (!existsSync(path)) {
     return []
   }
-  try {
-    const data = readFileSync(path, 'utf-8')
-    return JSON.parse(data)
-  } catch {
+  const data = readFileSync(path, 'utf-8')
+  if (!data.trim()) {
     return []
+  }
+  try {
+    const items = JSON.parse(data)
+    if (!Array.isArray(items)) {
+      throw new Error(`Expected array, got ${typeof items}`)
+    }
+    return items
+  } catch (err: any) {
+    throw new Error(
+      `[queue] Corrupt queue file for ${brand}: ${path}\n` +
+      `  Parse error: ${err.message}\n` +
+      `  Back up and fix the file before continuing.`
+    )
   }
 }
 

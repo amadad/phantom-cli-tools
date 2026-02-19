@@ -120,8 +120,11 @@ export async function post(options: PostOptions): Promise<PostSummary | null> {
   // Determine platforms
   let targetPlatforms: Platform[]
 
+  // Video-only platforms can't receive text posts
+  const videoOnly: Platform[] = ['youtube']
+
   if (all) {
-    targetPlatforms = getAvailablePlatforms(brand)
+    targetPlatforms = getAvailablePlatforms(brand).filter(p => !videoOnly.includes(p))
   } else if (platforms && platforms.length > 0) {
     targetPlatforms = platforms
   } else {

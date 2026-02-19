@@ -5,7 +5,7 @@
  * Each step is also available as a standalone command.
  *
  * Usage:
- *   explore <brand> "<topic>" [--pro] [--quick] [--style NAME] [--no-logo] [--json]
+ *   explore <brand> "<topic>" [--pro] [--quick] [--no-logo] [--json]
  */
 
 import { writeFileSync } from 'fs'
@@ -18,6 +18,8 @@ import { generateFinals } from './poster-cmd'
 import { getHookForTopic } from '../intel/hook-bank'
 import { addToQueue } from '../queue'
 import { notifyContentQueue } from '../notify/discord-queue'
+import { loadBrandVisual } from '../core/visual'
+import { pickLayout } from '../composite/layouts'
 import type { QueueItem } from '../core/types'
 import type { CommandContext } from '../cli/types'
 
@@ -34,33 +36,38 @@ export interface ExploreResult {
 }
 
 export async function run(args: string[], _ctx?: CommandContext): Promise<ExploreResult> {
-  const parsed = parseArgs(args, ['style'])
+  const parsed = parseArgs(args, [])
   if (!parsed.topic) throw new Error('Missing topic. Usage: explore <brand> "<topic>"')
 
   const brand = parsed.brand
   const topic = parsed.topic
   const model: 'flash' | 'pro' = parsed.booleans.has('pro') ? 'pro' : 'flash'
   const quickMode = parsed.booleans.has('quick')
-  const forceStyle = parsed.flags.style
   const noLogo = parsed.booleans.has('no-logo')
 
-  const modeLabel = forceStyle ? `style:${forceStyle}` : quickMode ? 'quick' : 'full'
+  const modeLabel = quickMode ? 'quick' : 'full'
   const modelName = model === 'pro' ? 'gemini-3-pro-image-preview' : 'gemini-2.5-flash-image'
   console.log(`\n[explore] Topic: "${topic}", Brand: ${brand}, Mode: ${modeLabel}, Model: ${modelName}`)
 
   // Session directory
-  const suffix = forceStyle ? `-${forceStyle}` : quickMode ? '-quick' : (model === 'pro' ? '-pro' : '-flash')
+  const suffix = quickMode ? '-quick' : (model === 'pro' ? '-pro' : '-flash')
   const sessionDir = createSessionDir(slugify(topic), suffix)
 
-  // === Step 1: Image ===
-  const { contentImage, selectedStyleName } = await generateBrandImage(brand, topic, {
-    model, quickMode, forceStyle, outputDir: sessionDir
-  })
-  const selectedImgPath = join(sessionDir, 'selected.png')
-  writeFileSync(selectedImgPath, contentImage)
-  console.log(`\nSelected: ${selectedImgPath}`)
+  // === Step 1: Image (or type-only probe) ===
+  // Probe: pick layout for this topic. If type-only is selected, skip image gen.
+  let contentImage: Buffer | undefined
+  let selectedStyleName: string | null = null
+  let isTypeOnly = false
 
-  // === Step 2: Copy + eval ===
+  const visual = loadBrandVisual(brand)
+  const probeLayout = pickLayout(visual.layouts, topic, true)
+  // If the brand only has type-only in its layouts, or the probe picks type-only
+  if (probeLayout === 'type-only' || !visual.layouts.some(l => l !== 'type-only')) {
+    isTypeOnly = true
+    console.log(`[explore] Layout probe: ${probeLayout} → type-only (skipping image gen)`)
+  }
+
+  // === Step 1: Copy first (fast — 1 LLM call gives us imageDirection) ===
   console.log(`\n[explore] Generating copy...`)
   let hookPattern: string | undefined
   try {
@@ -72,6 +79,23 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Explor
   } catch { /* Hook bank might not exist */ }
 
   const { copy, evalResult, attempts } = await generateAndGradeCopy(topic, brand, hookPattern)
+
+  // === Step 2: Image driven by copy's imageDirection ===
+  const imageDirection = copy.imageDirection || topic
+
+  if (!isTypeOnly) {
+    console.log(`\n[explore] Generating image from direction: "${imageDirection.slice(0, 60)}..."`)
+    const imgResult = await generateBrandImage(brand, imageDirection, {
+      model, quickMode, outputDir: sessionDir
+    })
+    contentImage = imgResult.contentImage
+    selectedStyleName = imgResult.selectedStyleName
+    const selectedImgPath = join(sessionDir, 'selected.png')
+    writeFileSync(selectedImgPath, contentImage)
+    console.log(`Selected: ${selectedImgPath}`)
+  } else {
+    console.log(`[explore] Type-only post — no image generated`)
+  }
 
   // Save copy files
   const dimScores = Object.entries(evalResult.dimensions).map(([k, v]) => `${k}: ${v}/10`).join(' | ')
@@ -104,7 +128,7 @@ ${copy.threads.hashtags.map(h => `#${h}`).join(' ')}
   // === Step 3: Poster finals ===
   console.log(`\n[explore] Generating finals...`)
   const headline = copy.headline || topic.split(/[.!?]/)[0]
-  await generateFinals(brand, headline, contentImage, { noLogo, outputDir: sessionDir })
+  await generateFinals(brand, headline, contentImage, { noLogo, outputDir: sessionDir, topic })
 
   // === Step 4: Queue + notify ===
   const now = new Date().toISOString()
@@ -123,7 +147,7 @@ ${copy.threads.hashtags.map(h => `#${h}`).join(' ')}
       instagram: copy.instagram,
       threads: copy.threads
     },
-    image: {
+    image: isTypeOnly ? undefined : {
       url: join(sessionDir, 'twitter.png'),
       prompt: topic,
       model: modelName
@@ -135,11 +159,11 @@ ${copy.threads.hashtags.map(h => `#${h}`).join(' ')}
 
   notifyContentQueue({
     item: queueItem,
-    imagePath: join(sessionDir, 'twitter.png'),
+    imagePath: join(sessionDir, isTypeOnly ? 'instagram.png' : 'twitter.png'),
     evalScore: evalResult.score,
     evalPassed: evalResult.passed,
     platform: 'Instagram',
-    format: selectedStyleName ?? undefined,
+    format: isTypeOnly ? 'type-only' : (selectedStyleName ?? undefined),
   }).catch((e: Error) => {
     console.warn(`[explore] Discord notify failed: ${e.message}`)
   })
@@ -154,9 +178,9 @@ ${copy.threads.hashtags.map(h => `#${h}`).join(' ')}
     mode: modeLabel,
     model: modelName,
     outputDir: sessionDir,
-    selectedStyle: selectedStyleName,
+    selectedStyle: selectedStyleName ?? 'type-only',
     eval: { score: evalResult.score, passed: evalResult.passed, attempts },
     queueId: queueItem.id,
-    outputs: { selected: selectedImgPath, copy: join(sessionDir, 'copy.md') }
+    outputs: { selected: isTypeOnly ? '' : join(sessionDir, 'selected.png'), copy: join(sessionDir, 'copy.md') }
   }
 }
