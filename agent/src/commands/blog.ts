@@ -10,8 +10,8 @@
  */
 
 import { mkdirSync, writeFileSync, existsSync } from 'fs'
-import { loadBrand } from '../core/brand'
-import { getBrandDir, getDefaultBrand, join } from '../core/paths'
+import { loadBrand, buildVoiceContext } from '../core/brand'
+import { getBrandDir, getDefaultBrand, join, slugify } from '../core/paths'
 import { grade, loadRubric } from '../eval/grader'
 import type { CommandContext } from '../cli/types'
 import type { EvalResult } from '../eval/grader'
@@ -33,45 +33,6 @@ export interface BlogResult {
 }
 
 /**
- * Slugify a topic for filenames
- */
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 60)
-}
-
-/**
- * Build a voice context string for blog posts from brand config
- */
-function buildBlogVoiceContext(brandConfig: any): string {
-  const voice = brandConfig.voice || {}
-  const audience = voice.audience || 'general audience'
-  const tone = voice.tone || 'informative'
-  const principles: string[] = voice.principles || voice.rules || []
-  const avoid: string[] = voice.avoid || voice.avoid_phrases || []
-
-  let ctx = `You are a content writer for ${brandConfig.name}.
-
-BRAND: ${brandConfig.name}
-AUDIENCE: ${audience}
-TONE: ${tone}
-`
-
-  if (principles.length > 0) {
-    ctx += `\nVOICE PRINCIPLES:\n${principles.map((p: string) => `- ${p}`).join('\n')}`
-  }
-
-  if (avoid.length > 0) {
-    ctx += `\n\nNEVER USE THESE PHRASES:\n${avoid.map((p: string) => `- "${p}"`).join('\n')}`
-  }
-
-  return ctx
-}
-
-/**
  * Generate blog post using Gemini
  */
 async function generateBlogPost(
@@ -81,7 +42,7 @@ async function generateBlogPost(
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) throw new Error('GEMINI_API_KEY not set')
 
-  const voiceContext = buildBlogVoiceContext(brandConfig)
+  const voiceContext = buildVoiceContext(brandConfig)
 
   const prompt = `${voiceContext}
 
@@ -164,15 +125,7 @@ function formatScoreBar(score: number): string {
 /**
  * Run the blog command
  */
-export async function run(args: string[], ctx?: CommandContext): Promise<BlogResult> {
-  const output = ctx?.output ?? {
-    print: (m: string) => console.log(m),
-    info: (m: string) => console.log(m),
-    warn: (m: string) => console.warn(m),
-    error: (m: string) => console.error(m),
-    json: (d: unknown) => console.log(JSON.stringify(d, null, 2))
-  }
-
+export async function run(args: string[], _ctx?: CommandContext): Promise<BlogResult> {
   // Parse args
   const dryRun = args.includes('--dry-run')
   const publish = args.includes('--publish')
@@ -182,7 +135,7 @@ export async function run(args: string[], ctx?: CommandContext): Promise<BlogRes
   const topic = positional.slice(1).join(' ')
 
   if (!topic) {
-    output.error('Usage: blog <brand> "<topic>" [--publish] [--dry-run]')
+    console.error('Usage: blog <brand> "<topic>" [--publish] [--dry-run]')
     throw new Error('Missing topic argument')
   }
 
@@ -190,20 +143,20 @@ export async function run(args: string[], ctx?: CommandContext): Promise<BlogRes
   const brandConfig = loadBrand(brand)
 
   const date = new Date().toISOString().split('T')[0]
-  const slug = slugify(topic)
+  const slug = slugify(topic, 60)
 
-  output.print(`\n${'─'.repeat(60)}`)
-  output.print(`BLOG GENERATOR: ${brandConfig.name.toUpperCase()}`)
-  output.print(`Topic: ${topic}`)
-  output.print(`Slug:  ${slug}`)
-  output.print(`Date:  ${date}`)
-  output.print(`${'─'.repeat(60)}`)
+  console.log(`\n${'─'.repeat(60)}`)
+  console.log(`BLOG GENERATOR: ${brandConfig.name.toUpperCase()}`)
+  console.log(`Topic: ${topic}`)
+  console.log(`Slug:  ${slug}`)
+  console.log(`Date:  ${date}`)
+  console.log(`${'─'.repeat(60)}`)
 
   // Generate blog post
   let post: string
 
   if (dryRun) {
-    output.print('\n[blog] Dry run — using stub post')
+    console.log('\n[blog] Dry run — using stub post')
     post = `# ${topic}: What You Need to Know
 
 This is a dry-run stub post. In production, Gemini would generate a full 600-900 word blog post here.
@@ -226,13 +179,13 @@ Connecting individual experience to broader context.
 
 Every caregiver deserves support. That's what ${brandConfig.name} is about.`
   } else {
-    output.print('\n[blog] Generating post with Gemini...')
+    console.log('\n[blog] Generating post with Gemini...')
     post = await generateBlogPost(topic, brandConfig)
-    output.print(`[blog] Generated ${post.split(/\s+/).length} words`)
+    console.log(`[blog] Generated ${post.split(/\s+/).length} words`)
   }
 
   // Grade the post
-  output.print('\n[blog] Grading against rubric...')
+  console.log('\n[blog] Grading against rubric...')
   let evalResult: EvalResult
 
   if (dryRun) {
@@ -250,7 +203,7 @@ Every caregiver deserves support. That's what ${brandConfig.name} is about.`
     try {
       evalResult = await grade(post, brand, { log: false })
     } catch (e: any) {
-      output.warn(`[blog] Grading failed: ${e.message}`)
+      console.warn(`[blog] Grading failed: ${e.message}`)
       evalResult = {
         passed: false,
         score: 0,
@@ -264,22 +217,22 @@ Every caregiver deserves support. That's what ${brandConfig.name} is about.`
   }
 
   const scoreBar = formatScoreBar(evalResult.score)
-  output.print(`[blog] Score: ${scoreBar} ${evalResult.score}/100 ${evalResult.passed ? '✓ PASS' : '✗ FAIL'}`)
+  console.log(`[blog] Score: ${scoreBar} ${evalResult.score}/100 ${evalResult.passed ? '✓ PASS' : '✗ FAIL'}`)
   if (evalResult.critique) {
-    output.print(`[blog] Critique: ${evalResult.critique}`)
+    console.log(`[blog] Critique: ${evalResult.critique}`)
   }
 
   // Print the post
-  output.print(`\n${'═'.repeat(60)}`)
-  output.print(post)
-  output.print(`${'═'.repeat(60)}`)
+  console.log(`\n${'═'.repeat(60)}`)
+  console.log(post)
+  console.log(`${'═'.repeat(60)}`)
 
   // Print dimension scores
   if (Object.keys(evalResult.dimensions).length > 0) {
-    output.print('\nRubric Dimensions:')
+    console.log('\nRubric Dimensions:')
     for (const [dim, score] of Object.entries(evalResult.dimensions)) {
       const bar = '█'.repeat(score as number) + '░'.repeat(10 - (score as number))
-      output.print(`  ${dim.padEnd(16)} ${bar} ${score}/10`)
+      console.log(`  ${dim.padEnd(16)} ${bar} ${score}/10`)
     }
   }
 
@@ -299,9 +252,9 @@ Every caregiver deserves support. That's what ${brandConfig.name} is about.`
     ].join('\n')
 
     writeFileSync(savedPath, fileContent)
-    output.print(`\n[blog] Saved: ${savedPath}`)
+    console.log(`\n[blog] Saved: ${savedPath}`)
   } else {
-    output.print('\n[blog] Dry run — skipping save')
+    console.log('\n[blog] Dry run — skipping save')
   }
 
   // Publish if requested
@@ -310,7 +263,7 @@ Every caregiver deserves support. That's what ${brandConfig.name} is about.`
     const publishPath = (brandConfig as any).blog?.publish_path
 
     if (!publishPath) {
-      output.warn('[blog] --publish set but blog.publish_path not found in brand config')
+      console.warn('[blog] --publish set but blog.publish_path not found in brand config')
     } else {
       const postsDir = join(publishPath, 'posts')
       mkdirSync(postsDir, { recursive: true })
@@ -322,15 +275,15 @@ Every caregiver deserves support. That's what ${brandConfig.name} is about.`
       publishedPath = join(postsDir, `${date}-${slug}.md`)
 
       writeFileSync(publishedPath, publishContent)
-      output.print(`[blog] Published: ${publishedPath}`)
+      console.log(`[blog] Published: ${publishedPath}`)
     }
   } else if (publish && dryRun) {
-    output.print('[blog] Dry run — skipping publish')
+    console.log('[blog] Dry run — skipping publish')
   }
 
-  output.print(`\n${'─'.repeat(60)}`)
-  output.print(`Score: ${evalResult.score}/100 ${evalResult.passed ? '✓' : '✗'}${savedPath ? ` | Saved: ${savedPath}` : ''}`)
-  output.print(`${'─'.repeat(60)}`)
+  console.log(`\n${'─'.repeat(60)}`)
+  console.log(`Score: ${evalResult.score}/100 ${evalResult.passed ? '✓' : '✗'}${savedPath ? ` | Saved: ${savedPath}` : ''}`)
+  console.log(`${'─'.repeat(60)}`)
 
   return {
     brand,

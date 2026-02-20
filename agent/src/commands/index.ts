@@ -1,11 +1,4 @@
 /**
- * Command exports
+ * Command exports — commands are loaded dynamically by the registry.
+ * This file is intentionally empty.
  */
-
-export { intel, run as runIntel } from './intel'
-export { run as runExplore } from './explore'
-export { post, run as runPost } from './post'
-export { run as runVideo } from './video'
-export { run as runBrand } from './brand'
-export { run as runBrief } from './brief'
-export { run as runBlog } from './blog'

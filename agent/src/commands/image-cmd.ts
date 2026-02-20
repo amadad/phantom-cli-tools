@@ -6,9 +6,8 @@
  */
 
 import { writeFileSync } from 'fs'
-import { join } from '../core/paths'
-import { slugify, createSessionDir } from '../core/session'
-import { parseArgs } from '../cli/args'
+import { join, slugify, createSessionDir } from '../core/paths'
+import { extractBrandTopic } from '../cli/args'
 import { upscaleImage } from '../generate/upscale'
 import { generateImage } from '../generate/image'
 import { classify } from '../generate/classify'
@@ -29,7 +28,7 @@ export interface ImageOpts {
 }
 
 export async function run(args: string[], _ctx?: CommandContext): Promise<ImageCommandResult> {
-  const parsed = parseArgs(args, [])
+  const parsed = extractBrandTopic(args, [])
   if (!parsed.topic) throw new Error('Missing topic. Usage: image <brand> "<topic>"')
 
   const brand = parsed.brand

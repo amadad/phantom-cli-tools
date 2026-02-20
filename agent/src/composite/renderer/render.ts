@@ -11,8 +11,7 @@ import { existsSync } from 'fs'
 import { registerFont } from 'canvas'
 import { renderBrandFrame } from './BrandFrame'
 import { loadBrandVisual } from '../../core/visual'
-import { buildStylePlan } from '../style-planner'
-import { computeLayout } from '../layouts'
+import { buildStylePlan, computeLayout } from '../layouts'
 
 /** Track which fonts have already been registered (registerFont is global, once per process) */
 const registeredFonts = new Set<string>()

@@ -8,18 +8,18 @@
  *   explore <brand> "<topic>" [--pro] [--quick] [--no-logo] [--json]
  */
 
+import { randomUUID } from 'crypto'
 import { writeFileSync } from 'fs'
-import { join } from '../core/paths'
-import { slugify, createSessionDir } from '../core/session'
-import { parseArgs } from '../cli/args'
+import { join, slugify, createSessionDir } from '../core/paths'
+import { extractBrandTopic } from '../cli/args'
 import { generateBrandImage } from './image-cmd'
-import { generateAndGradeCopy } from './copy-cmd'
+import { generateAndGradeCopy, formatCopyMarkdown } from './copy-cmd'
 import { generateFinals } from './poster-cmd'
 import { getHookForTopic } from '../intel/hook-bank'
 import { addToQueue } from '../queue'
 import { notifyContentQueue } from '../notify/discord-queue'
 import { loadBrandVisual } from '../core/visual'
-import { canRenderWithImage } from '../composite/style-planner'
+import { canRenderWithImage } from '../composite/layouts'
 import type { QueueItem } from '../core/types'
 import type { CommandContext } from '../cli/types'
 
@@ -36,7 +36,7 @@ export interface ExploreResult {
 }
 
 export async function run(args: string[], _ctx?: CommandContext): Promise<ExploreResult> {
-  const parsed = parseArgs(args, [])
+  const parsed = extractBrandTopic(args, [])
   if (!parsed.topic) throw new Error('Missing topic. Usage: explore <brand> "<topic>"')
 
   const brand = parsed.brand
@@ -75,7 +75,7 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Explor
       hookPattern = hook.amplified || hook.original
       console.log(`  Hook [${hook.multiplier}x]: "${hookPattern.slice(0, 50)}..."`)
     }
-  } catch { /* Hook bank might not exist */ }
+  } catch { console.debug('[explore] No hook bank found') }
 
   const { copy, evalResult, attempts } = await generateAndGradeCopy(topic, brand, hookPattern)
 
@@ -97,31 +97,7 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Explor
   }
 
   // Save copy files
-  const dimScores = Object.entries(evalResult.dimensions).map(([k, v]) => `${k}: ${v}/10`).join(' | ')
-  writeFileSync(join(sessionDir, 'copy.md'), `# ${topic}
-
-**Eval: ${evalResult.score}/100 ${evalResult.passed ? 'PASS' : 'FAIL'}** (${dimScores})
-${evalResult.critique ? `\n> ${evalResult.critique}\n` : ''}
-## Twitter
-${copy.twitter.text}
-
-${copy.twitter.hashtags.map(h => `#${h}`).join(' ')}
-
-## LinkedIn
-${copy.linkedin.text}
-
-${copy.linkedin.hashtags.map(h => `#${h}`).join(' ')}
-
-## Instagram
-${copy.instagram.text}
-
-${copy.instagram.hashtags.map(h => `#${h}`).join(' ')}
-
-## Threads
-${copy.threads.text}
-
-${copy.threads.hashtags.map(h => `#${h}`).join(' ')}
-`)
+  writeFileSync(join(sessionDir, 'copy.md'), formatCopyMarkdown(topic, copy, evalResult))
   writeFileSync(join(sessionDir, 'copy.json'), JSON.stringify(copy, null, 2))
 
   // === Step 3: Poster finals ===
@@ -132,7 +108,7 @@ ${copy.threads.hashtags.map(h => `#${h}`).join(' ')}
   // === Step 4: Queue + notify ===
   const now = new Date().toISOString()
   const queueItem: QueueItem = {
-    id: `gen_${Date.now()}`,
+    id: `gen_${randomUUID()}`,
     brand,
     source: { type: 'manual', topic, brandName: brand },
     stage: 'review',

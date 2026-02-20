@@ -7,10 +7,11 @@
  * --copy accepts either copy.json (preferred) or copy.md (legacy).
  */
 
+import { randomUUID } from 'crypto'
 import { readFileSync, existsSync } from 'fs'
 import { addToQueue } from '../queue'
 import { validateBrand, join } from '../core/paths'
-import { parseArgs } from '../cli/args'
+import { extractBrandTopic } from '../cli/args'
 import { notifyContentQueue } from '../notify/discord-queue'
 import type { QueueItem } from '../core/types'
 import type { CommandContext } from '../cli/types'
@@ -24,7 +25,7 @@ export interface EnqueueCommandResult {
 }
 
 export async function run(args: string[], _ctx?: CommandContext): Promise<EnqueueCommandResult> {
-  const parsed = parseArgs(args, ['topic', 'copy', 'image', 'poster-dir'])
+  const parsed = extractBrandTopic(args, ['topic', 'copy', 'image', 'poster-dir'])
   const brand = parsed.brand
   const topic = parsed.flags.topic
   const copyPath = parsed.flags.copy
@@ -51,7 +52,7 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Enqueu
 
   const now = new Date().toISOString()
   const queueItem: QueueItem = {
-    id: `gen_${Date.now()}`,
+    id: `gen_${randomUUID()}`,
     brand,
     source: { type: 'manual', topic, brandName: brand },
     stage: 'review',

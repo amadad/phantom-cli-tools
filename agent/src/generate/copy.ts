@@ -5,8 +5,10 @@
 import { GoogleGenAI } from '@google/genai'
 import type { ContentType } from './classify'
 import { extractJson } from '../core/json'
+import { withTimeout } from '../core/http'
 import { getCopyContext } from '../eval/learnings'
 import { loadBrand, buildVoiceContext, detectFrameType } from '../core/brand'
+import { SLOP_WORDS } from '../core/slop'
 import type { BrandProfile } from '../core/types'
 
 export interface PlatformCopy {
@@ -65,12 +67,7 @@ function buildPlatformLimits(brand: BrandProfile): string {
 const WRITING_RULES = `WRITING RULES (apply to all output, all platforms):
 Do not sound like AI. Write like a specific human with opinions.
 
-Kill words (never use): additionally, moreover, furthermore, delve, crucial,
-vital, pivotal, landscape, tapestry, testament, showcase, foster, seamless,
-robust, leverage, utilize, holistic, comprehensive, innovative, cutting-edge,
-groundbreaking, game-changing, nuanced, multifaceted, realm, embark,
-navigate, unlock, empower, harness, noteworthy, notably, ultimately,
-essentially, fundamentally
+Kill words (never use): ${SLOP_WORDS.join(', ')}
 
 Kill patterns:
 - Zero em dashes. Use commas, periods, or colons.
@@ -158,11 +155,15 @@ Respond in JSON:
 
   const ai = new GoogleGenAI({ apiKey })
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    config: { thinkingConfig: { thinkingLevel: 'low' } } as any
-  })
+  const response = await withTimeout(
+    ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      config: { thinkingConfig: { thinkingLevel: 'low' } } as any
+    }),
+    30_000,
+    'Gemini copy generation'
+  )
 
   const text = response.candidates?.[0]?.content?.parts?.[0]?.text || ''
   const result = extractJson<any>(text, 'copy')

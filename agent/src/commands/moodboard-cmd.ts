@@ -12,11 +12,11 @@
  * Cancel custom_id format:  plx:{queueId}:{brand}
  */
 
+import { randomUUID } from 'crypto'
 import sharp from 'sharp'
 import { writeFileSync } from 'fs'
-import { join } from '../core/paths'
-import { slugify, createSessionDir } from '../core/session'
-import { parseArgs } from '../cli/args'
+import { join, slugify, createSessionDir } from '../core/paths'
+import { extractBrandTopic } from '../cli/args'
 import { generateImage } from '../generate/image'
 import { loadBrandVisual } from '../core/visual'
 import type { CommandContext } from '../cli/types'
@@ -213,7 +213,7 @@ export async function run(
   args: string[],
   _ctx?: CommandContext
 ): Promise<MoodboardResult> {
-  const parsed = parseArgs(args, [])
+  const parsed = extractBrandTopic(args, [])
   if (!parsed.topic) throw new Error('Missing topic. Usage: moodboard <brand> "<topic>"')
 
   const brand = parsed.brand
@@ -284,7 +284,7 @@ export async function run(
   console.log(`[moodboard] Grid saved: ${gridPath}`)
 
   // Save metadata for button handler
-  const queueId = `mb_${Date.now()}`
+  const queueId = `mb_${randomUUID()}`
   const meta = { queueId, brand, topic, cells: cellPaths, gridPath }
   writeFileSync(join(outputDir, 'moodboard-meta.json'), JSON.stringify(meta, null, 2))
 

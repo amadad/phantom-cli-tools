@@ -9,7 +9,9 @@ import { GoogleGenAI } from '@google/genai'
 import { readFileSync, existsSync, appendFileSync, statSync, renameSync } from 'fs'
 import yaml from 'js-yaml'
 import { extractJson } from '../core/json'
+import { withTimeout } from '../core/http'
 import { getBrandRubricPath, getEvalLogPath, getDefaultBrand } from '../core/paths'
+import { SLOP_WORDS, SLOP_PATTERNS } from '../core/slop'
 import type { CommandContext } from '../cli/types'
 
 // =============================================================================
@@ -88,27 +90,6 @@ export function loadRubric(brandName: string): Rubric {
 // =============================================================================
 // ANTI-SLOP — universal across all brands (no LLM needed)
 // =============================================================================
-
-/** Words that are hard signals of AI-generated copy */
-const SLOP_WORDS = [
-  'additionally', 'moreover', 'furthermore', 'delve', 'crucial', 'vital',
-  'pivotal', 'landscape', 'tapestry', 'testament', 'underscore', 'showcase',
-  'foster', 'garner', 'intricate', 'vibrant', 'seamless', 'robust',
-  'leverage', 'utilize', 'facilitate', 'paradigm', 'synergy', 'holistic',
-  'comprehensive', 'innovative', 'cutting-edge', 'groundbreaking',
-  'game-changing', 'best-in-class', 'world-class', 'state-of-the-art',
-  'meticulous', 'nuanced', 'multifaceted', 'realm', 'embark', 'noteworthy',
-  'notably', 'ultimately', 'essentially', 'fundamentally',
-  'navigate', 'unlock', 'empower', 'harness',
-]
-
-/** Structural patterns that betray AI authorship */
-const SLOP_PATTERNS: { pattern: RegExp; reason: string }[] = [
-  { pattern: /—/g, reason: 'em dash (zero allowed)' },
-  { pattern: /it'?s not just .{1,30}, it'?s/i, reason: '"not just X, it\'s Y" cliche' },
-  { pattern: /serves as a?\s/i, reason: '"serves as" filler' },
-  { pattern: /stands as a?\s/i, reason: '"stands as" filler' },
-]
 
 export interface SlopResult {
   words: string[]
@@ -204,10 +185,14 @@ CONTENT TO EVALUATE:
 ${content}
 """`
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash',
-    contents: [{ role: 'user', parts: [{ text: prompt }] }]
-  })
+  const response = await withTimeout(
+    ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }]
+    }),
+    30_000,
+    'Gemini grader judge'
+  )
 
   const text = response.candidates?.[0]?.content?.parts?.[0]?.text || ''
   const result = extractJson<JudgeResponse>(text, 'judge')
@@ -402,43 +387,8 @@ function logEval(brandName: string, content: string, result: EvalResult): void {
 }
 
 // =============================================================================
-// SELF-HEALING LOOP
+// FEEDBACK BUILDER (used by copy-cmd retry loop)
 // =============================================================================
-
-export interface RefineResult {
-  content: string
-  eval: EvalResult
-  attempts: number
-}
-
-export async function gradeAndRefine(
-  generateFn: (feedback?: string) => Promise<string>,
-  brandName: string,
-  options: GradeOptions = {}
-): Promise<RefineResult> {
-  const rubric = loadRubric(brandName)
-  let attempts = 0
-  let content = await generateFn()
-  let result = await grade(content, brandName, options)
-
-  while (!result.passed && attempts < rubric.max_retries) {
-    attempts++
-    console.log(`[grader] Attempt ${attempts}/${rubric.max_retries} - score: ${result.score}`)
-
-    // Build feedback for regeneration
-    const feedback = buildFeedback(result, rubric)
-
-    // Regenerate with feedback
-    content = await generateFn(feedback)
-    result = await grade(content, brandName, options)
-  }
-
-  if (options.log) {
-    logEval(brandName, content, result)
-  }
-
-  return { content, eval: result, attempts }
-}
 
 export function buildFeedback(result: EvalResult, rubric: Rubric): string {
   const parts: string[] = []

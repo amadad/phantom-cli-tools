@@ -76,10 +76,10 @@ export async function notifyContentQueue(opts: NotifyOptions): Promise<{ message
 
   // Custom IDs encode brand+queueId for agent callback handling
   const ids = {
-    approve: `pla:${queueId}:${brand}`,
-    regen:   `plr:${queueId}:${brand}`,
-    feedback:`plf:${queueId}:${brand}`,
-    discard: `pld:${queueId}:${brand}`,
+    approve: `pla|${queueId}|${brand}`,
+    regen:   `plr|${queueId}|${brand}`,
+    feedback:`plf|${queueId}|${brand}`,
+    discard: `pld|${queueId}|${brand}`,
   }
 
   // Discord Components v2 payload

@@ -62,7 +62,8 @@ discoverBrands()      // Scans brands/*.yml
 validateBrand(name)   // Throws if unknown
 ```
 
-### core/session.ts — Session Directory Management
+### core/paths.ts — Session Directory Management
+`slugify()` and `createSessionDir()` are in `paths.ts` (inlined from former `session.ts`):
 ```typescript
 slugify(text, maxLen?)        // → "caregiver-burnout"
 createSessionDir(slug, suffix?) // → output/2026-02-18/caregiver-burnout-quick/
@@ -88,13 +89,13 @@ Cache invalidation: checks file mtime on each load, reloads if changed.
 
 ### cli/args.ts — Shared Argument Parser
 ```typescript
-parseArgs(args, knownFlags?)
+extractBrandTopic(args, knownFlags?)
 // → { brand, topic, flags: Record<string,string>, booleans: Set<string> }
 ```
 
 All commands use this instead of hand-rolling arg parsers.
 
-### rate-limit.ts — API Protection
+### publish/rate-limit.ts — API Protection
 ```typescript
 checkRateLimit(platform, brand)  // → { allowed, waitMs, remaining }
 ```
@@ -206,8 +207,7 @@ postToPlatform(platform, brand, text, imageUrl?)
      ├─ twitter-direct.ts   (OAuth 1.0a, media upload)
      ├─ linkedin-direct.ts  (OAuth 2.0, v2 API)
      ├─ facebook-direct.ts  (Graph API v21.0)
-     ├─ instagram-direct.ts (Graph API, requires public URL)
-     ├─ threads-direct.ts   (Graph API)
+     ├─ meta-graph.ts       (Unified Instagram + Threads via Graph API)
      └─ youtube-direct.ts   (Data API v3, video only)
 ```
 

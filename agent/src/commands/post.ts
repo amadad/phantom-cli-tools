@@ -244,14 +244,24 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<PostSu
   let platforms: Platform[] | undefined
   const platformsArg = args.find(a => a.startsWith('--platforms='))
   if (platformsArg) {
-    platforms = platformsArg.split('=')[1].split(',') as Platform[]
+    const value = platformsArg.split('=')[1]?.trim()
+    if (!value) {
+      console.warn('--platforms requires a value (e.g. --platforms=twitter,linkedin)')
+    } else {
+      platforms = value.split(',').filter(Boolean) as Platform[]
+    }
   }
 
   // Parse queue ID
   let queueId: string | undefined
   const idArg = args.find(a => a.startsWith('--id='))
   if (idArg) {
-    queueId = idArg.split('=')[1]
+    const value = idArg.split('=')[1]?.trim()
+    if (!value) {
+      console.warn('--id requires a value (e.g. --id=gen_123)')
+    } else {
+      queueId = value
+    }
   }
 
   return post({

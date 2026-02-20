@@ -16,7 +16,7 @@ export interface ParsedArgs {
 /**
  * Parse CLI args into brand, topic, named flags, and boolean flags.
  *
- *   parseArgs(args)
+ *   extractBrandTopic(args)
  *   → { brand: "givecare", topic: "caregiver burnout", flags: { style: "s09" }, booleans: Set(["quick"]) }
  *
  * Positional: first = brand (falls back to default), rest = topic.
@@ -24,7 +24,7 @@ export interface ParsedArgs {
  * --flag value or --flag=value → flags map.
  * --bool (no following value or next arg starts with --) → booleans set.
  */
-export function parseArgs(args: string[], knownFlags: string[] = []): ParsedArgs {
+export function extractBrandTopic(args: string[], knownFlags: string[] = []): ParsedArgs {
   const positional: string[] = []
   const flags: Record<string, string> = {}
   const booleans = new Set<string>()
@@ -72,8 +72,9 @@ export function parseArgs(args: string[], knownFlags: string[] = []): ParsedArgs
     }
   }
 
-  // Quoted string in raw args overrides topic
-  const quotedMatch = args.join(' ').match(/"([^"]+)"/)
+  // Quoted string in positional args overrides topic
+  const rest = positional.length >= 2 ? positional.slice(1) : positional
+  const quotedMatch = rest.join(' ').match(/"([^"]+)"/)
   if (quotedMatch) topic = quotedMatch[1]
 
   return { brand, topic, flags, booleans }

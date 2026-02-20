@@ -2,8 +2,7 @@ import { loadQueue, getQueueItem } from '../queue'
 import { discoverBrands } from '../core/paths'
 import { notifyContentQueue } from '../notify/discord-queue'
 import type { QueueItem } from '../core/types'
-import type { CommandContext, Output } from '../cli/types'
-import { createConsoleOutput } from '../cli/output'
+import type { CommandContext } from '../cli/types'
 import { existsSync } from 'fs'
 import { dirname, join } from 'path'
 
@@ -13,12 +12,6 @@ export interface QueueListResult {
 }
 
 export type QueueShowResult = QueueItem
-
-let output: Output = createConsoleOutput()
-
-function setOutput(next?: Output): void {
-  output = next ?? createConsoleOutput()
-}
 
 function formatStatus(stage: QueueItem['stage']): string {
   if (stage === 'done') return '✓'
@@ -33,25 +26,25 @@ function listQueue(args: string[]): QueueListResult {
   const queue = loadQueue(brand)
 
   if (queue.length === 0) {
-    output.info(brand ? `Queue for ${brand} is empty.` : 'Queue is empty.')
+    console.log(brand ? `Queue for ${brand} is empty.` : 'Queue is empty.')
     return { brand: brand ?? null, items: [] }
   }
 
-  output.info(`\nQueue (${queue.length} items):\n`)
+  console.log(`\nQueue (${queue.length} items):\n`)
 
   for (const item of queue) {
-    output.info(`${formatStatus(item.stage)} [${item.stage}] ${item.id}`)
-    output.info(`  Topic: ${item.content.topic}`)
-    output.info(`  Brand: ${item.source.brandName}`)
-    output.info(`  Created: ${item.createdAt}`)
+    console.log(`${formatStatus(item.stage)} [${item.stage}] ${item.id}`)
+    console.log(`  Topic: ${item.content.topic}`)
+    console.log(`  Brand: ${item.source.brandName}`)
+    console.log(`  Created: ${item.createdAt}`)
     if (item.posts && item.posts.length > 0) {
       for (const post of item.posts) {
         if (post.success) {
-          output.info(`  ${post.platform}: ${post.postUrl}`)
+          console.log(`  ${post.platform}: ${post.postUrl}`)
         }
       }
     }
-    output.info('')
+    console.log('')
   }
 
   return { brand: brand ?? null, items: queue }
@@ -60,7 +53,7 @@ function listQueue(args: string[]): QueueListResult {
 function showQueueItem(args: string[]): QueueShowResult {
   const [id, brandArg] = args
   if (!id) {
-    output.error('Usage: queue show <id> [brand]')
+    console.error('Usage: queue show <id> [brand]')
     throw new Error('Missing queue id')
   }
 
@@ -70,7 +63,7 @@ function showQueueItem(args: string[]): QueueShowResult {
   if (brand) {
     const item = getQueueItem(brand, id)
     if (!item) {
-      output.error(`Queue item not found: ${id} in ${brand}`)
+      console.error(`Queue item not found: ${id} in ${brand}`)
       throw new Error(`Queue item not found: ${id} in ${brand}`)
     }
 
@@ -82,7 +75,7 @@ function showQueueItem(args: string[]): QueueShowResult {
   const match = allItems.find((item) => item.id === id)
 
   if (!match) {
-    output.error(`Queue item not found: ${id}`)
+    console.error(`Queue item not found: ${id}`)
     throw new Error(`Queue item not found: ${id}`)
   }
 
@@ -91,37 +84,37 @@ function showQueueItem(args: string[]): QueueShowResult {
 }
 
 function printQueueItem(item: QueueItem): void {
-  output.info(`\n${item.id}`)
-  output.info(`Stage: ${item.stage}`)
-  output.info(`Brand: ${item.source.brandName}`)
-  output.info(`Topic: ${item.content.topic}`)
-  output.info(`Created: ${item.createdAt}`)
-  output.info(`Updated: ${item.updatedAt}`)
+  console.log(`\n${item.id}`)
+  console.log(`Stage: ${item.stage}`)
+  console.log(`Brand: ${item.source.brandName}`)
+  console.log(`Topic: ${item.content.topic}`)
+  console.log(`Created: ${item.createdAt}`)
+  console.log(`Updated: ${item.updatedAt}`)
 
   if (item.image) {
-    output.info(`Image: ${item.image.url}`)
+    console.log(`Image: ${item.image.url}`)
   }
 
   if (item.video) {
-    output.info(`Video: ${item.video.url}`)
+    console.log(`Video: ${item.video.url}`)
   }
 
   if (item.posts && item.posts.length > 0) {
-    output.info('\nPosts:')
+    console.log('\nPosts:')
     for (const post of item.posts) {
       const status = post.success ? '✓' : '✗'
       const detail = post.postUrl || post.error || ''
-      output.info(`  ${status} ${post.platform}${detail ? ` ${detail}` : ''}`)
+      console.log(`  ${status} ${post.platform}${detail ? ` ${detail}` : ''}`)
     }
   }
 
-  output.info('')
+  console.log('')
 }
 
 async function notifyQueueItem(args: string[]): Promise<QueueShowResult> {
   const [id, brandArg] = args
   if (!id) {
-    output.error('Usage: queue notify <id> <brand>')
+    console.error('Usage: queue notify <id> <brand>')
     throw new Error('Missing queue id')
   }
 
@@ -137,7 +130,7 @@ async function notifyQueueItem(args: string[]): Promise<QueueShowResult> {
   }
 
   if (!item) {
-    output.error(`Queue item not found: ${id}`)
+    console.error(`Queue item not found: ${id}`)
     throw new Error(`Queue item not found: ${id}`)
   }
 
@@ -156,23 +149,22 @@ async function notifyQueueItem(args: string[]): Promise<QueueShowResult> {
   }
 
   if (!imagePath) {
-    output.error('No image found for this queue item')
+    console.error('No image found for this queue item')
     throw new Error('No image found')
   }
 
-  output.info(`Notifying #content-queue for ${id}…`)
+  console.log(`Notifying #content-queue for ${id}…`)
   const result = await notifyContentQueue({ item, imagePath })
   if (result) {
-    output.info(`✓ Posted Discord message ${result.messageId}`)
+    console.log(`✓ Posted Discord message ${result.messageId}`)
   } else {
-    output.warn('⚠ Discord notify returned null (check DISCORD_BOT_TOKEN)')
+    console.warn('⚠ Discord notify returned null (check DISCORD_BOT_TOKEN)')
   }
 
   return item
 }
 
-export async function run(args: string[], ctx?: CommandContext): Promise<QueueListResult | QueueShowResult> {
-  setOutput(ctx?.output)
+export async function run(args: string[], _ctx?: CommandContext): Promise<QueueListResult | QueueShowResult> {
   const [subcommand, ...rest] = args
   const normalized = subcommand && !subcommand.startsWith('-') ? subcommand : 'list'
 
@@ -188,7 +180,7 @@ export async function run(args: string[], ctx?: CommandContext): Promise<QueueLi
     return notifyQueueItem(rest)
   }
 
-  output.error(`Unknown queue subcommand: ${normalized}`)
-  output.error('Usage: queue [list|show|notify <id> <brand>]')
+  console.error(`Unknown queue subcommand: ${normalized}`)
+  console.error('Usage: queue [list|show|notify <id> <brand>]')
   throw new Error(`Unknown queue subcommand: ${normalized}`)
 }

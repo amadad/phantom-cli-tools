@@ -30,16 +30,28 @@ export function extractJson<T>(
   text: string,
   context?: string
 ): { success: true; data: T } | { success: false; error: string } {
-  // Try to find JSON object
-  const objectMatch = text.match(/\{[\s\S]*\}/)
-  if (objectMatch) {
-    return safeJsonParse<T>(objectMatch[0], context)
+  // Try to find JSON object — greedy first (handles nested), non-greedy fallback (handles multi-object)
+  const greedyObject = text.match(/\{[\s\S]*\}/)
+  if (greedyObject) {
+    const result = safeJsonParse<T>(greedyObject[0], context)
+    if (result.success) return result
+  }
+  const nonGreedyObject = text.match(/\{[\s\S]*?\}/)
+  if (nonGreedyObject) {
+    const result = safeJsonParse<T>(nonGreedyObject[0], context)
+    if (result.success) return result
   }
 
-  // Try to find JSON array
-  const arrayMatch = text.match(/\[[\s\S]*\]/)
-  if (arrayMatch) {
-    return safeJsonParse<T>(arrayMatch[0], context)
+  // Try to find JSON array — greedy first, non-greedy fallback
+  const greedyArray = text.match(/\[[\s\S]*\]/)
+  if (greedyArray) {
+    const result = safeJsonParse<T>(greedyArray[0], context)
+    if (result.success) return result
+  }
+  const nonGreedyArray = text.match(/\[[\s\S]*?\]/)
+  if (nonGreedyArray) {
+    const result = safeJsonParse<T>(nonGreedyArray[0], context)
+    if (result.success) return result
   }
 
   return {

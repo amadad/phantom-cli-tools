@@ -119,8 +119,7 @@ import { generateBrandImage } from './commands/image-cmd'
 import { generateAndGradeCopy } from './commands/copy-cmd'
 import { generateFinals } from './commands/poster-cmd'
 import { loadBrandVisual } from './core/visual'        // Visual config loader
-import { buildStylePlan, canRenderWithImage } from './composite/style-planner'
-import { computeLayout } from './composite/layouts'
+import { buildStylePlan, canRenderWithImage, computeLayout } from './composite/layouts'
 ```
 
 `explore` is a thin orchestrator that calls these — ~160 LOC.

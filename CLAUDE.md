@@ -56,14 +56,14 @@ Copy and image are parallelizable. Failure is isolated — if image gen fails, c
 
 ```
 agent/src/
-├── core/       brand, visual, paths, session, types, json, http
+├── core/       brand, visual, paths, types, json, http, slop, r2
 ├── intel/      pipeline, enrich-apify, detect-outliers, extract-hooks
 ├── generate/   copy, image, classify, upscale, providers/
 ├── video/      video pipeline, conform, providers/ (replicate/kling)
 ├── eval/       grader, image-grader, learnings
 ├── composite/  poster, layouts, renderer/ (canvas compositor)
-├── publish/    social, twitter/linkedin/facebook/instagram/threads
-├── cli/        args, flags, output, registry, schemas, errors
+├── publish/    social, meta-graph, twitter/linkedin/facebook/youtube, rate-limit
+├── cli/        args, index, registry, types, errors
 ├── commands/   explore, copy-cmd, image-cmd, poster-cmd, enqueue-cmd, intel, post, video, queue, brand
 └── queue/      per-brand file-based queue
 
@@ -108,8 +108,8 @@ Commands share logic via exported functions, not abstraction layers:
 import { generateBrandImage } from './commands/image-cmd'    // Self-contained: takes brand name
 import { generateAndGradeCopy } from './commands/copy-cmd'   // Copy + eval retry loop
 import { generateFinals } from './commands/poster-cmd'       // Self-contained: takes brand name
-import { parseArgs } from './cli/args'                       // Shared arg parser
-import { createSessionDir, slugify } from './core/session'   // Session dir helper
+import { extractBrandTopic } from './cli/args'                // Shared arg parser
+import { createSessionDir, slugify } from './core/paths'     // Session dir helper
 import { loadBrandVisual } from './core/visual'               // BrandVisual config loader
 import { buildVoiceContext } from './core/brand'             // Copy writing context
 ```
@@ -228,7 +228,7 @@ const brands = discoverBrands()  // ['brand-a', 'brand-b']
 
 ### Session Output
 ```typescript
-import { createSessionDir, slugify } from './core/session'
+import { createSessionDir, slugify } from './core/paths'
 const dir = createSessionDir(slugify('caregiver burnout'), '-quick')
 // → output/2026-02-18/caregiver-burnout-quick/
 ```

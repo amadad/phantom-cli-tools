@@ -221,7 +221,7 @@ function resolveVariants(
     background.length === 1 &&
     rawVariants.layoutWeights === undefined
   ) {
-    // Keep explicit defaults out of object form to avoid surprising noise.
+    console.warn('[visual] Brand variants collapsed to defaults — check YAML config')
     return DEFAULT_VARIANTS
   }
 

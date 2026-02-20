@@ -9,6 +9,7 @@ import type {
   ImageGenerationRequest,
   ImageGenerationResult
 } from './index'
+import { withTimeout } from '../../core/http'
 
 export class GeminiProvider implements ImageProvider {
   name = 'gemini'
@@ -44,11 +45,15 @@ export class GeminiProvider implements ImageProvider {
 
         const parts: any[] = [{ text: request.prompt }]
 
-        const response = await ai.models.generateContent({
-          model,
-          contents: [{ role: 'user', parts }],
-          config: config as any
-        })
+        const response = await withTimeout(
+          ai.models.generateContent({
+            model,
+            contents: [{ role: 'user', parts }],
+            config: config as any
+          }),
+          30_000,
+          `Gemini image generation (${model})`
+        )
 
         const candidate = (response as any).candidates?.[0]
         if (!candidate?.content?.parts) continue

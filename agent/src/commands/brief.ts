@@ -197,15 +197,7 @@ async function postToDiscord(webhookUrl: string, headline: string, items: BriefI
 /**
  * Run the brief command
  */
-export async function run(args: string[], ctx?: CommandContext): Promise<BriefResult> {
-  const output = ctx?.output ?? {
-    print: (m: string) => console.log(m),
-    info: (m: string) => console.log(m),
-    warn: (m: string) => console.warn(m),
-    error: (m: string) => console.error(m),
-    json: (d: unknown) => console.log(JSON.stringify(d, null, 2))
-  }
-
+export async function run(args: string[], _ctx?: CommandContext): Promise<BriefResult> {
   // Parse args
   const positional = args.filter(a => !a.startsWith('--'))
   const brand = positional[0] || getDefaultBrand()
@@ -238,12 +230,12 @@ export async function run(args: string[], ctx?: CommandContext): Promise<BriefRe
 
   const date = new Date().toISOString().split('T')[0]
 
-  output.print(`\n${'─'.repeat(60)}`)
-  output.print(`DAILY BRIEF: ${brandConfig.name.toUpperCase()}`)
-  output.print(`Date: ${date}`)
-  if (topic) output.print(`Topic: ${topic}`)
-  output.print(`Query: ${searchQuery}`)
-  output.print(`${'─'.repeat(60)}`)
+  console.log(`\n${'─'.repeat(60)}`)
+  console.log(`DAILY BRIEF: ${brandConfig.name.toUpperCase()}`)
+  console.log(`Date: ${date}`)
+  if (topic) console.log(`Topic: ${topic}`)
+  console.log(`Query: ${searchQuery}`)
+  console.log(`${'─'.repeat(60)}`)
 
   // Fetch articles
   let items: BriefItem[] = []
@@ -252,16 +244,16 @@ export async function run(args: string[], ctx?: CommandContext): Promise<BriefRe
   const hasExa = !!process.env.EXA_API_KEY
 
   if (hasExa && !dryRun) {
-    output.print('\n[brief] Searching with Exa...')
+    console.log('\n[brief] Searching with Exa...')
     try {
       items = await searchWithExa(searchQuery, 8)
-      output.print(`[brief] Found ${items.length} articles via Exa`)
+      console.log(`[brief] Found ${items.length} articles via Exa`)
     } catch (e: any) {
-      output.warn(`[brief] Exa search failed: ${e.message}, falling back to Gemini`)
+      console.warn(`[brief] Exa search failed: ${e.message}, falling back to Gemini`)
       source = 'gemini'
     }
   } else if (!hasExa && !dryRun) {
-    output.print('[brief] EXA_API_KEY not set, using Gemini fallback...')
+    console.log('[brief] EXA_API_KEY not set, using Gemini fallback...')
     source = 'gemini'
   }
 
@@ -270,7 +262,7 @@ export async function run(args: string[], ctx?: CommandContext): Promise<BriefRe
       throw new Error('Neither EXA_API_KEY nor GEMINI_API_KEY is set')
     }
     items = await searchWithGemini(searchQuery, brandConfig.name, audience)
-    output.print(`[brief] Generated ${items.length} items via Gemini`)
+    console.log(`[brief] Generated ${items.length} items via Gemini`)
   }
 
   // Dry run: produce stub items
@@ -288,18 +280,18 @@ export async function run(args: string[], ctx?: CommandContext): Promise<BriefRe
         summary: 'A new study finds 68% of unpaid family caregivers report moderate to severe burnout symptoms.'
       }
     ]
-    output.print('[brief] Dry run — using stub items')
+    console.log('[brief] Dry run — using stub items')
   }
 
   if (items.length === 0) {
-    output.warn('[brief] No items found')
+    console.warn('[brief] No items found')
   }
 
   // Format digest
   const { headline, digest } = formatDigest(brandConfig.name, date, topic, items, source)
 
   // Print digest
-  output.print('\n' + digest)
+  console.log('\n' + digest)
 
   // Save to file
   let savedPath: string | undefined
@@ -308,9 +300,9 @@ export async function run(args: string[], ctx?: CommandContext): Promise<BriefRe
     mkdirSync(briefsDir, { recursive: true })
     savedPath = join(briefsDir, `${date}.md`)
     writeFileSync(savedPath, digest)
-    output.print(`\n[brief] Saved: ${savedPath}`)
+    console.log(`\n[brief] Saved: ${savedPath}`)
   } else {
-    output.print('\n[brief] Dry run — skipping save')
+    console.log('\n[brief] Dry run — skipping save')
   }
 
   // Post to Discord if requested
@@ -320,24 +312,24 @@ export async function run(args: string[], ctx?: CommandContext): Promise<BriefRe
       (brandConfig as any).discord?.content_intel_webhook
 
     if (!webhookUrl) {
-      output.warn('[brief] --channel set but no webhook URL found (DISCORD_CONTENT_INTEL_WEBHOOK or brand config)')
+      console.warn('[brief] --channel set but no webhook URL found (DISCORD_CONTENT_INTEL_WEBHOOK or brand config)')
     } else {
       try {
-        output.print('[brief] Posting to Discord...')
+        console.log('[brief] Posting to Discord...')
         await postToDiscord(webhookUrl, headline, items)
         posted = true
-        output.print('[brief] Posted to Discord ✓')
+        console.log('[brief] Posted to Discord ✓')
       } catch (e: any) {
-        output.warn(`[brief] Discord post failed: ${e.message}`)
+        console.warn(`[brief] Discord post failed: ${e.message}`)
       }
     }
   } else if (postToChannel && dryRun) {
-    output.print('[brief] Dry run — skipping Discord post')
+    console.log('[brief] Dry run — skipping Discord post')
   }
 
-  output.print(`\n${'─'.repeat(60)}`)
-  output.print(`Items: ${items.length} | Source: ${source}${savedPath ? ` | Saved: ${savedPath}` : ''}`)
-  output.print(`${'─'.repeat(60)}`)
+  console.log(`\n${'─'.repeat(60)}`)
+  console.log(`Items: ${items.length} | Source: ${source}${savedPath ? ` | Saved: ${savedPath}` : ''}`)
+  console.log(`${'─'.repeat(60)}`)
 
   return {
     brand,

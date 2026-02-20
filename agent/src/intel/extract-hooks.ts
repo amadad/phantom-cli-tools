@@ -109,8 +109,8 @@ Return JSON only:
       whyItWorked: parsed.whyItWorked,
       themes: parsed.themes || []
     }
-  } catch (error: any) {
-    console.error('Hook extraction failed:', error.message)
+  } catch (error: unknown) {
+    console.error('Hook extraction failed:', error instanceof Error ? error.message : String(error))
     return null
   }
 }

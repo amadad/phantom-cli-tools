@@ -7,9 +7,11 @@
 
 import { GoogleGenAI } from '@google/genai'
 import { readFileSync, appendFileSync, existsSync } from 'fs'
+import { withTimeout } from '../core/http'
 import { join } from 'path'
 import { getBrandDir, getEvalLogPath } from '../core/paths'
 import { loadBrand } from '../core/brand'
+import { extractJson } from '../core/json'
 
 // =============================================================================
 // TYPES
@@ -86,22 +88,22 @@ export async function gradeImage(
   })
   parts.push({ text: `IMAGE TO EVALUATE above.\n\n${prompt}` })
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash',
-    contents: [{ role: 'user', parts }]
-  })
+  const response = await withTimeout(
+    ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: [{ role: 'user', parts }]
+    }),
+    30_000,
+    'Gemini image grader'
+  )
 
   const text = (response as any).candidates?.[0]?.content?.parts?.[0]?.text || ''
 
   // Parse JSON response with fallback
   let judge: any = {}
-  try {
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (jsonMatch) {
-      judge = JSON.parse(jsonMatch[0])
-    }
-  } catch {
-    // Fallback to neutral scores on parse failure
+  const jsonResult = extractJson<any>(text, 'image-grader')
+  if (jsonResult.success) {
+    judge = jsonResult.data
   }
 
   // Compute overall score (weighted average)

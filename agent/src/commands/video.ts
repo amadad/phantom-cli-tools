@@ -11,6 +11,7 @@
  *   --provider=<name> Video provider (replicate, runway, luma)
  */
 
+import { randomUUID } from 'crypto'
 import * as path from 'path'
 import * as fs from 'fs'
 import { generateVideoFromBrief } from '../video'
@@ -49,7 +50,12 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<VideoR
   let provider = 'replicate'
   const providerArg = args.find(a => a.startsWith('--provider='))
   if (providerArg) {
-    provider = providerArg.split('=')[1]
+    const value = providerArg.split('=')[1]?.trim()
+    if (!value) {
+      console.warn('--provider requires a value (e.g. --provider=replicate), using default')
+    } else {
+      provider = value
+    }
   }
 
   // Resolve brief path
@@ -134,7 +140,7 @@ Audio:    ${skipAudio ? 'disabled' : 'enabled'}
 
   // Add to queue
   console.log('\n[video] Adding to queue...')
-  const queueId = `video_${brand}_${Date.now()}`
+  const queueId = `video_${brand}_${randomUUID()}`
 
   await addToQueue({
     id: queueId,

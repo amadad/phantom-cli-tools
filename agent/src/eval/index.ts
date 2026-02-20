@@ -7,8 +7,8 @@
  */
 
 // Copy grading
-export { grade, gradeAndRefine, loadRubric } from './grader'
-export type { EvalResult, Rubric, GradeOptions, RefineResult } from './grader'
+export { grade, loadRubric } from './grader'
+export type { EvalResult, Rubric, GradeOptions } from './grader'
 
 // Image grading
 export { gradeImage } from './image-grader'

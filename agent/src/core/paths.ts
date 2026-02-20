@@ -3,8 +3,8 @@
  * Handles project root detection and brand discovery
  */
 
-import { existsSync, readdirSync } from 'fs'
-import { join, dirname } from 'path'
+import { existsSync, readdirSync, mkdirSync } from 'fs'
+import { join, dirname, basename } from 'path'
 import { fileURLToPath } from 'url'
 
 let _projectRoot: string | null = null
@@ -20,7 +20,7 @@ export function getProjectRoot(): string {
   let current = process.cwd()
 
   // If we're in agent/, go up one level
-  if (current.endsWith('/agent') || current.endsWith('\\agent')) {
+  if (basename(current) === 'agent') {
     current = dirname(current)
   }
 
@@ -164,6 +164,24 @@ export function getDefaultBrand(): string {
     throw new Error('No brands found in brands/ directory')
   }
   return brands[0]
+}
+
+/** Slugify a string for filesystem paths */
+export function slugify(text: string, maxLen = 40): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, maxLen)
+}
+
+/** Create a dated session directory and return its path */
+export function createSessionDir(slug: string, suffix?: string): string {
+  const date = new Date().toISOString().split('T')[0]
+  const dirName = suffix ? `${slug}${suffix}` : slug
+  const sessionDir = join(getOutputDir(), date, dirName)
+  mkdirSync(sessionDir, { recursive: true })
+  return sessionDir
 }
 
 // Re-export for convenience

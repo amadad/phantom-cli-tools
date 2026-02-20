@@ -45,7 +45,8 @@ export async function drawImageLayer(options: ImageLayerOptions): Promise<void> 
   ctx.beginPath()
   ctx.rect(zone.x, zone.y, zone.width, zone.height)
   ctx.clip()
-  ctx.globalAlpha = Math.max(0.3, 1 - (imageDim ?? 0))
+  const dim = Math.max(0, Math.min(1, imageDim ?? 0))
+  ctx.globalAlpha = 1 - dim
   ctx.drawImage(img as any, offsetX, offsetY, drawWidth, drawHeight)
   ctx.globalAlpha = 1.0
   ctx.restore()

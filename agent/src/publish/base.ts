@@ -68,24 +68,6 @@ export function createGetConfiguredBrands(
 }
 
 /**
- * Wrap a post function with standard error handling
- */
-export function withErrorHandling(
-  platformName: string,
-  fn: (brand: Brand, text: string, imageUrl?: string) => Promise<PostResult>
-): (brand: Brand, text: string, imageUrl?: string) => Promise<PostResult> {
-  return async (brand: Brand, text: string, imageUrl?: string): Promise<PostResult> => {
-    try {
-      return await fn(brand, text, imageUrl)
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error'
-      console.error(`[${platformName}] Error posting for ${brand}:`, message)
-      return { success: false, error: message }
-    }
-  }
-}
-
-/**
  * Get file extension from MIME type
  */
 export function getExtensionFromMime(mimeType: string): string {

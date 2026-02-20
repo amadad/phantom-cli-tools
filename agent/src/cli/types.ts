@@ -1,11 +1,8 @@
-import type { GlobalFlags } from './flags'
-
-export interface Output {
-  print: (message: string) => void
-  info: (message: string) => void
-  warn: (message: string) => void
-  error: (message: string) => void
-  json: (data: unknown) => void
+export interface GlobalFlags {
+  help: boolean
+  json: boolean
+  quiet: boolean
+  brand?: string
 }
 
 export interface CommandOption {
@@ -27,5 +24,4 @@ export interface CommandDefinition {
 
 export interface CommandContext {
   flags: GlobalFlags
-  output: Output
 }

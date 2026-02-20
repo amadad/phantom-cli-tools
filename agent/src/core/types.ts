@@ -2,84 +2,6 @@
  * Core types for Phantom Loom CLI
  */
 
-export interface ImageDirection {
-  subjects?: string[]
-  technique?: string[]
-  emotions?: string[]
-  scene_templates?: Record<string, string>
-}
-
-/**
- * Reference style for brand-consistent image generation
- * Uses Gemini's multi-image input for style transfer
- */
-export interface ReferenceStyle {
-  name: string
-  description: string
-  images: string[]  // Paths relative to brand directory
-  mood_keywords: string[]
-  visual_mode: 'framed_portrait' | 'lifestyle_scene' | 'illustrative_concept' | 'documentary' | 'abstract'
-  // Optional visual prompt variables
-  form_mode?: string
-  texture_mode?: string
-  edge_style?: string
-}
-
-/**
- * Image generation model configuration
- */
-export interface ImageGenerationConfig {
-  provider: 'gemini' | 'reve'  // Image generation provider
-  primary_model?: 'gemini-3-pro-image-preview' | 'gemini-2.5-flash-image'  // Legacy: for gemini only
-  fallback_model?: 'gemini-3-pro-image-preview' | 'gemini-2.5-flash-image'  // Legacy: for gemini only
-  default_aspect_ratio: AspectRatio
-  default_resolution: '1K' | '2K' | '4K'
-  max_reference_images: number
-}
-
-/**
- * Writing system for anti-AI-slop content generation
- * Stabilizes cognition under load, preserves human trace
- */
-export interface WritingSystem {
-  goal: string
-  core_rules: string[]
-  engines: Record<string, {
-    description: string
-    use_for: string[]
-  }>
-  structures: Array<{
-    name: string
-    pattern: string
-    description: string
-  }>
-  language: {
-    prefer: string[]
-    limit: string[]
-    replacements: Record<string, string>
-  }
-  trauma_informed: string[]
-  human_markers: string[]
-  metaphor_rules: string[]
-  endings: {
-    avoid: string[]
-    prefer: string[]
-  }
-}
-
-/**
- * Content frame definition for different post types
- */
-export interface ContentFrame {
-  description: string
-  structure: string
-  example?: string
-  example_2?: string
-  example_3?: string
-  use_brand_voice?: boolean
-  use_writing_system?: boolean
-}
-
 export interface BrandProfile {
   name: string
   url: string
@@ -88,24 +10,27 @@ export interface BrandProfile {
     style: string
     rules: string[]
     product_rules?: string[]
-    writing_system?: WritingSystem
-    avoid_phrases?: string[]
-    frames?: Record<string, ContentFrame>
-  }
-  visual: {
-    palette: {
-      primary: string
-      secondary: string
-      accent: string
-      highlight?: string
+    writing_system?: {
+      goal: string
+      core_rules: string[]
+      engines: Record<string, { description: string; use_for: string[] }>
+      structures: Array<{ name: string; pattern: string; description: string }>
+      language: { prefer: string[]; limit: string[]; replacements: Record<string, string> }
+      trauma_informed: string[]
+      human_markers: string[]
+      metaphor_rules: string[]
+      endings: { avoid: string[]; prefer: string[] }
     }
-    style: string
-    mood: string
-    avoid: string[]
-    image_direction?: ImageDirection
-    reference_styles?: ReferenceStyle[]
-    image_generation?: ImageGenerationConfig
-    prompt_override?: string
+    avoid_phrases?: string[]
+    frames?: Record<string, {
+      description: string
+      structure: string
+      example?: string
+      example_2?: string
+      example_3?: string
+      use_brand_voice?: boolean
+      use_writing_system?: boolean
+    }>
   }
   platforms: {
     twitter?: { max_chars: number; hashtags: number }
@@ -124,14 +49,6 @@ export interface BrandProfile {
     threads?: string
     youtube?: string
   }
-}
-
-export interface VisualStyle {
-  lighting: string
-  composition: string
-  colorGrading: string
-  technical: string
-  atmosphere: string
 }
 
 export type Platform = 'twitter' | 'linkedin' | 'facebook' | 'instagram' | 'threads' | 'youtube'

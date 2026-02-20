@@ -4,20 +4,11 @@
  */
 
 import type { ImageType } from '../classify'
-import type { AspectRatio } from '../../core/types'
-
-export interface ReferenceImage {
-  b64: string
-  mimeType: string
-  filename?: string
-}
 
 export interface ImageGenerationRequest {
   prompt: string
   imageType: ImageType
   aspectRatio: string  // Aspect ratio string like '3:4', '16:9', etc.
-  /** @deprecated Reference images are no longer used — prompts encode brand style directly */
-  reference?: ReferenceImage
 }
 
 export interface ImageGenerationResult {
@@ -38,9 +29,6 @@ export interface ImageProvider {
 
   /**
    * Generate image from prompt
-   * Providers handle reference images differently:
-   * - Gemini: inline reference in prompt
-   * - Reve: separate reference_images array for remix endpoint
    */
   generateImage(request: ImageGenerationRequest): Promise<ImageGenerationResult>
 }

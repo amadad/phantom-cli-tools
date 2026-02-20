@@ -52,18 +52,6 @@ function cleanupOldRequests(requests: number[], windowMs: number): number[] {
 }
 
 /**
- * Check if we can make a request (without consuming)
- */
-export function canMakeRequest(platform: string, brand: string): boolean {
-  const config = getConfig(platform)
-  const key = `${platform}:${brand}`
-  const s = getState(key)
-
-  const cleanedRequests = cleanupOldRequests(s.requests, config.windowMs)
-  return cleanedRequests.length < config.requestsPerWindow
-}
-
-/**
  * Record a request and check rate limit
  * Returns true if request was allowed, false if rate limited
  */
@@ -99,68 +87,3 @@ export function checkRateLimit(platform: string, brand: string): {
   }
 }
 
-/**
- * Wait for rate limit to clear (uses canMakeRequest to avoid consuming tokens)
- */
-export async function waitForRateLimit(platform: string, brand: string): Promise<void> {
-  while (!canMakeRequest(platform, brand)) {
-    const config = getConfig(platform)
-    const key = `${platform}:${brand}`
-    const s = getState(key)
-    const cleaned = cleanupOldRequests(s.requests, config.windowMs)
-    const oldest = Math.min(...cleaned)
-    const waitMs = Math.max(0, oldest + config.windowMs - Date.now())
-    console.log(`[rate-limit] ${platform}/${brand} rate limited, waiting ${Math.ceil(waitMs / 1000)}s...`)
-    await new Promise(resolve => setTimeout(resolve, waitMs + 100))
-  }
-}
-
-/**
- * Decorator to wrap a function with rate limiting
- */
-export function withRateLimit<T extends (...args: any[]) => Promise<any>>(
-  platform: string,
-  fn: T
-): T {
-  return (async (...args: Parameters<T>) => {
-    // Extract brand from first argument if it's the brand parameter
-    const brand = typeof args[0] === 'string' ? args[0] : 'default'
-
-    const result = checkRateLimit(platform, brand)
-    if (!result.allowed) {
-      throw new Error(
-        `Rate limited on ${platform}. Wait ${Math.ceil((result.waitMs || 0) / 1000)} seconds.`
-      )
-    }
-
-    return fn(...args)
-  }) as T
-}
-
-/**
- * Get current rate limit status for a platform
- */
-export function getRateLimitStatus(platform: string, brand: string): {
-  remaining: number
-  total: number
-  resetsIn: number
-} {
-  const config = getConfig(platform)
-  const key = `${platform}:${brand}`
-  const s = getState(key)
-
-  const cleanedRequests = cleanupOldRequests(s.requests, config.windowMs)
-  const remaining = Math.max(0, config.requestsPerWindow - cleanedRequests.length)
-
-  let resetsIn = 0
-  if (cleanedRequests.length > 0) {
-    const oldestRequest = Math.min(...cleanedRequests)
-    resetsIn = Math.max(0, oldestRequest + config.windowMs - Date.now())
-  }
-
-  return {
-    remaining,
-    total: config.requestsPerWindow,
-    resetsIn
-  }
-}

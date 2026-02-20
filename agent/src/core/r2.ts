@@ -5,8 +5,9 @@
 
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { readFileSync, existsSync } from 'fs'
-import { extname, basename } from 'path'
+import { extname } from 'path'
 import crypto from 'crypto'
+import { getMimeType } from './http'
 
 interface R2Config {
   accountId: string
@@ -23,11 +24,19 @@ function getConfig(): R2Config {
   const bucketName = process.env.R2_BUCKET_NAME
   const publicUrl = process.env.R2_PUBLIC_URL
 
-  if (!accountId || !accessKeyId || !secretAccessKey || !bucketName || !publicUrl) {
-    throw new Error('R2 not configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_PUBLIC_URL')
+  const missing = [
+    ['R2_ACCOUNT_ID', accountId],
+    ['R2_ACCESS_KEY_ID', accessKeyId],
+    ['R2_SECRET_ACCESS_KEY', secretAccessKey],
+    ['R2_BUCKET_NAME', bucketName],
+    ['R2_PUBLIC_URL', publicUrl],
+  ].filter(([, v]) => !v).map(([k]) => k)
+
+  if (missing.length > 0) {
+    throw new Error(`R2 not configured. Missing: ${missing.join(', ')}`)
   }
 
-  return { accountId, accessKeyId, secretAccessKey, bucketName, publicUrl }
+  return { accountId: accountId!, accessKeyId: accessKeyId!, secretAccessKey: secretAccessKey!, bucketName: bucketName!, publicUrl: publicUrl! }
 }
 
 function getClient(config: R2Config): S3Client {
@@ -39,18 +48,6 @@ function getClient(config: R2Config): S3Client {
       secretAccessKey: config.secretAccessKey
     }
   })
-}
-
-function getMimeType(filePath: string): string {
-  const ext = extname(filePath).toLowerCase()
-  const mimeTypes: Record<string, string> = {
-    '.png': 'image/png',
-    '.jpg': 'image/jpeg',
-    '.jpeg': 'image/jpeg',
-    '.gif': 'image/gif',
-    '.webp': 'image/webp'
-  }
-  return mimeTypes[ext] || 'application/octet-stream'
 }
 
 /**
@@ -76,7 +73,11 @@ export async function uploadToR2(filePath: string): Promise<string> {
     ContentType: getMimeType(filePath)
   })
 
-  await client.send(command)
+  try {
+    await client.send(command)
+  } catch (err) {
+    throw new Error(`R2 upload failed for ${filePath}: ${err instanceof Error ? err.message : String(err)}`)
+  }
 
   const publicUrl = `${config.publicUrl.replace(/\/$/, '')}/${key}`
   console.log(`[r2] Uploaded: ${publicUrl}`)
@@ -106,7 +107,11 @@ export async function uploadBufferToR2(
     ContentType: mimeType
   })
 
-  await client.send(command)
+  try {
+    await client.send(command)
+  } catch (err) {
+    throw new Error(`R2 upload failed for buffer: ${err instanceof Error ? err.message : String(err)}`)
+  }
 
   const publicUrl = `${config.publicUrl.replace(/\/$/, '')}/${key}`
   console.log(`[r2] Uploaded: ${publicUrl}`)

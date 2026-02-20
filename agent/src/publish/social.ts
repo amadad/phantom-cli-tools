@@ -4,7 +4,7 @@
  */
 
 import type { Platform, Brand } from '../core/types'
-import { checkRateLimit, getRateLimitStatus } from '../core/rate-limit'
+import { checkRateLimit } from './rate-limit'
 import { uploadToR2, isR2Configured } from '../core/r2'
 
 export interface PostResult {
@@ -63,7 +63,7 @@ export async function postToPlatform(
       }
 
       case 'instagram': {
-        const { postToInstagram } = await import('./instagram-direct')
+        const { postToInstagram } = await import('./meta-graph')
         if (!imageUrl) {
           return { platform, success: false, error: 'Instagram requires an image' }
         }
@@ -81,7 +81,7 @@ export async function postToPlatform(
       }
 
       case 'threads': {
-        const { postToThreads } = await import('./threads-direct')
+        const { postToThreads } = await import('./meta-graph')
         // Threads requires public URL - upload local files to R2
         let publicImageUrl = imageUrl
         if (imageUrl && !imageUrl.startsWith('http')) {
@@ -96,7 +96,7 @@ export async function postToPlatform(
       }
 
       case 'youtube': {
-        return { platform, success: false, error: 'YouTube requires video upload - use uploadYouTubeShort()' }
+        return { platform, success: false, error: 'YouTube requires video upload via youtube-direct module' }
       }
 
       default:
@@ -132,43 +132,6 @@ export async function postToAll(options: PostOptions): Promise<PostResult[]> {
   console.log(`\nPosted to ${succeeded}/${platforms.length} platforms`)
 
   return results
-}
-
-/**
- * Upload and post YouTube Short
- */
-export async function uploadYouTubeShort(
-  brand: Brand,
-  videoPath: string,
-  title: string,
-  description: string,
-  options: {
-    tags?: string[]
-    privacyStatus?: 'public' | 'private' | 'unlisted'
-  } = {}
-): Promise<PostResult> {
-  try {
-    const { uploadToYouTube } = await import('./youtube-direct')
-    const result = await uploadToYouTube(brand, videoPath, title, description, { ...options, isShort: true })
-    return { platform: 'youtube', ...result }
-  } catch (error: any) {
-    return { platform: 'youtube', success: false, error: error.message }
-  }
-}
-
-/**
- * Get rate limit status for all platforms
- */
-export function getAllRateLimitStatus(brand: Brand): Record<Platform, { remaining: number; total: number }> {
-  const platforms: Platform[] = ['twitter', 'linkedin', 'facebook', 'instagram', 'threads', 'youtube']
-  const status: Record<string, { remaining: number; total: number }> = {}
-
-  for (const platform of platforms) {
-    const s = getRateLimitStatus(platform, brand)
-    status[platform] = { remaining: s.remaining, total: s.total }
-  }
-
-  return status as Record<Platform, { remaining: number; total: number }>
 }
 
 /**

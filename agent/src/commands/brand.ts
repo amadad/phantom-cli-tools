@@ -2,7 +2,6 @@ import { cpSync, existsSync, readFileSync, renameSync, writeFileSync } from 'fs'
 import { join } from '../core/paths'
 import { getBrandsDir } from '../core/paths'
 import type { CommandContext } from '../cli/types'
-import { createConsoleOutput } from '../cli/output'
 
 export interface BrandInitResult {
   name: string
@@ -33,28 +32,27 @@ function replacePlaceholders(path: string, replacements: Record<string, string>)
   writeFileSync(path, updated)
 }
 
-export async function run(args: string[], ctx?: CommandContext): Promise<BrandInitResult> {
-  const output = ctx?.output ?? createConsoleOutput()
+export async function run(args: string[], _ctx?: CommandContext): Promise<BrandInitResult> {
   const [subcommand, nameArg] = args
 
   if (!subcommand || subcommand === '--help' || subcommand === '-h') {
-    output.info('Usage: brand init <name>')
+    console.log('Usage: brand init <name>')
     throw new Error('Missing subcommand')
   }
 
   if (subcommand !== 'init') {
-    output.error(`Unknown brand subcommand: ${subcommand}`)
+    console.error(`Unknown brand subcommand: ${subcommand}`)
     throw new Error(`Unknown brand subcommand: ${subcommand}`)
   }
 
   if (!nameArg) {
-    output.error('Usage: brand init <name>')
+    console.error('Usage: brand init <name>')
     throw new Error('Missing brand name')
   }
 
   const name = nameArg.toLowerCase()
   if (!/^[a-z0-9-]+$/.test(name)) {
-    output.error('Brand name must be lowercase and contain only letters, numbers, or hyphens')
+    console.error('Brand name must be lowercase and contain only letters, numbers, or hyphens')
     throw new Error('Invalid brand name')
   }
 
@@ -63,12 +61,12 @@ export async function run(args: string[], ctx?: CommandContext): Promise<BrandIn
   const brandDir = join(brandsDir, name)
 
   if (!existsSync(templateDir)) {
-    output.error(`Brand template not found at ${templateDir}`)
+    console.error(`Brand template not found at ${templateDir}`)
     throw new Error('Brand template missing')
   }
 
   if (existsSync(brandDir)) {
-    output.error(`Brand already exists: ${brandDir}`)
+    console.error(`Brand already exists: ${brandDir}`)
     throw new Error('Brand already exists')
   }
 
@@ -92,7 +90,7 @@ export async function run(args: string[], ctx?: CommandContext): Promise<BrandIn
   replacePlaceholders(rubricPath, replacements)
   replacePlaceholders(join(brandDir, 'assets', 'logo.svg'), replacements)
 
-  output.info(`Brand initialized: ${brandDir}`)
+  console.log(`Brand initialized: ${brandDir}`)
 
   return {
     name,

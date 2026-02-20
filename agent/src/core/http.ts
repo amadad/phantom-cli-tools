@@ -78,7 +78,7 @@ export function validateUrl(urlString: string): URL {
 /**
  * Get mime type from file extension
  */
-function getMimeType(filePath: string): string {
+export function getMimeType(filePath: string): string {
   const ext = extname(filePath).toLowerCase()
   const mimeTypes: Record<string, string> = {
     '.png': 'image/png',
@@ -136,6 +136,18 @@ export async function downloadImage(urlOrPath: string): Promise<{ data: Buffer; 
   }
 
   return { data, mimeType }
+}
+
+/**
+ * Race a promise against a timeout. Rejects with a labeled error on expiry.
+ */
+export function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+    )
+  ])
 }
 
 /**

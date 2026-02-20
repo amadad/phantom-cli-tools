@@ -2,7 +2,7 @@
  * Audio module exports
  */
 
-export { generateSpeech, generateSceneSpeech } from './tts'
+export { generateSpeech } from './tts'
 export type { TTSOptions, TTSResult } from './tts'
 
 export { mixAudio, concatAudio } from './mixer'

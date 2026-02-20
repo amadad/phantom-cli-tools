@@ -114,29 +114,3 @@ export async function generateSpeech(options: TTSOptions): Promise<TTSResult> {
   }
 }
 
-/**
- * Generate speech for multiple scenes and concatenate
- */
-export async function generateSceneSpeech(
-  scenes: Array<{ id: number; script: string }>,
-  voiceId: string,
-  outputDir: string,
-  options?: { model?: string; emotion?: string; speed?: number }
-): Promise<{ paths: string[]; totalDurationMs: number }> {
-  const paths: string[] = []
-  let totalDurationMs = 0
-
-  for (const scene of scenes) {
-    const outputPath = path.join(outputDir, `voice-scene-${scene.id}.mp3`)
-    const result = await generateSpeech({
-      text: scene.script,
-      voiceId,
-      outputPath,
-      ...options
-    })
-    paths.push(result.path)
-    totalDurationMs += result.durationMs
-  }
-
-  return { paths, totalDurationMs }
-}

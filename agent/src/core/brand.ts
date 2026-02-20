@@ -5,12 +5,7 @@
 import { readFileSync, existsSync, statSync } from 'fs'
 import yaml from 'js-yaml'
 import type { BrandProfile } from './types'
-import {
-  getBrandConfigPath,
-  validateBrand,
-  getDefaultBrand,
-  discoverBrands,
-} from './paths'
+import { getBrandConfigPath, validateBrand, getDefaultBrand } from './paths'
 
 // Cache loaded brands with modification time for invalidation
 interface CacheEntry {
@@ -34,8 +29,14 @@ export function loadBrand(brandName?: string): BrandProfile {
   }
 
   // Check if cache is still valid
-  const stats = statSync(brandPath)
-  const mtime = stats.mtimeMs
+  let mtime: number
+  try {
+    mtime = statSync(brandPath).mtimeMs
+  } catch {
+    brandCache.delete(name)
+    // File disappeared between existsSync and statSync — re-throw
+    throw new Error(`Brand not found: ${name} (looked at ${brandPath})`)
+  }
   const cached = brandCache.get(name)
 
   if (cached && cached.mtime === mtime) {
@@ -49,9 +50,6 @@ export function loadBrand(brandName?: string): BrandProfile {
   brandCache.set(name, { brand, mtime })
   return brand
 }
-
-// Re-export for convenience
-export { discoverBrands, validateBrand, getDefaultBrand }
 
 /**
  * Clear brand cache (useful for testing/reloading)

@@ -9,9 +9,8 @@ import { generateCopy, type CopyResult } from '../generate/copy'
 import { classify } from '../generate/classify'
 import { gradeFast, grade, loadRubric, buildFeedback } from '../eval/grader'
 import { getHookForTopic } from '../intel/hook-bank'
-import { join } from '../core/paths'
-import { slugify, createSessionDir } from '../core/session'
-import { parseArgs } from '../cli/args'
+import { join, slugify, createSessionDir } from '../core/paths'
+import { extractBrandTopic } from '../cli/args'
 import { writeFileSync } from 'fs'
 import type { CommandContext } from '../cli/types'
 
@@ -27,7 +26,7 @@ export interface CopyCommandResult {
 }
 
 export async function run(args: string[], _ctx?: CommandContext): Promise<CopyCommandResult> {
-  const parsed = parseArgs(args, ['hook'])
+  const parsed = extractBrandTopic(args, ['hook'])
   if (!parsed.topic) throw new Error('Missing topic. Usage: copy <brand> "<topic>"')
 
   const { brand, topic } = parsed
@@ -44,7 +43,7 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<CopyCo
         hookPattern = found.amplified || found.original
         console.log(`  Hook [${found.multiplier}x]: "${hookPattern.slice(0, 50)}..."`)
       }
-    } catch { /* Hook bank might not exist */ }
+    } catch { console.debug('[copy] No hook bank found') }
   }
 
   const { copy, evalResult, attempts } = await generateAndGradeCopy(topic, brand, hookPattern)
@@ -104,7 +103,7 @@ export async function generateAndGradeCopy(
 
   // Full LLM grade async for logging/learning — don't block
   const evalPromise = grade(copy.linkedin.text, brand, { platform: 'linkedin', log: true })
-  evalPromise.catch(() => {}) // swallow — logging is best-effort
+  evalPromise.catch((e: unknown) => console.warn('[copy] grade failed:', e instanceof Error ? e.message : String(e)))
 
   // Await it so we still return a real score, but the generate path isn't bottlenecked
   // since we already have clean copy from the fast check
@@ -118,7 +117,7 @@ function logScore(result: { score: number; passed: boolean }): void {
   console.log(`  Score: ${bar} ${result.score}/100 ${result.passed ? 'PASS' : 'FAIL'}`)
 }
 
-function formatCopyMarkdown(topic: string, copy: CopyResult, evalResult: { score: number; passed: boolean; critique?: string; dimensions: Record<string, number> }): string {
+export function formatCopyMarkdown(topic: string, copy: CopyResult, evalResult: { score: number; passed: boolean; critique?: string; dimensions: Record<string, number> }): string {
   const dimScores = Object.entries(evalResult.dimensions).map(([k, v]) => `${k}: ${v}/10`).join(' | ')
   return `# ${topic}
 

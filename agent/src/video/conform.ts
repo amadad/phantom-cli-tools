@@ -11,7 +11,7 @@
  * - Duration measured via ffprobe
  */
 
-import { execSync, exec } from 'child_process'
+import { execFileSync, execFile } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -43,10 +43,12 @@ export interface ConformResult {
  * Measure video duration using ffprobe
  */
 export function measureDuration(videoPath: string): number {
-  const result = execSync(
-    `ffprobe -v quiet -show_entries format=duration -of csv=p=0 "${videoPath}"`,
-    { encoding: 'utf-8' }
-  )
+  const result = execFileSync('ffprobe', [
+    '-v', 'quiet',
+    '-show_entries', 'format=duration',
+    '-of', 'csv=p=0',
+    videoPath
+  ], { encoding: 'utf-8' })
   return parseFloat(result.trim())
 }
 
@@ -54,10 +56,13 @@ export function measureDuration(videoPath: string): number {
  * Get video dimensions using ffprobe
  */
 export function getVideoDimensions(videoPath: string): { width: number; height: number } {
-  const result = execSync(
-    `ffprobe -v quiet -select_streams v:0 -show_entries stream=width,height -of csv=p=0 "${videoPath}"`,
-    { encoding: 'utf-8' }
-  )
+  const result = execFileSync('ffprobe', [
+    '-v', 'quiet',
+    '-select_streams', 'v:0',
+    '-show_entries', 'stream=width,height',
+    '-of', 'csv=p=0',
+    videoPath
+  ], { encoding: 'utf-8' })
   const [width, height] = result.trim().split(',').map(Number)
   return { width, height }
 }
@@ -111,14 +116,13 @@ export async function conformVideo(options: ConformOptions): Promise<ConformResu
 
   const filterStr = filters.join(',')
 
-  // Build FFmpeg command
-  // NOTE: All inputs must come before output options
+  // Build FFmpeg args array (no shell — execFile handles escaping)
   const args: string[] = [
-    '-i', `"${inputPath}"`,
+    '-i', inputPath,
     // Add silent audio source as second input (for videos without audio)
     '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=stereo',
     // Video filter chain
-    '-vf', `"${filterStr}"`,
+    '-vf', filterStr,
     // Output encoding
     '-c:v', 'libx264',
     '-preset', 'fast',
@@ -137,13 +141,12 @@ export async function conformVideo(options: ConformOptions): Promise<ConformResu
     args.push('-t', String(maxDuration))
   }
 
-  args.push('-y', `"${outputPath}"`)
+  args.push('-y', outputPath)
 
-  const cmd = `ffmpeg ${args.join(' ')}`
-  console.log(`[conform] Running: ${cmd.slice(0, 100)}...`)
+  console.log(`[conform] Running: ffmpeg ${args.slice(0, 6).join(' ')}...`)
 
   return new Promise((resolve, reject) => {
-    exec(cmd, (error, stdout, stderr) => {
+    execFile('ffmpeg', args, (error, stdout, stderr) => {
       if (error) {
         console.error(`[conform] Error: ${stderr}`)
         reject(new Error(`FFmpeg failed: ${error.message}`))
@@ -181,10 +184,8 @@ export async function stitchVideos(
   const concatContent = inputPaths.map(p => `file '${p}'`).join('\n')
   fs.writeFileSync(concatFile, concatContent)
 
-  const cmd = `ffmpeg -f concat -safe 0 -i "${concatFile}" -c copy -y "${outputPath}"`
-
   return new Promise((resolve, reject) => {
-    exec(cmd, (error) => {
+    execFile('ffmpeg', ['-f', 'concat', '-safe', '0', '-i', concatFile, '-c', 'copy', '-y', outputPath], (error) => {
       // Clean up concat file
       fs.unlinkSync(concatFile)
 

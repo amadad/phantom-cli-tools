@@ -6,9 +6,8 @@
  */
 
 import { readFileSync, existsSync, writeFileSync } from 'fs'
-import { getBrandDir, join } from '../core/paths'
-import { slugify, createSessionDir } from '../core/session'
-import { parseArgs } from '../cli/args'
+import { getBrandDir, join, slugify, createSessionDir } from '../core/paths'
+import { extractBrandTopic } from '../cli/args'
 import { generatePoster } from '../composite/poster'
 import type { AspectRatio } from '../composite/renderer/render'
 import { loadBrandVisual } from '../core/visual'
@@ -28,7 +27,7 @@ const PLATFORM_RATIOS: Record<string, AspectRatio> = {
 }
 
 export async function run(args: string[], _ctx?: CommandContext): Promise<PosterCommandResult> {
-  const parsed = parseArgs(args, ['image', 'headline'])
+  const parsed = extractBrandTopic(args, ['image', 'headline'])
   const brand = parsed.brand
   const imagePath = parsed.flags.image
   const headline = parsed.flags.headline
@@ -80,8 +79,8 @@ export async function generateFinals(
       writeFileSync(outPath, poster)
       outputs[platform] = outPath
       console.log(`  OK ${platform}.png${noLogo ? ' (no logo)' : ''}`)
-    } catch (e: any) {
-      console.log(`  FAIL ${platform}: ${e.message}`)
+    } catch (e: unknown) {
+      console.log(`  FAIL ${platform}: ${e instanceof Error ? e.message : String(e)}`)
     }
   }
 
