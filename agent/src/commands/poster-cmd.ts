@@ -62,10 +62,10 @@ export async function generateFinals(
   brandName: string,
   headline: string,
   contentImage: Buffer | undefined,
-  opts: { noLogo?: boolean; outputDir: string; topic?: string }
+  opts: { noLogo?: boolean; outputDir: string; topic?: string; seed?: string }
 ): Promise<Record<string, string>> {
   const visual = loadBrandVisual(brandName)
-  const { noLogo = false, outputDir, topic } = opts
+  const { noLogo = false, outputDir, topic, seed } = opts
 
   // Resolve logo path
   const isDark = visual.background === 'dark'
@@ -82,6 +82,7 @@ export async function generateFinals(
         ratio,
         logoPath,
         topic,
+        seed,
       })
       const outPath = join(outputDir, `${platform}.png`)
       writeFileSync(outPath, poster)

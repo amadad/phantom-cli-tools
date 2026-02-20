@@ -35,13 +35,15 @@ export interface RenderCompositionOptions {
   logoPath?: string
   /** Topic string — seeds deterministic layout selection */
   topic?: string
+  /** Stable seed for reproducible layout/palette selection (e.g. queue id) */
+  seed?: string
 }
 
 /**
  * Render a single still frame of a brand composition, returning a PNG buffer.
  */
 export async function renderComposition(options: RenderCompositionOptions): Promise<Buffer> {
-  const { brand, headline, contentImage, ratio, logoPath, topic } = options
+  const { brand, headline, contentImage, ratio, logoPath, topic, seed } = options
 
   const visual = loadBrandVisual(brand)
   const { width, height } = ASPECT_RATIOS[ratio]
@@ -54,13 +56,14 @@ export async function renderComposition(options: RenderCompositionOptions): Prom
     console.log(`[render] Registered font: ${fontFamily} (${fontFile})`)
   }
 
-  // Pick layout from brand's allowed list
+  // Pick layout from brand's allowed list (seed-stable for reproducibility)
   const layoutName = pickLayout(
     visual.layouts,
     topic ?? headline,
     !!contentImage,
+    seed,
   )
-  const layout = computeLayout(layoutName, width, height, visual, topic)
+  const layout = computeLayout(layoutName, width, height, visual, topic, seed)
 
   // Resolve logo path: prefer visual config, fall back to param
   const isDark = visual.background === 'dark'

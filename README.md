@@ -89,7 +89,7 @@ agent/src/
 ├── commands/   explore, copy-cmd, image-cmd, poster-cmd, enqueue-cmd, intel, post, queue, brand
 ├── core/       brand, visual, paths, session, types, json
 ├── cli/        args, flags, output, registry, schemas, errors
-├── generate/   copy, image, classify, style-selection, upscale
+├── generate/   copy, image, classify, upscale, providers/
 ├── eval/       grader, image-grader, learnings
 ├── composite/  poster, layouts, renderer/ (4-layer canvas)
 ├── publish/    twitter, linkedin, facebook, instagram, threads

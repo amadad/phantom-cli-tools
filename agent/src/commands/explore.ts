@@ -60,11 +60,11 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Explor
   let isTypeOnly = false
 
   const visual = loadBrandVisual(brand)
-  const probeLayout = pickLayout(visual.layouts, topic, true)
-  // If the brand only has type-only in its layouts, or the probe picks type-only
-  if (probeLayout === 'type-only' || !visual.layouts.some(l => l !== 'type-only')) {
+  // Check if brand only supports type-only layouts (no image layouts available)
+  const hasImageLayouts = visual.layouts.some(l => l !== 'type-only')
+  if (!hasImageLayouts) {
     isTypeOnly = true
-    console.log(`[explore] Layout probe: ${probeLayout} → type-only (skipping image gen)`)
+    console.log(`[explore] Brand only has type-only layouts → skipping image gen`)
   }
 
   // === Step 1: Copy first (fast — 1 LLM call gives us imageDirection) ===

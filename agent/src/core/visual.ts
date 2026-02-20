@@ -162,14 +162,46 @@ export function loadBrandVisual(brandName: string): BrandVisual {
     ...(rawImage.model ? { model: rawImage.model } : {}),
   }
 
+  // Validate enum fields
+  const VALID_DENSITY = ['relaxed', 'moderate', 'tight'] as const
+  const VALID_ALIGNMENT = ['center', 'left', 'asymmetric'] as const
+  const VALID_BACKGROUND = ['light', 'dark', 'warm'] as const
+
+  let density = DEFAULTS.density
+  if (raw.density) {
+    if (VALID_DENSITY.includes(raw.density)) {
+      density = raw.density
+    } else {
+      console.warn(`[visual] ${brandName}: invalid density "${raw.density}", using "${DEFAULTS.density}"`)
+    }
+  }
+
+  let alignment = DEFAULTS.alignment
+  if (raw.alignment) {
+    if (VALID_ALIGNMENT.includes(raw.alignment)) {
+      alignment = raw.alignment
+    } else {
+      console.warn(`[visual] ${brandName}: invalid alignment "${raw.alignment}", using "${DEFAULTS.alignment}"`)
+    }
+  }
+
+  let background = DEFAULTS.background
+  if (raw.background) {
+    if (VALID_BACKGROUND.includes(raw.background)) {
+      background = raw.background
+    } else {
+      console.warn(`[visual] ${brandName}: invalid background "${raw.background}", using "${DEFAULTS.background}"`)
+    }
+  }
+
   const result: BrandVisual = {
     palette,
     typography: { headline },
     logo,
     layouts,
-    density: raw.density ?? DEFAULTS.density,
-    alignment: raw.alignment ?? DEFAULTS.alignment,
-    background: raw.background ?? DEFAULTS.background,
+    density,
+    alignment,
+    background,
     paletteRotation,
     image,
   }

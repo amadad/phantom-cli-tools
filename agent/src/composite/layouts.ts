@@ -63,21 +63,24 @@ export function buildPalette(v: BrandVisual): string[] {
 /**
  * Pick a layout name deterministically from the topic string.
  * If no contentImage, filters to type-only eligible layouts.
+ *
+ * @param seed - Optional stable seed (e.g. queue id). Falls back to topic string.
+ *               Using a stable seed keeps output reproducible for debugging.
  */
 export function pickLayout(
   allowedLayouts: LayoutName[],
   topic: string,
   hasImage: boolean,
+  seed?: string,
 ): LayoutName {
   const eligible = hasImage
-    ? allowedLayouts.filter(l => l !== 'type-only')
+    ? allowedLayouts
     : allowedLayouts.filter(l => l === 'type-only')
 
   if (eligible.length === 0) return hasImage ? 'split' : 'type-only'
 
-  // Mix topic + timestamp so repeated runs get different layouts
-  const seed = topic + ':layout:' + Math.floor(Date.now() / 1000)
-  return eligible[hashToIndex(seed, eligible.length)]
+  const layoutSeed = seed ?? topic
+  return eligible[hashToIndex(layoutSeed, eligible.length)]
 }
 
 // ── Named layouts ───────────────────────────────────────────────────────────
@@ -234,6 +237,8 @@ const LAYOUT_FNS: Record<LayoutName, (w: number, h: number, v: BrandVisual) => L
 /**
  * Compute layout zones for a given layout name, canvas size, and brand visual.
  * Also resolves bgColorIndex from topic hash.
+ *
+ * @param seed - Optional stable seed for palette rotation. Falls back to topic string.
  */
 export function computeLayout(
   layoutName: LayoutName,
@@ -241,15 +246,13 @@ export function computeLayout(
   height: number,
   visual: BrandVisual,
   topic?: string,
+  seed?: string,
 ): LayoutResult {
   const fn = LAYOUT_FNS[layoutName]
   const result = fn(width, height, visual)
 
-  // Palette rotation — mix topic + timestamp so each run gets a different color
-  const seed = topic
-    ? topic + ':' + Math.floor(Date.now() / 1000)
-    : String(Date.now())
-  result.bgColorIndex = hashToIndex(seed, visual.paletteRotation)
+  const colorSeed = seed ?? topic ?? 'default'
+  result.bgColorIndex = hashToIndex(colorSeed, visual.paletteRotation)
 
   return result
 }
