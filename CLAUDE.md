@@ -27,6 +27,11 @@ npx tsx src/cli.ts post <brand> --all           # Post to all platforms
 npx tsx src/cli.ts queue list [brand]           # View queue items
 npx tsx src/cli.ts queue show <id> [brand]      # Show a queue item
 
+# Tokens
+npx tsx src/cli.ts token check [brand]          # Check all token statuses
+npx tsx src/cli.ts token refresh [brand]        # Refresh expiring tokens
+npx tsx src/cli.ts token refresh --all [brand]  # Force refresh all tokens
+
 # Other
 npx tsx src/cli.ts learn <brand>                # Aggregate learnings from eval-log
 npx tsx src/cli.ts video <brand> <brief>        # Generate short-form video
@@ -240,11 +245,26 @@ cd agent && npx tsc --noEmit  # typecheck
 git add <files> && git commit -m "feat: description"
 ```
 
+## Token Lifecycle
+
+| Platform | Expiry | Auto-refresh | Manual re-auth |
+|----------|--------|-------------|----------------|
+| Twitter | Never (OAuth 1.0a) | N/A | N/A |
+| Facebook | Never (page tokens) | N/A | N/A |
+| Instagram | 60 days | `token refresh` (must be valid) | Meta Developer Console > Use cases > Instagram API > Generate access tokens |
+| Threads | 60 days | `token refresh` (must be valid) | Meta Developer Console > Use cases > Threads API > User Token Generator |
+| LinkedIn | 60 days | Not available | `cd agent && npx tsx scripts/linkedin-auth.ts` |
+
+The `post` command runs a pre-flight token check automatically. If a token is expired but refreshable, it refreshes it. If not, it skips that platform and warns you.
+
+Run `token refresh` proactively (e.g., weekly) to extend Instagram/Threads tokens before they expire. Once expired, they can't be refreshed via API — you must re-auth manually in the Meta Developer Console.
+
 ## Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
 | Twitter 403 | Remove URL from tweet; spam filter |
 | Instagram fail | Needs public URL; use R2 upload |
+| Token expired | `token check` to diagnose, `token refresh` to fix, or re-auth manually |
 | Wrong queue item | Specify brand explicitly |
 | Type errors | Check QueueItem.brand field exists |

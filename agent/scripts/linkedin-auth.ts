@@ -4,6 +4,7 @@
  */
 
 import { createServer } from 'http'
+import { readFileSync, writeFileSync } from 'fs'
 import { URL } from 'url'
 import { config } from 'dotenv'
 import { join, dirname } from 'path'
@@ -11,7 +12,8 @@ import { fileURLToPath } from 'url'
 import open from 'open'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-config({ path: join(__dirname, '..', '.env') })
+const ENV_PATH = join(__dirname, '..', '.env')
+config({ path: ENV_PATH })
 
 const CLIENT_ID = process.env.LINKEDIN_CLIENT_ID
 const CLIENT_SECRET = process.env.LINKEDIN_CLIENT_SECRET
@@ -47,6 +49,8 @@ async function getAccessToken(code: string): Promise<{ access_token: string; exp
 }
 
 async function main() {
+  const brand = process.argv[2]
+
   if (!CLIENT_ID || !CLIENT_SECRET) {
     console.log('Missing LINKEDIN_CLIENT_ID or LINKEDIN_CLIENT_SECRET in .env')
     console.log('\nAdd these to your .env:')
@@ -55,6 +59,15 @@ async function main() {
     return
   }
 
+  if (!brand) {
+    console.log('Usage: npx tsx scripts/linkedin-auth.ts <brand>')
+    console.log('Example: npx tsx scripts/linkedin-auth.ts scty')
+    return
+  }
+
+  // Capture after validation so TypeScript narrows to string in closures
+  const brandName = brand
+
   const authUrl = new URL('https://www.linkedin.com/oauth/v2/authorization')
   authUrl.searchParams.set('response_type', 'code')
   authUrl.searchParams.set('client_id', CLIENT_ID)
@@ -62,12 +75,12 @@ async function main() {
   authUrl.searchParams.set('scope', SCOPES)
   authUrl.searchParams.set('state', 'phantomloom')
 
-  console.log('LinkedIn OAuth Flow')
+  console.log(`LinkedIn OAuth Flow — ${brand}`)
   console.log('==================\n')
-  console.log('1. A browser window will open')
-  console.log('2. Log in with the LinkedIn account that admins the company page')
+  console.log(`1. A browser window will open`)
+  console.log(`2. Log in with the LinkedIn account that admins the ${brand} company page`)
   console.log('3. Authorize the app')
-  console.log('4. The access token will be displayed here\n')
+  console.log('4. The token will be saved to .env automatically\n')
 
   // Start local server to catch callback
   const server = createServer(async (req, res) => {
@@ -92,13 +105,29 @@ async function main() {
         try {
           console.log('\nExchanging code for access token...')
           const tokens = await getAccessToken(code)
+          const days = Math.round(tokens.expires_in / 86400)
+
+          // Auto-save to .env
+          const envKey = `LINKEDIN_${brandName.toUpperCase()}_ACCESS_TOKEN`
+          const envContent = readFileSync(ENV_PATH, 'utf-8')
+          const needle = `${envKey}="`
+          const start = envContent.indexOf(needle)
+          if (start !== -1) {
+            const valueStart = start + needle.length
+            const valueEnd = envContent.indexOf('"', valueStart)
+            if (valueEnd !== -1) {
+              const updated = envContent.slice(0, valueStart) + tokens.access_token + envContent.slice(valueEnd)
+              writeFileSync(ENV_PATH, updated)
+              console.log(`\nSaved to .env as ${envKey}`)
+            }
+          } else {
+            console.log(`\nWarning: ${envKey} not found in .env. Add manually:`)
+            console.log(`${envKey}="${tokens.access_token}"`)
+          }
 
           console.log('\n========== SUCCESS ==========')
-          console.log('\nAccess Token:')
-          console.log(tokens.access_token)
-          console.log('\nExpires in:', tokens.expires_in, 'seconds (~' + Math.round(tokens.expires_in / 86400) + ' days)')
-          console.log('\nAdd to your .env:')
-          console.log(`LINKEDIN_ACCESS_TOKEN="${tokens.access_token}"`)
+          console.log(`\nBrand: ${brand}`)
+          console.log(`Expires in: ${days} days`)
           console.log('\n==============================\n')
         } catch (err) {
           console.error('\nError getting token:', err)

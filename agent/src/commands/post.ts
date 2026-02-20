@@ -143,6 +143,29 @@ export async function post(options: PostOptions): Promise<PostSummary | null> {
 
   console.log(`Platforms: ${targetPlatforms.join(', ')}`)
 
+  // Pre-flight token check — auto-refresh if possible, warn if not
+  if (!dryRun) {
+    const { preflightTokenCheck } = await import('../publish/token-refresh')
+    const { ready, failed } = await preflightTokenCheck(brand, targetPlatforms)
+
+    if (failed.length > 0) {
+      console.log('\nToken issues:')
+      for (const f of failed) {
+        console.log(`  [${f.platform}] ${f.message}`)
+      }
+    }
+
+    if (ready.length === 0) {
+      throw new Error('No platforms have valid tokens. Run "token refresh" or re-auth manually.')
+    }
+
+    if (ready.length < targetPlatforms.length) {
+      const skipped = targetPlatforms.filter(p => !ready.includes(p))
+      console.log(`\nSkipping: ${skipped.join(', ')} (token issues)`)
+      targetPlatforms = ready as Platform[]
+    }
+  }
+
   if (dryRun) {
     console.log('\n[DRY RUN] Would post:')
     const preview: PostPreview[] = []

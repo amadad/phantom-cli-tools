@@ -219,6 +219,22 @@ export const commands: CommandDefinition[] = [
     }
   },
   {
+    name: 'token',
+    aliases: ['tokens'],
+    summary: 'Check and refresh OAuth tokens',
+    usage: 'token [check|refresh] [brand] [options]',
+    options: [
+      { flag: 'check', description: 'Check all token statuses (default)' },
+      { flag: 'refresh', description: 'Refresh expiring tokens' },
+      { flag: '--all', description: 'Force refresh all refreshable tokens' }
+    ],
+    examples: ['phantom token check', 'phantom token refresh givecare', 'phantom token refresh --all'],
+    run: async (args: string[], ctx) => {
+      const { run } = await import('../commands/token')
+      return run(args, ctx)
+    }
+  },
+  {
     name: 'brand',
     summary: 'Create or manage brand scaffolding',
     usage: 'brand init <name>',

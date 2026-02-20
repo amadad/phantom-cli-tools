@@ -7,6 +7,7 @@ venv/
 
 # Environment files
 .env
+.token-expiry.json
 
 # System files
 **/.DS_Store
