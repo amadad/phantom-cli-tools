@@ -1,0 +1,185 @@
+# SCTY Evaluation Rubric
+# Tech thought leadership content grading criteria
+
+name: "SCTY"
+version: "1.0"
+threshold: 70  # minimum score to pass (0-100)
+max_retries: 2  # self-heal attempts
+
+# =============================================================================
+# DIMENSIONS (scored 0-10 by LLM-as-Judge)
+# =============================================================================
+dimensions:
+  insight:
+    weight: 0.25
+    description: "Offers genuine insight, not obvious observations"
+    rubric:
+      10: "Non-obvious perspective that reframes understanding"
+      7: "Solid insight but somewhat expected in the space"
+      4: "Surface-level observation anyone could make"
+      1: "Generic tech platitude or buzzword soup"
+
+  clarity:
+    weight: 0.25
+    description: "Dense information with minimal words"
+    rubric:
+      10: "Every word carries weight, no filler"
+      7: "Mostly tight but some fluff"
+      4: "Verbose, could be said in half the words"
+      1: "Meandering, unclear, or padded"
+
+  authority:
+    weight: 0.20
+    description: "Speaks from experience, not speculation"
+    rubric:
+      10: "Clearly draws from real building/shipping experience"
+      7: "Credible but lacks specific grounding"
+      4: "Sounds theoretical or second-hand"
+      1: "Obvious speculation dressed as expertise"
+
+  originality:
+    weight: 0.15
+    description: "Avoids recycled takes and AI slop"
+    rubric:
+      10: "Fresh angle not seen elsewhere"
+      7: "Familiar territory with some new elements"
+      4: "Could be any tech account's post"
+      1: "Reads like GPT summary of trending takes"
+
+  engagement:
+    weight: 0.15
+    description: "Creates tension or curiosity"
+    rubric:
+      10: "Opens a loop, provokes thought"
+      7: "Interesting but no real hook"
+      4: "Informative but forgettable"
+      1: "No reason to read past first line"
+
+# =============================================================================
+# HARD FAILS (automatic zero - binary check)
+# =============================================================================
+banned_phrases:
+  # Corporate speak
+  - "leverage"
+  - "synergy"
+  - "disrupting"
+  - "game-changer"
+  - "revolutionary"
+  - "paradigm shift"
+  - "thought leader"
+  - "best practices"
+
+  # AI slop markers
+  - "in today's fast-paced"
+  - "it's worth noting"
+  - "at the end of the day"
+  - "needless to say"
+  - "in this day and age"
+  - "the reality is"
+  - "here's the thing"
+  - "let's dive in"
+  - "without further ado"
+
+  # Hype culture
+  - "absolutely insane"
+  - "mind-blowing"
+  - "this changes everything"
+  - "I'm shook"
+  - "hot take"
+
+  # Empty calls to action
+  - "let me know what you think"
+  - "thoughts?"
+  - "agree?"
+  - "what do you think?"
+
+# =============================================================================
+# RED FLAGS (patterns that trigger warnings)
+# =============================================================================
+red_flag_patterns:
+  - pattern: "the future of .* is"
+    reason: "Prediction framing often empty"
+    penalty: 3
+
+  - pattern: "\\d+ things I learned"
+    reason: "Listicle format often shallow"
+    penalty: 2
+
+  - pattern: "unpopular opinion"
+    reason: "Usually not unpopular"
+    penalty: 3
+
+  - pattern: "nobody is talking about"
+    reason: "Usually many people are"
+    penalty: 3
+
+  - pattern: "AI will replace"
+    reason: "Tired prediction trope"
+    penalty: 5
+
+  - pattern: "hot take:"
+    reason: "Signals hype over substance"
+    penalty: 5
+
+  - pattern: "thread:"
+    reason: "Thread format not in scope"
+    penalty: 2
+
+# =============================================================================
+# PLATFORM LIMITS
+# =============================================================================
+platforms:
+  twitter:
+    max_chars: 280
+    max_hashtags: 2
+  linkedin:
+    max_chars: 3000
+    max_hashtags: 3
+  facebook:
+    max_chars: 63206
+    max_hashtags: 2
+  instagram:
+    max_chars: 2200
+    max_hashtags: 5
+  threads:
+    max_chars: 500
+    max_hashtags: 2
+
+# =============================================================================
+# JUDGE PROMPT (for LLM-as-Judge)
+# =============================================================================
+judge_prompt: |
+  You are evaluating tech thought leadership content for SCTY, an AI studio.
+
+  CONTEXT: SCTY builds AI products (GiveCare), runs experiments, and consults for
+  agencies and health tech. The voice is direct, technical, building-focused.
+  Not corporate. Not hype. Not obvious.
+
+  EVALUATE this content on 5 dimensions (score 0-10 each):
+
+  1. INSIGHT: Does it offer a non-obvious perspective? Does it reframe something
+     or just state the obvious? Would a smart practitioner nod or roll their eyes?
+
+  2. CLARITY: Is it dense with meaning? Could it be said in fewer words? Is every
+     sentence necessary?
+
+  3. AUTHORITY: Does it sound like someone who builds things? Or someone who
+     reads about people who build things? Is there specificity that only comes
+     from real experience?
+
+  4. ORIGINALITY: Is this a fresh take? Or could any tech account have posted it?
+     Does it avoid the recycled AI discourse?
+
+  5. ENGAGEMENT: Does it create tension or curiosity? Is there a reason to read
+     to the end? Would you remember it?
+
+  RESPOND IN JSON:
+  {
+    "insight": <0-10>,
+    "clarity": <0-10>,
+    "authority": <0-10>,
+    "originality": <0-10>,
+    "engagement": <0-10>,
+    "critique": "<1-2 sentences on the weakest dimension>",
+    "suggestion": "<specific rewrite suggestion if score < 7>"
+  }

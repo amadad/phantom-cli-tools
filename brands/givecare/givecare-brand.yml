@@ -1,0 +1,61 @@
+# GiveCare Brand
+# Reference images: styles/
+# Voice: agent/src/generate/copy.ts
+
+name: "GiveCare"
+url: "https://givecareapp.com"
+
+handles:
+  twitter: "@givecareapp"
+  linkedin: "urn:li:organization:106542185"
+
+platforms:
+  twitter:
+    max_chars: 280
+    hashtags: 3
+  linkedin:
+    max_chars: 3000
+    hashtags: 5
+  instagram:
+    max_chars: 2200
+    hashtags: 5
+  threads:
+    max_chars: 500
+    hashtags: 2
+
+# Visual system
+visual:
+  palette:
+    background: "#FDFBF7"
+    primary: "#1E1B16"
+    accent: "#5046E5"
+    secondary: "#3D3929"
+    warm: "#FCEEE3"
+    dark: "#1E1B16"
+    light: "#FFE8D6"
+
+  typography:
+    headline:
+      font: Alegreya
+      fontFile: assets/Alegreya-VariableFont_wght.ttf
+      weight: 400
+      lineHeight: 0.95
+      sizes: { sm: 28, md: 50, lg: 84, display: 136 }
+
+  logo:
+    light: assets/logo.svg
+    colorOnLight: "#54340E"
+    colorOnDark: "#FFE8D6"
+
+  layouts: [split, overlay, type-only, card]
+  density: moderate
+  alignment: center
+  background: warm
+  paletteRotation: 4
+
+  image:
+    style: "tactile, hand-worked materiality — fibers, felt, stitched edges, woven textures, layered paper"
+    mood: "warm, empowered, accessible, visceral"
+    avoid: [text, logos, literal caregiving scenes, people, faces]
+    prefer: [abstract material metaphor, touch-inviting surfaces, repetition, soft tension]
+    palette_instructions: "cream background, deep brown primary forms, indigo accent"

@@ -1,0 +1,187 @@
+# GiveCare Evaluation Rubric
+# Trauma-informed content grading criteria
+
+name: "GiveCare"
+version: "1.0"
+threshold: 70  # minimum score to pass (0-100)
+max_retries: 2  # self-heal attempts
+
+# =============================================================================
+# DIMENSIONS (scored 0-10 by LLM-as-Judge)
+# =============================================================================
+dimensions:
+  safety:
+    weight: 0.20
+    description: "Creates emotional safety, normalizes difficulty"
+    rubric:
+      10: "Genuinely safe, normalizes struggle without pressure"
+      7: "Neutral, doesn't pressure but doesn't actively validate"
+      4: "Subtle pressure to perform or feel differently"
+      1: "Shaming, blaming, urgency-inducing, or guilt-based"
+
+  choice:
+    weight: 0.20
+    description: "Offers options rather than commands"
+    rubric:
+      10: "Clear options: 'You might...' 'One thing that helps...'"
+      7: "Soft suggestion without explicit choice"
+      4: "Directive but not commanding"
+      1: "Commands: 'You need to' 'You must' 'You have to'"
+
+  validation:
+    weight: 0.25
+    description: "Acknowledges struggle before offering anything"
+    rubric:
+      10: "Opens with acknowledgment, sits with difficulty first"
+      7: "Acknowledges struggle but rushes to solution"
+      4: "Minimal acknowledgment, jumps to advice"
+      1: "Skips straight to positivity or advice"
+
+  empowerment:
+    weight: 0.15
+    description: "Treats reader as capable adult"
+    rubric:
+      10: "Reader is expert in their own life, making their own choices"
+      7: "Generally respectful"
+      4: "Slightly condescending or preachy"
+      1: "Talks down, lectures, positions reader as broken"
+
+  authenticity:
+    weight: 0.20
+    description: "Warm human voice, not corporate wellness"
+    rubric:
+      10: "Sounds like a real friend texting"
+      7: "Warm but slightly polished"
+      4: "Sounds like a wellness brand posting"
+      1: "Motivational speaker, toxic positivity, corporate"
+
+# =============================================================================
+# HARD FAILS (automatic zero - binary check)
+# =============================================================================
+banned_phrases:
+  # Toxic positivity
+  - "just stay positive"
+  - "good vibes only"
+  - "everything happens for a reason"
+  - "it could be worse"
+  - "at least you"
+  - "just be grateful"
+  - "look on the bright side"
+
+  # Dismissive wellness speak
+  - "you're allowed to"
+  - "give yourself grace"
+  - "self-care isn't selfish"
+  - "you've got this"
+  - "you matter"
+  - "you deserve"
+  - "your peace matters"
+  - "you can't pour from an empty cup"
+
+  # Resilience pressure
+  - "stay strong"
+  - "you're so resilient"
+  - "keep pushing through"
+  - "don't give up"
+  - "you'll get through this"
+  - "tough times don't last"
+
+  # Commands
+  - "you need to"
+  - "you should"
+  - "you have to"
+  - "you must"
+  - "stop feeling"
+  - "don't think about"
+  - "calm down"
+
+# =============================================================================
+# RED FLAGS (patterns that trigger warnings)
+# =============================================================================
+red_flag_patterns:
+  - pattern: "you are the .* of your"
+    reason: "Motivational speaker cadence"
+    penalty: 5
+
+  - pattern: "start acting like"
+    reason: "Preachy imperative"
+    penalty: 5
+
+  - pattern: "it's time to"
+    reason: "Urgency pressure"
+    penalty: 3
+
+  - pattern: "no excuses"
+    reason: "Shame-based framing"
+    penalty: 10
+
+  - pattern: "what's your excuse"
+    reason: "Blame framing"
+    penalty: 10
+
+  - pattern: "stop making excuses"
+    reason: "Dismissive of barriers"
+    penalty: 10
+
+  - pattern: "just do it"
+    reason: "Dismisses complexity"
+    penalty: 5
+
+  - pattern: "if i can do it"
+    reason: "Comparison/guilt"
+    penalty: 5
+
+# =============================================================================
+# PLATFORM LIMITS
+# =============================================================================
+platforms:
+  twitter:
+    max_chars: 280
+    max_hashtags: 3
+  linkedin:
+    max_chars: 3000
+    max_hashtags: 5
+  instagram:
+    max_chars: 2200
+    max_hashtags: 5
+  threads:
+    max_chars: 500
+    max_hashtags: 3
+
+# =============================================================================
+# JUDGE PROMPT (for LLM-as-Judge)
+# =============================================================================
+judge_prompt: |
+  You are evaluating caregiver support content for trauma-informed language.
+
+  CONTEXT: This content is for family caregivers - people caring for aging parents,
+  sick spouses, or family members with disabilities. They are exhausted, overwhelmed,
+  and often feel invisible. They've heard every toxic positivity phrase.
+
+  EVALUATE this content on 5 dimensions (score 0-10 each):
+
+  1. SAFETY: Does it create emotional safety? Does it normalize struggle without
+     adding pressure to feel or perform differently?
+
+  2. CHOICE: Does it offer options ("you might try...") rather than commands
+     ("you need to...")? Does it respect autonomy?
+
+  3. VALIDATION: Does it acknowledge the hard thing FIRST, before any advice?
+     Does it sit with the difficulty rather than rushing to fix it?
+
+  4. EMPOWERMENT: Does it treat the reader as a capable adult making their own
+     choices? Or does it talk down, lecture, or position them as broken?
+
+  5. AUTHENTICITY: Does it sound like a real friend texting? Or does it sound
+     like a wellness brand, motivational speaker, or corporate account?
+
+  RESPOND IN JSON:
+  {
+    "safety": <0-10>,
+    "choice": <0-10>,
+    "validation": <0-10>,
+    "empowerment": <0-10>,
+    "authenticity": <0-10>,
+    "critique": "<1-2 sentences on the weakest dimension>",
+    "suggestion": "<specific rewrite suggestion if score < 7>"
+  }

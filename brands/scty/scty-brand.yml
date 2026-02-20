@@ -1,0 +1,281 @@
+# SCTY Brand Profile
+name: "SCTY"
+url: "https://scty.org"
+
+# Voice - How we write
+voice:
+  tone: "Bold, innovative, thought-provoking"
+  style: "Direct, tech-forward, no fluff"
+  rules:
+    - "Speak with authority about technology and society"
+    - "Challenge conventional thinking"
+    - "Balance technical depth with clarity"
+    - "No corporate speak"
+
+# Visual Style - MONOCHROME BRUTALIST SYSTEM
+visual:
+  palette:
+    background: "#FAFAFA"
+    primary: "#000000"
+    accent: "#1A1A1A"
+    secondary: "#FAFAFA"
+    dark: "#000000"
+    light: "#FAFAFA"
+
+  typography:
+    headline:
+      font: Groot Bau
+      fontFile: assets/fonts/Groot-Bau-Bold.ttf
+      weight: 800
+      lineHeight: 0.95
+      sizes: { sm: 32, md: 56, lg: 96, display: 160 }
+      letterSpacing: "-0.02em"
+      transform: uppercase
+
+  logo:
+    light: assets/logo.svg
+    dark: assets/logo-dark.svg
+    colorOnLight: "#000000"
+    colorOnDark: "#FAFAFA"
+
+  layouts: [split, overlay, type-only, full-bleed]
+  density: tight
+  alignment: asymmetric
+  background: dark
+  paletteRotation: 4
+  variants:
+    layoutWeights:
+      split: 1
+      overlay: 2
+      type-only: 4
+      card: 1
+      full-bleed: 1
+    density: [tight, moderate]
+    alignment: [asymmetric, left]
+    background: [dark, warm]
+
+  image:
+    style: "technical patent drawings meets theoretical physics visualization meets zine-culture collage. Monochrome or duotone. Declassified research diagrams, speculative engineering schematics photocopied too many times, pseudo-scientific conceptual cartography, retro-futurist cosmic symbolism"
+    mood: "clinical precision warped by entropy. Systematic but slightly wrong. A future archive of something never built. Philosophical diagrams from an alternate research institute"
+    avoid: [realistic imagery, text, letters, typography, shadows, gradients, stock photography, clean vector art, crude literal metaphors, full color palettes]
+    prefer: [patent drawing line weight, circuit diagram aesthetics, waveform interference patterns, technical cross-sections, topology meshes with photocopy artifacts, speculative machine anatomy, particle collision diagrams, electromagnetic field visualizations, elegant technical precision, conceptual cartography with poetic annotations, retro-futurist orbital motifs, bold flat iconic silhouettes, zine collage layering, duotone spot color fields, cross-hatching and stipple rendering, perspective grid vanishing points]
+
+  style: "Monochrome brutalist, experimental graphic design, archival, imperfect, intentional"
+  mood: "bold, raw, systematic, experimental"
+
+  # What to avoid
+  avoid:
+    - "color"
+    - "realistic imagery"
+    - "readable text unless explicitly enabled"
+    - "shadows or lighting realism"
+    - "gradients"
+    - "stock photography"
+    - "generic tech imagery"
+    - "corporate design"
+    - "decorative elements"
+    - "soft aesthetics"
+
+  # =============================================================================
+  # MODULAR VISUAL PROMPT SYSTEM
+  # MONOCHROME ABSTRACT / TYPO-GEOMETRIC / GESTURAL HYBRID
+  # =============================================================================
+  prompt_system:
+    # Core aesthetic constraints (always applied)
+    core_aesthetic:
+      - "Monochrome or duotone only — black and white, or single spot color + black, high contrast"
+      - "Brutalist, modernist, experimental graphic design"
+      - "Feels archival, printed, imperfect, intentional"
+      - "Zine-culture print DNA — rough registration, overprint, collage logic"
+
+    # SUBJECT variable options
+    subject_types:
+      abstract: "abstract form, non-representational mark"
+      letterform: "letterform as shape, not readable text"
+      symbol: "symbol, logo, or identity mark"
+      grid: "warp grid, modular grid system"
+      mass: "visual mass, typographic structure"
+      conceptual_diagram: "pseudo-scientific conceptual map, philosophical cartography — poetic annotations on technical axes, polar coordinates of abstract ideas"
+      celestial: "retro-futurist cosmic symbol, orbital paths, horizon lines, vanishing-point perspective grids, star markers, thin single-weight strokes"
+      iconic_silhouette: "bold flat silhouette, single-weight iconographic mark, figure or object reduced to pure shape"
+
+    # FORM_MODE toggles (combinable)
+    form_modes:
+      geometric: "geometric modular forms (circles, quarter-circles, rectangles, grids)"
+      typographic: "distorted typographic structures (illegible, deconstructed, stretched)"
+      gestural: "organic gestural marks (ink blots, brush strokes, calligraphic masses)"
+      halftone: "halftone erosion / scanline interference"
+      techno: "techno geometric, digital grid structures, warp distortion"
+      bleed: "soft bleed edges"
+      vector: "hard vector cuts"
+      duotone: "single spot color (vermillion, deep red, or signal orange) plus black on flat field — large solid color areas as compositional blocks"
+      collage: "zine-style mixed-media collage, layered halftone photography with line illustration and bold typographic mass, rough cut edges"
+      cosmic: "retro-futurist thin line work — orbits, horizons, perspective grids, celestial arcs, constellation node networks"
+
+    # TEXTURE_MODE options (combinable)
+    texture_modes:
+      risograph: "risograph grain"
+      photocopy: "photocopy noise"
+      halftone: "halftone dots"
+      scanline: "scanline banding"
+      ink_bleed: "ink bleed"
+      spray: "spray or airbrush diffusion"
+      paper: "paper grain visible"
+      future: "digital artifacts, glitch patterns"
+      overprint: "rough print registration, misaligned color layers, overprint artifacts, ink trapping"
+      crosshatch: "academic cross-hatching, stipple rendering, engraving line texture"
+
+    # EDGE_STYLE options
+    edge_styles:
+      sharp: "razor-sharp vector edges"
+      torn: "torn paper edges"
+      bleed: "fuzzy ink bleed"
+      eroded: "partially eroded contours"
+      sharp_eroded: "sharp with minor erosion"
+
+    # TYPE_BEHAVIOR options
+    type_behaviors:
+      shapes: "letterforms as shapes, not readable text"
+      fragmented: "characters fragmented into primitives"
+      misaligned: "misaligned baselines"
+      rotated: "rotated 90° / 180°"
+      cropped: "cropped aggressively by frame"
+
+    # BACKGROUND options
+    backgrounds:
+      white: "pure white"
+      black: "solid black"
+      spot: "flat spot color field (vermillion, signal orange, deep red) — used with duotone form mode"
+
+    # OUTPUT_INTENT options
+    output_intents:
+      poster: "poster"
+      brand_mark: "brand mark exploration"
+      editorial: "editorial graphic"
+      identity: "identity system component"
+      generative: "generative art base"
+      social: "social media post"
+
+    # Composition rules (always applied)
+    composition:
+      - "Subject OFF-CENTER — pushed to edge, corner, or bleeding off-frame. Never centered."
+      - "Aggressive negative space — 40-60% of canvas can be empty"
+      - "Element does NOT need to fill the frame. Isolated mark on vast field is valid."
+      - "Asymmetrical balance — visual weight through placement, not centering"
+      - "Visual rhythm through repetition and variation"
+      - "Crop with intention — subjects can bleed off edge or float in space"
+
+    # Depth rules (always applied)
+    depth:
+      - "Flat graphic plane with implied depth"
+      - "Overlapping shapes"
+      - "Masked layers"
+      - "Transparency through pattern density, not opacity"
+
+  # =============================================================================
+  # REFERENCE STYLES - Mapped to form/texture combinations
+  # =============================================================================
+  reference_styles:
+    - name: "typography_system"
+      description: "Bold typography, editorial design, typographic structures"
+      images:
+        - "styles/02.jpg"
+      mood_keywords: ["type", "text", "typography", "message", "statement", "words", "letterform"]
+      form_mode: "typographic"
+      texture_mode: "photocopy"
+      edge_style: "sharp"
+
+    - name: "organic_texture"
+      description: "Organic gestural forms, growth patterns, biological abstraction"
+      images:
+        - "styles/03.jpg"
+      mood_keywords: ["organic", "growth", "nature", "texture", "flow", "biological"]
+      form_mode: "gestural"
+      texture_mode: "risograph + ink_bleed"
+      edge_style: "bleed"
+
+    - name: "modernist_graphic"
+      description: "Bold geometric, flat color blocks, Japanese modernist poster"
+      images:
+        - "styles/04.jpg"
+      mood_keywords: ["geometric", "modern", "poster", "graphic", "bold", "flat"]
+      form_mode: "geometric"
+      texture_mode: "halftone"
+      edge_style: "sharp"
+
+    - name: "brutalist_abstract"
+      description: "Abstract brutalist forms, high contrast, experimental"
+      images:
+        - "styles/05.png"
+      mood_keywords: ["abstract", "brutalist", "experimental", "contrast", "bold", "minimal"]
+      form_mode: "geometric"
+      texture_mode: "halftone + photocopy"
+      edge_style: "sharp_eroded"
+
+    - name: "duotone_zine"
+      description: "Spot color + black zine collage, mixed-media layering, punk print aesthetic"
+      mood_keywords: ["punk", "zine", "collage", "print", "duotone", "raw", "layered", "underground"]
+      form_mode: "duotone + collage"
+      texture_mode: "overprint + halftone"
+      edge_style: "torn"
+
+    - name: "conceptual_cartography"
+      description: "Pseudo-scientific diagrams with philosophical annotations, polar coordinates of abstract ideas"
+      mood_keywords: ["knowledge", "philosophy", "diagram", "map", "science", "conceptual", "research", "theory"]
+      form_mode: "geometric + vector"
+      texture_mode: "crosshatch + paper"
+      edge_style: "sharp"
+
+    - name: "cosmic_futurist"
+      description: "Retro-futurist celestial symbols, orbital paths, thin line work on black"
+      mood_keywords: ["space", "cosmic", "future", "orbit", "horizon", "star", "celestial", "frontier"]
+      form_mode: "cosmic + vector"
+      texture_mode: "future"
+      edge_style: "sharp"
+
+  # Image generation model configuration
+  image_generation:
+    primary_model: "gemini-3-pro-image-preview"
+    fallback_model: "gemini-2.5-flash-image"
+    default_aspect_ratio: "1:1"
+    default_resolution: "2K"
+    max_reference_images: 6
+
+# Platforms
+platforms:
+  twitter:
+    max_chars: 280
+    hashtags: 2
+  linkedin:
+    max_chars: 3000
+    hashtags: 3
+  facebook:
+    max_chars: 63206
+    hashtags: 2
+    style: "Tech insights, community"
+  instagram:
+    max_chars: 2200
+    hashtags: 5
+    style: "Bold visuals, minimal text"
+  threads:
+    max_chars: 500
+    hashtags: 2
+    style: "Quick takes"
+  youtube:
+    title_max_chars: 100
+    description_max_chars: 5000
+    style: "Deep dives"
+
+# Topics we cover
+topics:
+  - "AI and society"
+  - "digital transformation"
+  - "tech ethics"
+  - "innovation"
+  - "future of work"
+  - "generative systems"
+
+# Social handles
+handles:
+  twitter: "@scty_org"
+  linkedin: "urn:li:organization:scty"

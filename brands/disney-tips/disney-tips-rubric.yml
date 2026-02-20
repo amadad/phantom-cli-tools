@@ -1,0 +1,83 @@
+name: "Disney Tips"
+version: "1.0"
+threshold: 72
+max_retries: 2
+
+dimensions:
+  actionability:
+    weight: 0.30
+    description: "Specific, executable advice — a reader can act on it today"
+    rubric:
+      10: "Step-by-step, time-specific, location-specific"
+      7: "Actionable but missing one detail (when, where, how)"
+      4: "General direction without specifics"
+      1: "Vague platitude"
+  insider_knowledge:
+    weight: 0.25
+    description: "Feels like it comes from someone who goes often, not a first-timer"
+    rubric:
+      10: "Specific park knowledge — timing windows, hidden spots, system tricks"
+      7: "Solid tips a frequent visitor would know"
+      4: "Common knowledge available on any blog"
+      1: "Obvious or wrong"
+  clarity:
+    weight: 0.20
+    description: "Clear, scannable, no filler"
+    rubric:
+      10: "Every word earns its place"
+      7: "Mostly tight, minor filler"
+      4: "Padded or wordy"
+      1: "Confusing"
+  brand_voice:
+    weight: 0.25
+    description: "Enthusiastic but not breathless — practical magic"
+    rubric:
+      10: "Nails the insider-friend tone"
+      7: "Mostly on voice"
+      4: "Too corporate or too casual"
+      1: "Off-brand"
+
+banned_phrases:
+  - "magical experience"
+  - "happiest place on earth"
+  - "game changer"
+  - "pro tip"
+  - "you won't believe"
+
+red_flag_patterns:
+  - pattern: "\"?amazing\"?"
+    reason: "Overused filler adjective"
+    penalty: 3
+  - pattern: "\"?literally\"?"
+    reason: "Filler intensifier"
+    penalty: 3
+
+platforms:
+  twitter:
+    max_chars: 280
+    max_hashtags: 3
+  linkedin:
+    max_chars: 3000
+    max_hashtags: 4
+  instagram:
+    max_chars: 2200
+    max_hashtags: 5
+  threads:
+    max_chars: 500
+    max_hashtags: 2
+
+judge_prompt: |
+  You are evaluating content for Disney Tips — a brand that shares
+  practical, insider theme park advice for families.
+
+  Score each dimension 0-10 and explain the weakest area.
+
+  Respond in JSON:
+  {
+    "actionability": <0-10>,
+    "insider_knowledge": <0-10>,
+    "clarity": <0-10>,
+    "brand_voice": <0-10>,
+    "critique": "...",
+    "suggestion": "..."
+  }

@@ -1,0 +1,69 @@
+name: "Disney Tips"
+url: "https://disneytips.com"
+tagline: "Theme park hacks for families who'd rather ride than wait"
+
+handles:
+  twitter: "@disneytips"
+  instagram: "@disneytips"
+
+platforms:
+  twitter:
+    max_chars: 280
+    hashtags: 3
+  linkedin:
+    max_chars: 3000
+    hashtags: 4
+  instagram:
+    max_chars: 2200
+    hashtags: 5
+  threads:
+    max_chars: 500
+    hashtags: 2
+
+voice:
+  tone: "enthusiastic, practical, insider"
+  audience: "families planning Disney trips"
+  avoid:
+    - corporate Disney speak
+    - generic travel advice
+    - clickbait superlatives
+  examples:
+    - "Skip rope drop at Magic Kingdom on Tuesdays — go to Hollywood Studios instead"
+    - "Mobile order your lunch at 9:30 AM. By 11 the wait times double."
+    - "The 3 PM parade clears Tomorrowland. That's your Space Mountain window."
+
+visual:
+  palette:
+    background: "#F5F0E6"
+    primary: "#3D2B6B"
+    accent: "#D4658A"
+    secondary: "#5C4A8A"
+    warm: "#F5EDE0"
+    dark: "#3D2B6B"
+    light: "#F5F0E6"
+
+  typography:
+    headline:
+      font: Bradley Gratis
+      fontFile: assets/fonts/BradleyGratis.ttf
+      weight: 400
+      lineHeight: 1.1
+      sizes: { sm: 30, md: 52, lg: 88, display: 140 }
+
+  logo:
+    light: assets/logo.svg
+    colorOnLight: "#3D2B6B"
+    colorOnDark: "#F5F0E6"
+
+  layouts: [split, overlay, card]
+  density: moderate
+  alignment: center
+  background: warm
+  paletteRotation: 4
+
+  image:
+    style: "editorial photography of iconic theme park and fairy tale moments, intentionally obscured. Tight crops of castle turrets, ride silhouettes, character shapes, firework bursts — recognizable but abstracted through grain, motion streaks, double exposure, or aggressive cropping. Think Saul Leiter shooting Disneyland on expired film"
+    mood: "nostalgic wonder, the sensory memory of a magical night, intimate not panoramic"
+    avoid: [full establishing shots, clear faces, readable text, logos, literal depictions, generic bokeh, stock photography, collage, cream or parchment backgrounds, vignettes]
+    prefer: [tight intentional crops of iconic shapes, castle spires through color wash, ride vehicles in motion streak, firework trails as abstract color, character silhouettes obscured by grain or double exposure, golden hour light on architectural detail, carnival light reflected in wet surfaces]
+    palette_instructions: "Deep purple (#3D2B6B) and midnight blue dominant. Hot pink (#D4658A) and gold as light accents. NO cream, NO warm white backgrounds"

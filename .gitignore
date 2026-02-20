@@ -35,7 +35,7 @@ output/
 # Private notes
 private/
 
-# Brand data (keep template only)
-brands/*
-!brands/_template/
-!brands/_template/**
+# Brand ephemeral data (track configs + assets, ignore runtime state)
+brands/*/queue.json
+brands/*/intel/
+brands/*/learnings.json
