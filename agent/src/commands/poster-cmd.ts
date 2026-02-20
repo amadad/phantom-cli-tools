@@ -6,12 +6,12 @@
  */
 
 import { readFileSync, existsSync, writeFileSync } from 'fs'
-import { loadBrandVisual } from '../core/visual'
 import { getBrandDir, join } from '../core/paths'
 import { slugify, createSessionDir } from '../core/session'
 import { parseArgs } from '../cli/args'
 import { generatePoster } from '../composite/poster'
 import type { AspectRatio } from '../composite/renderer/render'
+import { loadBrandVisual } from '../core/visual'
 import type { CommandContext } from '../cli/types'
 
 export interface PosterCommandResult {
@@ -46,11 +46,8 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Poster
   const outputDir = createSessionDir(`poster-${slugify(headline, 30)}`)
 
   const outputs = await generateFinals(brand, headline, contentImage, { noLogo, outputDir, topic: headline })
-
   const visual = loadBrandVisual(brand)
-  const isDark = visual.background === 'dark'
-  const actualLogoPath = isDark ? visual.logo.dark : visual.logo.light
-  const logoUsed = !noLogo && !!actualLogoPath && existsSync(actualLogoPath)
+  const logoUsed = !noLogo && [visual.logo.dark, visual.logo.light].some((path): path is string => !!path && existsSync(path))
   return { outputs, logoUsed, outputDir }
 }
 
@@ -64,12 +61,7 @@ export async function generateFinals(
   contentImage: Buffer | undefined,
   opts: { noLogo?: boolean; outputDir: string; topic?: string; seed?: string }
 ): Promise<Record<string, string>> {
-  const visual = loadBrandVisual(brandName)
   const { noLogo = false, outputDir, topic, seed } = opts
-
-  // Resolve logo path
-  const isDark = visual.background === 'dark'
-  const logoPath = noLogo ? undefined : (isDark ? visual.logo.dark : visual.logo.light)
 
   const outputs: Record<string, string> = {}
 
@@ -80,7 +72,7 @@ export async function generateFinals(
         headline,
         contentImage,
         ratio,
-        logoPath,
+        noLogo,
         topic,
         seed,
       })

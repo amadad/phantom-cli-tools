@@ -119,14 +119,15 @@ import { generateBrandImage } from './commands/image-cmd'
 import { generateAndGradeCopy } from './commands/copy-cmd'
 import { generateFinals } from './commands/poster-cmd'
 import { loadBrandVisual } from './core/visual'        // Visual config loader
-import { pickLayout, computeLayout } from './composite/layouts'
+import { buildStylePlan, canRenderWithImage } from './composite/style-planner'
+import { computeLayout } from './composite/layouts'
 ```
 
 `explore` is a thin orchestrator that calls these — ~160 LOC.
 
 ## Named Layouts
 
-Layout is selected deterministically from topic hash over the brand's allowed layouts.
+Layout is selected deterministically from topic hash using brand `layoutWeights` (or uniform fallback over allowed layouts).
 
 | Layout | Image | Text | Use |
 |--------|-------|------|-----|

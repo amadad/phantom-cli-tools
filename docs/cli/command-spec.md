@@ -63,7 +63,7 @@ Aliases: `finals`
 
 Returns: `{ outputs: { twitter, instagram, story }, logoUsed, outputDir }`
 
-Layout is selected deterministically from topic hash over the brand's allowed layouts (`visual.layouts` in brand YAML).
+Layout is selected deterministically from brand variants (`visual.variants` + fallback `visual.layouts`) using topic-seeded hashing.
 
 ### `enqueue`
 

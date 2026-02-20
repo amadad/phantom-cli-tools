@@ -19,7 +19,7 @@ import { getHookForTopic } from '../intel/hook-bank'
 import { addToQueue } from '../queue'
 import { notifyContentQueue } from '../notify/discord-queue'
 import { loadBrandVisual } from '../core/visual'
-import { pickLayout } from '../composite/layouts'
+import { canRenderWithImage } from '../composite/style-planner'
 import type { QueueItem } from '../core/types'
 import type { CommandContext } from '../cli/types'
 
@@ -60,9 +60,8 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Explor
   let isTypeOnly = false
 
   const visual = loadBrandVisual(brand)
-  // Check if brand only supports type-only layouts (no image layouts available)
-  const hasImageLayouts = visual.layouts.some(l => l !== 'type-only')
-  if (!hasImageLayouts) {
+  // Check if brand can meaningfully render image-backed layouts
+  if (!canRenderWithImage(visual)) {
     isTypeOnly = true
     console.log(`[explore] Brand only has type-only layouts → skipping image gen`)
   }

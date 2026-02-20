@@ -11,6 +11,7 @@ interface PosterOptions {
   headline: string
   contentImage?: Buffer
   ratio?: AspectRatio
+  noLogo?: boolean
   logoPath?: string
   topic?: string
   /** Stable seed for reproducible layout/palette selection */
@@ -21,7 +22,7 @@ interface PosterOptions {
  * Generate a poster PNG for a given brand, headline, and optional image.
  */
 export async function generatePoster(options: PosterOptions): Promise<Buffer> {
-  const { brand, headline, contentImage, ratio = 'square', logoPath, topic, seed } = options
+  const { brand, headline, contentImage, ratio = 'square', logoPath, noLogo, topic, seed } = options
 
   const pngBuffer = await renderComposition({
     brand,
@@ -29,6 +30,7 @@ export async function generatePoster(options: PosterOptions): Promise<Buffer> {
     contentImage,
     ratio,
     logoPath,
+    noLogo,
     topic,
     seed,
   })

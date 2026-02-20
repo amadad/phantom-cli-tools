@@ -155,6 +155,11 @@ visual:
   alignment:                  # center | left | asymmetric
   background:                 # light | dark | warm
   paletteRotation:            # Number of palette variants
+  variants:
+    layoutWeights:           # optional weighted layout selection
+    density: []              # optional density candidates
+    alignment: []            # optional alignment candidates
+    background: []           # optional background candidates
   image:                      # Image generation prompt config
     style:                    # Core aesthetic description
     mood:                     # Emotional tone

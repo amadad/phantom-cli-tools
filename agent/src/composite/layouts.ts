@@ -58,31 +58,6 @@ export function buildPalette(v: BrandVisual): string[] {
   return [p.background, p.warm ?? p.background, p.accent, p.primary]
 }
 
-// ── Layout picker ───────────────────────────────────────────────────────────
-
-/**
- * Pick a layout name deterministically from the topic string.
- * If no contentImage, filters to type-only eligible layouts.
- *
- * @param seed - Optional stable seed (e.g. queue id). Falls back to topic string.
- *               Using a stable seed keeps output reproducible for debugging.
- */
-export function pickLayout(
-  allowedLayouts: LayoutName[],
-  topic: string,
-  hasImage: boolean,
-  seed?: string,
-): LayoutName {
-  const eligible = hasImage
-    ? allowedLayouts
-    : allowedLayouts.filter(l => l === 'type-only')
-
-  if (eligible.length === 0) return hasImage ? 'split' : 'type-only'
-
-  const layoutSeed = seed ?? topic
-  return eligible[hashToIndex(layoutSeed, eligible.length)]
-}
-
 // ── Named layouts ───────────────────────────────────────────────────────────
 
 function layoutSplit(w: number, h: number, v: BrandVisual): LayoutResult {

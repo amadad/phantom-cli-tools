@@ -11,7 +11,8 @@ import { existsSync } from 'fs'
 import { registerFont } from 'canvas'
 import { renderBrandFrame } from './BrandFrame'
 import { loadBrandVisual } from '../../core/visual'
-import { pickLayout, computeLayout } from '../layouts'
+import { buildStylePlan } from '../style-planner'
+import { computeLayout } from '../layouts'
 
 /** Track which fonts have already been registered (registerFont is global, once per process) */
 const registeredFonts = new Set<string>()
@@ -33,6 +34,7 @@ export interface RenderCompositionOptions {
   contentImage?: Buffer
   ratio: AspectRatio
   logoPath?: string
+  noLogo?: boolean
   /** Topic string — seeds deterministic layout selection */
   topic?: string
   /** Stable seed for reproducible layout/palette selection (e.g. queue id) */
@@ -43,10 +45,11 @@ export interface RenderCompositionOptions {
  * Render a single still frame of a brand composition, returning a PNG buffer.
  */
 export async function renderComposition(options: RenderCompositionOptions): Promise<Buffer> {
-  const { brand, headline, contentImage, ratio, logoPath, topic, seed } = options
+  const { brand, headline, contentImage, ratio, logoPath, noLogo = false, topic, seed } = options
 
   const visual = loadBrandVisual(brand)
   const { width, height } = ASPECT_RATIOS[ratio]
+  const hasImage = !!contentImage
 
   // Register custom font if brand provides a font file path
   const { font: fontFamily, fontFile, weight: fontWeight } = visual.typography.headline
@@ -56,27 +59,35 @@ export async function renderComposition(options: RenderCompositionOptions): Prom
     console.log(`[render] Registered font: ${fontFamily} (${fontFile})`)
   }
 
-  // Pick layout from brand's allowed list (seed-stable for reproducibility)
-  const layoutName = pickLayout(
-    visual.layouts,
-    topic ?? headline,
-    !!contentImage,
+  const stylePlan = buildStylePlan({
+    visual,
+    topic: topic ?? headline,
+    hasImage,
     seed,
-  )
-  const layout = computeLayout(layoutName, width, height, visual, topic, seed)
+  })
+
+  const renderVisual = {
+    ...visual,
+    density: stylePlan.density,
+    alignment: stylePlan.alignment,
+    background: stylePlan.background,
+  }
+
+  const layout = computeLayout(stylePlan.layoutName, width, height, renderVisual, topic, seed)
 
   // Resolve logo path: prefer visual config, fall back to param
-  const isDark = visual.background === 'dark'
-  const visualLogoPath = isDark ? visual.logo.dark : visual.logo.light
-  const resolvedLogoPath = visualLogoPath ?? logoPath
+  const visualLogoPath = noLogo ? undefined : (
+    stylePlan.background === 'dark' ? visual.logo.dark : visual.logo.light
+  )
+  const resolvedLogoPath = noLogo ? undefined : (visualLogoPath ?? logoPath)
 
-  console.log(`[render] ${brand} ${ratio} (${width}x${height}) layout=${layoutName}`)
+  console.log(`[render] ${brand} ${ratio} (${width}x${height}) layout=${stylePlan.layoutName}`)
 
   return renderBrandFrame({
     width,
     height,
     visual,
-    layoutName,
+    layoutName: stylePlan.layoutName,
     background: layout.background,
     textSize: layout.textSize,
     bgColorIndex: layout.bgColorIndex,

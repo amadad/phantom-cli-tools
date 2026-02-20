@@ -80,9 +80,6 @@ Single source of truth for all visual config. No build step.
 ### core/brand.ts — Brand Configuration
 ```typescript
 loadBrand(name?)         // Loads YAML, mtime-cached
-resolvePalette(brand)    // Reads from visual.palette via loadBrandVisual()
-getPromptOverride(brand) // visual.prompt_override
-buildBrandContext(brand)  // Short context string for AI prompts
 detectFrameType(topic)   // announcement | tip | thought | event
 buildVoiceContext(brand, frameType) // Full voice prompt
 ```
@@ -177,8 +174,9 @@ Topic + Brand → classify(topic) → imageType
 ```
 Image + Headline + Brand → loadBrandVisual()
                         → generatePoster() per platform ratio
-                          → pickLayout() from visual.layouts
+                          → buildStylePlan() from visual + variants
                           → computeLayout() → zones
+                          → resolve logo path from planned background (`visual.logo.dark`/`visual.logo.light`)
                           → renderComposition() (4-layer canvas)
                         → write twitter.png, instagram.png, story.png
 ```
@@ -187,7 +185,7 @@ Image + Headline + Brand → loadBrandVisual()
 ```
 renderComposition()
   → loadBrandVisual() + registerFont()
-  → pickLayout(visual.layouts, topic, hasImage)
+  → buildStylePlan(visual, topic, hasImage)
   → computeLayout(layoutName, w, h, visual, topic)
   → BrandFrame (4-layer canvas):
     L1: GraphicLayer (bg fill, gradient strip)

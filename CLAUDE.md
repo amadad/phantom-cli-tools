@@ -111,7 +111,7 @@ import { generateFinals } from './commands/poster-cmd'       // Self-contained: 
 import { parseArgs } from './cli/args'                       // Shared arg parser
 import { createSessionDir, slugify } from './core/session'   // Session dir helper
 import { loadBrandVisual } from './core/visual'               // BrandVisual config loader
-import { resolvePalette } from './core/brand'                // Palette from visual config
+import { buildVoiceContext } from './core/brand'             // Copy writing context
 ```
 
 ## Visual System
@@ -121,11 +121,14 @@ Single source of truth: `visual:` section in brand YAML. No build step, no token
 ```typescript
 import { loadBrandVisual } from './core/visual'
 const v = loadBrandVisual('givecare')
-// → { palette, typography, logo, layouts, density, alignment, background, paletteRotation }
+// → { palette, typography, logo, layouts, density, alignment, background, paletteRotation, variants }
 ```
 
 ### Named Layouts
-Brand YAML declares allowed layouts. `pickLayout()` selects deterministically from topic hash.
+Brand YAML drives a deterministic style plan:
+- `layouts` and `variants.layoutWeights` choose the layout
+- `variants.density`, `variants.alignment`, `variants.background` choose design style
+- fallback defaults stay from top-level `density`, `alignment`, `background`
 
 | Layout | Image | Text | Use |
 |--------|-------|------|-----|
@@ -154,6 +157,16 @@ visual:
   alignment: center     # center | left | asymmetric
   background: warm      # light | dark | warm
   paletteRotation: 4
+  variants:
+    layoutWeights:
+      split: 2
+      overlay: 1
+      card: 1
+      full-bleed: 1
+      type-only: 1
+    density: [moderate]
+    alignment: [center]
+    background: [warm]
   image:                # Image generation prompt config
     style: "..."        # Core aesthetic description
     mood: "..."         # Emotional tone
