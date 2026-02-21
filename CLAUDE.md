@@ -67,9 +67,9 @@ agent/src/
 ├── video/      video pipeline, conform, providers/ (replicate/kling)
 ├── eval/       grader, image-grader, learnings
 ├── composite/  poster, layouts, renderer/ (canvas compositor)
-├── publish/    social, meta-graph, twitter/linkedin/facebook/youtube, rate-limit
+├── publish/    social, meta-graph, twitter/linkedin/facebook/youtube, rate-limit, token-refresh
 ├── cli/        args, index, registry, types, errors
-├── commands/   explore, copy-cmd, image-cmd, poster-cmd, enqueue-cmd, intel, post, video, queue, brand
+├── commands/   explore, copy-cmd, image-cmd, poster-cmd, enqueue-cmd, intel, post, video, queue, brand, token
 └── queue/      per-brand file-based queue
 
 brands/<name>/
@@ -117,6 +117,7 @@ import { extractBrandTopic } from './cli/args'                // Shared arg pars
 import { createSessionDir, slugify } from './core/paths'     // Session dir helper
 import { loadBrandVisual } from './core/visual'               // BrandVisual config loader
 import { buildVoiceContext } from './core/brand'             // Copy writing context
+import { checkTokens, refreshTokens, preflightTokenCheck } from './publish/token-refresh'
 ```
 
 ## Visual System
@@ -253,7 +254,7 @@ git add <files> && git commit -m "feat: description"
 | Facebook | Never (page tokens) | N/A | N/A |
 | Instagram | 60 days | `token refresh` (must be valid) | Meta Developer Console > Use cases > Instagram API > Generate access tokens |
 | Threads | 60 days | `token refresh` (must be valid) | Meta Developer Console > Use cases > Threads API > User Token Generator |
-| LinkedIn | 60 days | Not available | `cd agent && npx tsx scripts/linkedin-auth.ts` |
+| LinkedIn | 60 days | Not available | `cd agent && npx tsx scripts/linkedin-auth.ts <brand>` |
 
 The `post` command runs a pre-flight token check automatically. If a token is expired but refreshable, it refreshes it. If not, it skips that platform and warns you.
 

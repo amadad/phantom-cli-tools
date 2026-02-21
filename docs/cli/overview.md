@@ -17,10 +17,8 @@ agent/src/cli/
 ├── index.ts        # Entrypoint, dispatch, error handling
 ├── registry.ts     # Command definitions + metadata
 ├── args.ts         # Shared argument parsing
-├── flags.ts        # Global flags and parsing
-├── output.ts       # Output helpers, help formatting
-├── errors.ts       # Exit codes + error formatting
-└── schemas.ts      # JSON output contracts
+├── types.ts        # CommandContext, CommandDefinition
+└── errors.ts       # Exit codes + error formatting
 ```
 
 ## Invocation
@@ -50,6 +48,7 @@ Each returns structured JSON with `--json`. Agent-composable.
 - `learn` — aggregate eval log into learnings
 
 ### Utility
+- `token` — check and refresh OAuth tokens
 - `video` — generate short-form video
 - `brand` — scaffold new brands
 - `brief` — daily research digest
@@ -60,9 +59,9 @@ Each returns structured JSON with `--json`. Agent-composable.
 All commands use `cli/args.ts` for consistent argument parsing:
 
 ```typescript
-import { parseArgs } from '../cli/args'
+import { extractBrandTopic } from '../cli/args'
 
-const parsed = parseArgs(args, ['style', 'hook']) // knownFlags = value-taking flags
+const parsed = extractBrandTopic(args, ['style', 'hook']) // knownFlags = value-taking flags
 // → { brand: "givecare", topic: "burnout", flags: { style: "s09" }, booleans: Set(["quick"]) }
 ```
 
