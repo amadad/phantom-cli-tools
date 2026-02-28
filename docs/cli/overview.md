@@ -33,7 +33,7 @@ npx tsx src/cli.ts <command> [options]
 Each returns structured JSON with `--json`. Agent-composable.
 
 - `copy` — generate platform copy + eval grading
-- `image` — generate brand-consistent image
+- `image` — generate brand-consistent image (`--volume <zone>` — override brand default volume zone: mute/quiet/whisper/vocal/loud)
 - `poster` — generate platform posters from image + headline
 - `enqueue` — add content to brand queue
 - `grade` — score content against rubric

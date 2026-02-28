@@ -116,6 +116,7 @@ import { generateFinals } from './commands/poster-cmd'       // Self-contained: 
 import { extractBrandTopic } from './cli/args'                // Shared arg parser
 import { createSessionDir, slugify } from './core/paths'     // Session dir helper
 import { loadBrandVisual } from './core/visual'               // BrandVisual config loader
+import { resolveVolumeContext } from './core/visual'          // Volume zone resolver → VolumeContext | null
 import { buildVoiceContext } from './core/brand'             // Copy writing context
 import { checkTokens, refreshTokens, preflightTokenCheck } from './publish/token-refresh'
 ```
@@ -179,6 +180,15 @@ visual:
     avoid: [...]        # Hard exclusions (text, logos, etc.)
     prefer: [...]       # Soft preferences (textures, forms, etc.)
     palette_instructions: "..."  # Color usage guidance
+  # Volume system (GiveCare) — single dial from mute → loud
+  # All four elements (color, image, type, graphic) move in lockstep
+  default_volume: whisper   # mute | quiet | whisper | vocal | loud
+  volume_zones:
+    whisper:                # Example zone — see givecare-brand.yml for full spec
+      color: { field, text, accent }          # palette token references
+      image: { treatment, saturation }
+      type: { weight, size, contrast }
+      graphic: { channels }
   prompt_system:        # Optional modular prompt system (SCTY)
     core_aesthetic: [...]
     subject_types: { abstract, symbol, grid, conceptual_diagram, celestial, ... }
@@ -190,6 +200,7 @@ visual:
 Prompt-only — brand YAML `visual.image` + `visual.prompt_system` drive the aesthetic. No reference images needed.
 
 - **Generic brands**: `buildGenericPrompt()` composes from `image.style`, `image.mood`, `image.prefer`, `image.avoid`
+- **Volume zones** (GiveCare): `resolveVolumeContext(brand, volume?)` reads `visual.volume_zones` from brand YAML, resolves palette tokens to hex, returns `VolumeContext`. Injected as a VOLUME block in `buildGenericPrompt()`. Pass `--volume <zone>` to override per-post (mute/quiet/whisper/vocal/loud). Defaults to `visual.default_volume`.
 - **SCTY**: `buildSctyPrompt()` randomly selects from curated subject/form/texture pools per image type
 - **`--knockout`**: Prompts for solid white background, then sharp threshold removes it → transparent PNG
 
