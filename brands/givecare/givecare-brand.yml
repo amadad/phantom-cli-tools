@@ -23,39 +23,157 @@ platforms:
     max_chars: 500
     hashtags: 2
 
-# Visual system
+# =============================================================================
+# VISUAL SYSTEM
+# =============================================================================
+#
+# Two axes. One moves, one doesn't.
+#
+# GRAMMAR (fixed):
+#   The structural rules. Layouts, type faces, image language, content hierarchy.
+#   These never change regardless of volume.
+#
+# VOLUME (variable):
+#   A single dial — MUTE → QUIET → WHISPER → VOCAL → LOUD — that modulates
+#   color, image treatment, typography scale, and graphic intensity in lockstep.
+#   All four elements always obey the same volume setting.
+#
+# Volume maps to editorial intent:
+#   Grief, loss, hard diagnosis            → mute / quiet
+#   Ambivalence, exhaustion, transition    → quiet / whisper
+#   Everyday care, practical support       → whisper (default)
+#   Tips, tools, empowerment               → vocal
+#   Milestone, launch, celebration         → loud
+#
+# =============================================================================
+
 visual:
+
+  # ---------------------------------------------------------------------------
+  # GRAMMAR — fixed skeleton
+  # ---------------------------------------------------------------------------
+
   palette:
-    background: "#FDFBF7"
-    primary: "#1E1B16"
-    accent: "#5046E5"
-    secondary: "#3D3929"
-    warm: "#FCEEE3"
-    dark: "#1E1B16"
-    light: "#FFE8D6"
+    # Named tokens — volume zones reference these relationally, not by hex
+    background: "#FDFBF7"   # warm cream
+    ink:        "#1E1B16"   # near-black
+    earth:      "#3D3929"   # deep warm brown
+    plum:       "#3B1F2B"   # deep aubergine
+    cream:      "#FCEEE3"   # warm light
+    peach:      "#FFE8D6"   # pale warm
+    indigo:     "#5046E5"   # primary accent
+    rust:       "#C45B2A"   # warm saturated accent
+    sage:       "#7A9E7E"   # cool muted accent
 
   typography:
+    # One typeface family. Volume controls scale and weight — not the face.
     headline:
       font: Alegreya
       fontFile: assets/Alegreya-VariableFont_wght.ttf
-      weight: 400
-      lineHeight: 0.95
+      italic: assets/Alegreya-Italic-VariableFont_wght.ttf
       sizes: { sm: 28, md: 50, lg: 84, display: 136 }
+
+  layouts: [split, overlay, type-only, card]
+  # Layout choice is instance-level. Grammar defines what's available.
+
+  image:
+    # These are grammar rules — they govern HOW images behave, not WHAT they show.
+    # Subject matter is an instance decision made per-post.
+    treatment: "image treatment tracks volume — see volume_zones"
+    avoid: [text overlaid on image, literal caregiving scenes, faces]
+    prefer: [abstract, material, metaphorical — content determines specifics]
+
+  # ---------------------------------------------------------------------------
+  # VOLUME ZONES — the moving part
+  # Each zone is a fully coordinated preset. Elements never mix zones.
+  # ---------------------------------------------------------------------------
+
+  volume_zones:
+
+    mute:
+      intent: "hardest content — loss, grief, crisis"
+      color:
+        field: ink          # near-black ground
+        text: background    # cream on near-black
+        accent: earth       # single warm dark accent, barely distinct
+      image:
+        treatment: dark     # recessive, heavily cropped, tinted to field color
+        saturation: low
+      type:
+        weight: 300
+        size: sm
+        contrast: low       # text and field close in value — quiet presence
+      graphic:
+        channels: 1         # monochrome — single palette channel
+
+    quiet:
+      intent: "sustained difficulty — exhaustion, overwhelm, long haul"
+      color:
+        field: plum         # deep aubergine ground
+        text: peach
+        accent: earth
+      image:
+        treatment: subdued  # visible but palette-tinted, color suppressed
+        saturation: low-mid
+      type:
+        weight: 400
+        size: sm-md
+        contrast: moderate
+      graphic:
+        channels: 1         # still single channel, tinted to palette
+
+    whisper:
+      intent: "in-between — ambivalence, transition, most everyday content"
+      color:
+        field: cream        # light ground emerging
+        text: plum
+        accent: earth
+      image:
+        treatment: balanced # natural tone, more breathing room, texture prominent
+        saturation: mid
+      type:
+        weight: 400
+        size: md
+        contrast: clear
+        note: "italic serif for pull quotes — hierarchy sharpens here"
+      graphic:
+        channels: 2         # duotone — field and text colors
+
+    vocal:
+      intent: "practical support, tools, tips, empowerment"
+      color:
+        field: background   # warm cream ground
+        text: ink
+        accent: indigo      # one strong accent — restrained even at high energy
+      image:
+        treatment: prominent  # natural color, hero placement within tile
+        saturation: mid-high
+      type:
+        weight: 600
+        size: lg
+        contrast: high
+      graphic:
+        channels: 3         # near-natural — color forms visible
+
+    loud:
+      intent: "milestone, launch, celebration"
+      color:
+        field: background
+        text: ink
+        accents: [indigo, rust, sage]   # up to 3 accents active simultaneously
+      image:
+        treatment: hero     # full-bleed, full saturation, maximum presence
+        saturation: high
+      type:
+        weight: 700
+        size: display
+        contrast: high
+      graphic:
+        channels: full      # full palette active
+
+  default_volume: whisper   # editorial home base — most GiveCare content lives here
 
   logo:
     light: assets/logo.svg
     colorOnLight: "#54340E"
     colorOnDark: "#FFE8D6"
-
-  layouts: [split, overlay, type-only, card]
-  density: moderate
-  alignment: center
-  background: warm
-  paletteRotation: 4
-
-  image:
-    style: "tactile, hand-worked materiality — fibers, felt, stitched edges, woven textures, layered paper"
-    mood: "warm, empowered, accessible, visceral"
-    avoid: [text, logos, literal caregiving scenes, people, faces]
-    prefer: [abstract material metaphor, touch-inviting surfaces, repetition, soft tension]
-    palette_instructions: "cream background, deep brown primary forms, indigo accent"

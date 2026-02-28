@@ -8,7 +8,7 @@
 import type { ImageType } from './classify'
 import { generatePoster, type AspectRatio } from '../composite/poster'
 import { getImageContext } from '../eval/learnings'
-import { loadBrandVisual } from '../core/visual'
+import { loadBrandVisual, resolveVolumeContext, type VolumeContext } from '../core/visual'
 import { loadBrand } from '../core/brand'
 import { createImageProvider } from './providers'
 import sharp from 'sharp'
@@ -138,9 +138,17 @@ function buildGenericPrompt(
   paletteInstructions: string,
   palette: Record<string, string | undefined>,
   learnings: string,
+  volumeContext?: VolumeContext | null,
 ): string {
   const paletteBlock = paletteInstructions
     || `Colors: ${palette.background ?? '#FDFBF7'} background, ${palette.primary ?? '#1E1B16'} primary, ${palette.accent ?? '#5046E5'} accent`
+  const volumeBlock = volumeContext
+    ? `\nVOLUME: ${volumeContext.volume}
+Field color: ${volumeContext.field} | Text color: ${volumeContext.text} | Accent: ${Array.isArray(volumeContext.accent) ? volumeContext.accent.join(', ') : volumeContext.accent}
+Image treatment: ${volumeContext.imageTreatment} (saturation: ${volumeContext.saturation})
+Typography: weight ${volumeContext.typeWeight}, size ${volumeContext.typeSize}
+Graphic intensity: ${volumeContext.graphicChannels} color channels`
+    : ''
 
   const preferBlock = prefer.length > 0 ? `\nPREFER: ${prefer.join(', ')}` : ''
   const avoidBlock = avoid.length > 0
@@ -155,7 +163,7 @@ Create an editorial photograph. ${style}. Mood: ${mood}.
 
 Subject: ${direction}
 
-${paletteBlock}${preferBlock}${avoidBlock}
+${paletteBlock}${volumeBlock}${preferBlock}${avoidBlock}
 ${learnings}`
 
     case 'poster':
@@ -169,7 +177,7 @@ RULES:
 - ONLY abstract shapes — NO text, NO letters, NO words
 - Fill the entire canvas
 
-${paletteBlock}${preferBlock}${avoidBlock}
+${paletteBlock}${volumeBlock}${preferBlock}${avoidBlock}
 ${learnings}`
 
     case 'abstract':
@@ -179,7 +187,7 @@ Create an abstract texture, NO people or recognizable objects. ${style}. Mood: $
 
 Emotional concept: ${direction}
 
-${paletteBlock}${preferBlock}${avoidBlock}
+${paletteBlock}${volumeBlock}${preferBlock}${avoidBlock}
 ${learnings}`
 
     case 'video':
@@ -198,6 +206,7 @@ function buildPrompt(
   brandName: string,
   headline?: string,
   knockout?: boolean,
+  volume?: string,
 ): string {
   const visual = loadBrandVisual(brandName)
   const brand = loadBrand(brandName)
@@ -211,6 +220,7 @@ function buildPrompt(
 
   // All other brands: build from visual.image config
   const img = visual.image ?? { style: '', mood: '', avoid: [], prefer: [] }
+  const volumeContext = resolveVolumeContext(brandName, volume)
   return buildGenericPrompt(
     imageType,
     direction,
@@ -221,6 +231,7 @@ function buildPrompt(
     img.palette_instructions ?? '',
     visual.palette,
     learnings,
+    volumeContext,
   )
 }
 
@@ -286,6 +297,7 @@ export interface GenerateImageOptions {
   imageType: ImageType
   direction: string
   brandName: string
+  volume?: string
   headline?: string
   template?: string
   ratio?: AspectRatio
@@ -306,8 +318,9 @@ export async function generateImage(
   template?: string,
   ratio?: AspectRatio,
   knockout?: boolean,
+  volume?: string,
 ): Promise<ImageResult | null> {
-  const prompt = buildPrompt(imageType, direction, brandName, headline, knockout)
+  const prompt = buildPrompt(imageType, direction, brandName, headline, knockout, volume)
   console.log(`[image] Type: ${imageType}`)
   console.log(`[image] Direction: ${direction.slice(0, 80)}...`)
 

@@ -71,6 +71,18 @@ export interface BrandVisual {
   }
 }
 
+export interface VolumeContext {
+  volume: string
+  field: string
+  text: string
+  accent: string | string[]
+  imageTreatment: string
+  saturation: string
+  typeWeight: number
+  typeSize: string
+  graphicChannels: string | number
+}
+
 // ── Defaults ─────────────────────────────────────────────────────────────
 
 const DEFAULT_VISUAL: Omit<
@@ -246,6 +258,46 @@ function resolveImagePaths(brandDir: string, visualImage: { light?: string; dark
   }
 }
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {}
+}
+
+function resolvePaletteToken(
+  value: unknown,
+  palette: Record<string, unknown>,
+  fallback: string,
+): string {
+  if (typeof value !== 'string') return fallback
+
+  const token = value.trim()
+  if (!token) return fallback
+
+  const exact = palette[token]
+  if (typeof exact === 'string') return exact
+
+  const lower = palette[token.toLowerCase()]
+  if (typeof lower === 'string') return lower
+
+  return token
+}
+
+function resolveAccentValue(
+  value: unknown,
+  palette: Record<string, unknown>,
+  fallback: string,
+): string | string[] {
+  if (Array.isArray(value)) {
+    const resolved = value
+      .map((entry) => resolvePaletteToken(entry, palette, ''))
+      .filter((entry) => entry.length > 0)
+    return resolved.length > 0 ? resolved : fallback
+  }
+
+  return resolvePaletteToken(value, palette, fallback)
+}
+
 // ── Loader ────────────────────────────────────────────────────────────────
 
 /**
@@ -331,5 +383,59 @@ export function loadBrandVisual(brandName: string): BrandVisual {
     paletteRotation,
     variants,
     image,
+  }
+}
+
+export function resolveVolumeContext(brandName: string, volume?: string): VolumeContext | null {
+  const brand = loadBrand(brandName) as { visual?: unknown }
+  const visual = asRecord(brand.visual)
+  const zoneMap = asRecord(visual.volume_zones)
+  if (Object.keys(zoneMap).length === 0) return null
+
+  const defaultVolume = typeof visual.default_volume === 'string' ? visual.default_volume : undefined
+  const requestedVolume = typeof volume === 'string' ? volume : undefined
+
+  const normalizedKeys = new Map<string, string>()
+  for (const key of Object.keys(zoneMap)) {
+    normalizedKeys.set(key.toLowerCase(), key)
+  }
+
+  const selectedZoneKey = [requestedVolume, defaultVolume, 'whisper']
+    .filter((key): key is string => Boolean(key))
+    .map((key) => normalizedKeys.get(key.toLowerCase()))
+    .find((key): key is string => Boolean(key))
+
+  if (!selectedZoneKey) return null
+
+  const zone = asRecord(zoneMap[selectedZoneKey])
+  const palette = asRecord(visual.palette)
+  const color = asRecord(zone.color)
+  const image = asRecord(zone.image)
+  const type = asRecord(zone.type)
+  const graphic = asRecord(zone.graphic)
+
+  const field = resolvePaletteToken(color.field, palette, '#FDFBF7')
+  const text = resolvePaletteToken(color.text, palette, '#1E1B16')
+  const accent = resolveAccentValue(color.accent ?? color.accents, palette, text)
+  const typeWeight = normalizePositiveInt(type.weight, 400)
+  const typeSize = typeof type.size === 'string' ? type.size : 'md'
+  const imageTreatment = typeof image.treatment === 'string' ? image.treatment : 'balanced'
+  const saturation = typeof image.saturation === 'string' ? image.saturation : 'mid'
+
+  const rawChannels = graphic.channels
+  const graphicChannels = typeof rawChannels === 'string' || typeof rawChannels === 'number'
+    ? rawChannels
+    : 2
+
+  return {
+    volume: selectedZoneKey,
+    field,
+    text,
+    accent,
+    imageTreatment,
+    saturation,
+    typeWeight,
+    typeSize,
+    graphicChannels,
   }
 }
