@@ -16,6 +16,10 @@ import type { QueueItem } from '../core/types'
 const CONTENT_QUEUE_CHANNEL = process.env.DISCORD_CONTENT_QUEUE_CHANNEL ?? '1473770540958482655'
 const OPENCLAW_GATEWAY_URL = process.env.OPENCLAW_GATEWAY_URL ?? 'http://localhost:18789'
 const OPENCLAW_GATEWAY_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN ?? ''
+// Which agent session to route through — 'main' for Orb, 'mira' for Mira
+const OPENCLAW_SESSION_KEY = process.env.OPENCLAW_SESSION_KEY ?? 'main'
+// Which Discord bot account to send as — matches openclaw.json accounts
+const OPENCLAW_DISCORD_ACCOUNT = process.env.OPENCLAW_DISCORD_ACCOUNT ?? ''
 
 function scoreEmoji(score: number): string {
   if (score >= 85) return '🟢'
@@ -68,31 +72,38 @@ export async function notifyContentQueue(opts: NotifyOptions): Promise<{ message
   const imageBuffer = readFileSync(imagePath)
   const imageB64 = `data:image/png;base64,${imageBuffer.toString('base64')}`
 
+  const args: Record<string, any> = {
+    action: 'send',
+    channel: 'discord',
+    target: `channel:${CONTENT_QUEUE_CHANNEL}`,
+    message: messageText,
+    buffer: imageB64,
+    filename: 'poster.png',
+    components: {
+      reusable: true,
+      text: '',
+      blocks: [
+        {
+          type: 'actions',
+          buttons: [
+            { label: `✅ Post ${queueId}`, style: 'success' },
+            { label: `♻️ Regen ${brand} "${truncate(topic, 30)}"`, style: 'secondary' },
+            { label: '🗑️ Discard', style: 'danger' },
+          ],
+        },
+      ],
+    },
+  }
+
+  // Route through specific Discord bot account if configured
+  if (OPENCLAW_DISCORD_ACCOUNT) {
+    args.accountId = OPENCLAW_DISCORD_ACCOUNT
+  }
+
   const payload = {
     tool: 'message',
-    args: {
-      action: 'send',
-      channel: 'discord',
-      target: `channel:${CONTENT_QUEUE_CHANNEL}`,
-      message: messageText,
-      buffer: imageB64,
-      filename: 'poster.png',
-      components: {
-        reusable: true,
-        text: '',
-        blocks: [
-          {
-            type: 'actions',
-            buttons: [
-              { label: `✅ Post ${queueId}`, style: 'success' },
-              { label: `♻️ Regen ${brand} "${truncate(topic, 30)}"`, style: 'secondary' },
-              { label: '🗑️ Discard', style: 'danger' },
-            ],
-          },
-        ],
-      },
-    },
-    sessionKey: 'main',
+    args,
+    sessionKey: OPENCLAW_SESSION_KEY,
   }
 
   console.log(`[discord-queue] Posting to #content-queue via OpenClaw…`)
@@ -165,6 +176,16 @@ export async function notifyContentIntel(brand: string, digest: string): Promise
  */
 async function sendViaGateway(channelId: string, content: string): Promise<{ messageId: string } | null> {
   try {
+    const args: Record<string, any> = {
+      action: 'send',
+      channel: 'discord',
+      target: `channel:${channelId}`,
+      message: content,
+    }
+    if (OPENCLAW_DISCORD_ACCOUNT) {
+      args.accountId = OPENCLAW_DISCORD_ACCOUNT
+    }
+
     const resp = await fetch(`${OPENCLAW_GATEWAY_URL}/tools/invoke`, {
       method: 'POST',
       headers: {
@@ -173,13 +194,8 @@ async function sendViaGateway(channelId: string, content: string): Promise<{ mes
       },
       body: JSON.stringify({
         tool: 'message',
-        args: {
-          action: 'send',
-          channel: 'discord',
-          target: `channel:${channelId}`,
-          message: content,
-        },
-        sessionKey: 'main',
+        args,
+        sessionKey: OPENCLAW_SESSION_KEY,
       }),
     })
 
