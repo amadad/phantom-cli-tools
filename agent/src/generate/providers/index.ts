@@ -42,10 +42,6 @@ export async function createImageProvider(name: string): Promise<ImageProvider> 
       const { GeminiProvider } = await import('./gemini')
       return new GeminiProvider()
     }
-    case 'reve': {
-      const { ReveProvider } = await import('./reve')
-      return new ReveProvider()
-    }
     default:
       throw new Error(`Unknown image provider: ${name}`)
   }

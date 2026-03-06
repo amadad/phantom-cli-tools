@@ -87,10 +87,6 @@ function buildSctyPrompt(
   const textureModes = promptSystem.texture_modes ?? {}
   const subjectTypes = promptSystem.subject_types ?? {}
 
-  if (imageType === 'video') {
-    return `${IMAGE_RULES}\n\n${direction}\n${learnings}`
-  }
-
   // Pick from preset pools for this imageType
   const preset = SCTY_PRESETS[imageType] ?? SCTY_PRESETS.abstract
   const subjectKey = preset.subjects[Math.floor(Math.random() * preset.subjects.length)]
@@ -190,11 +186,6 @@ Emotional concept: ${direction}
 ${paletteBlock}${volumeBlock}${preferBlock}${avoidBlock}
 ${learnings}`
 
-    case 'video':
-      return `${IMAGE_RULES}
-
-${direction}
-${learnings}`
   }
 }
 
@@ -326,9 +317,7 @@ export async function generateImage(
 
   // Determine aspect ratio
   let aspectRatio = '3:4'
-  if (imageType === 'video' && ratio === 'portrait') {
-    aspectRatio = '9:16'
-  } else if (ratio === 'portrait') {
+  if (ratio === 'portrait') {
     aspectRatio = '3:4'
   } else if (ratio === 'landscape') {
     aspectRatio = '16:9'
@@ -337,32 +326,38 @@ export async function generateImage(
   }
   console.log(`[image] Aspect ratio: ${aspectRatio}`)
 
-  // Provider selection
-  const providerOrder = process.env.IMAGE_PROVIDER
-    ? [process.env.IMAGE_PROVIDER.toLowerCase(), 'gemini']
-    : ['gemini', 'reve']
+  // Provider: Gemini with 1 retry
+  const provider = await createImageProvider('gemini')
+  if (!provider.isAvailable()) {
+    console.error('[image] GEMINI_API_KEY not set')
+    return null
+  }
 
-  const uniqueProviders = [...new Set(providerOrder)]
-
-  for (const providerName of uniqueProviders) {
+  let result: Awaited<ReturnType<typeof provider.generateImage>> | null = null
+  for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      console.log(`[image] Trying provider: ${providerName}`)
-      const provider = await createImageProvider(providerName)
-
-      if (!provider.isAvailable()) {
-        console.log(`[image] ${providerName} not available (API key not set)`)
-        continue
+      if (attempt > 0) {
+        console.log(`[image] Retry attempt ${attempt + 1}...`)
+        await new Promise(r => setTimeout(r, 2000))
       }
+      result = await provider.generateImage({ prompt, imageType, aspectRatio })
+      console.log(`[image] Generated with gemini/${result.model}`)
+      break
+    } catch (e: any) {
+      console.error(`[image] Attempt ${attempt + 1} failed: ${e.message?.slice(0, 100)}`)
+      if (attempt === 1) {
+        console.error('[image] All attempts failed')
+        return null
+      }
+    }
+  }
 
-      const result = await provider.generateImage({
-        prompt,
-        imageType,
-        aspectRatio,
-      })
+  if (!result) return null
 
-      console.log(`[image] Generated with ${providerName}/${result.model}`)
+  {
+    // Scope for post-processing
 
-      let finalB64 = result.b64
+      let finalB64 = result!.b64
 
       // For posters, composite into brand frame
       if (imageType === 'poster' && template) {
@@ -391,15 +386,9 @@ export async function generateImage(
       return {
         b64: finalB64,
         prompt,
-        model: result.model,
-        creditsUsed: result.creditsUsed,
-        creditsRemaining: result.creditsRemaining,
+        model: result!.model,
+        creditsUsed: result!.creditsUsed,
+        creditsRemaining: result!.creditsRemaining,
       }
-    } catch (e: any) {
-      console.error(`[image] ${providerName} failed: ${e.message?.slice(0, 100)}`)
-    }
   }
-
-  console.error('[image] All providers failed')
-  return null
 }

@@ -11,6 +11,7 @@ import { extractBrandTopic } from '../cli/args'
 import { generatePoster } from '../composite/poster'
 import type { AspectRatio } from '../composite/renderer/render'
 import { loadBrandVisual } from '../core/visual'
+import { loadBrand } from '../core/brand'
 import type { CommandContext } from '../cli/types'
 
 export interface PosterCommandResult {
@@ -62,6 +63,11 @@ export async function generateFinals(
 ): Promise<Record<string, string>> {
   const { noLogo = false, outputDir, topic, seed } = opts
 
+  // Respect brand-level logo.social config — if false, suppress logo on all platform assets
+  const brand = loadBrand(brandName) as any
+  const brandSuppressesLogo = brand?.visual?.logo?.social === false
+  const effectiveNoLogo = noLogo || brandSuppressesLogo
+
   const outputs: Record<string, string> = {}
 
   for (const [platform, ratio] of Object.entries(PLATFORM_RATIOS)) {
@@ -71,14 +77,14 @@ export async function generateFinals(
         headline,
         contentImage,
         ratio,
-        noLogo,
+        noLogo: effectiveNoLogo,
         topic,
         seed,
       })
       const outPath = join(outputDir, `${platform}.png`)
       writeFileSync(outPath, poster)
       outputs[platform] = outPath
-      console.log(`  OK ${platform}.png${noLogo ? ' (no logo)' : ''}`)
+      console.log(`  OK ${platform}.png${effectiveNoLogo ? ' (no logo)' : ''}`)
     } catch (e: unknown) {
       console.log(`  FAIL ${platform}: ${e instanceof Error ? e.message : String(e)}`)
     }

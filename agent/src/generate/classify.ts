@@ -4,7 +4,7 @@
  */
 
 export type ContentType = 'warm' | 'product' | 'thought'
-export type ImageType = 'photo' | 'poster' | 'abstract' | 'video'
+export type ImageType = 'photo' | 'poster' | 'abstract'
 
 export interface Classification {
   contentType: ContentType

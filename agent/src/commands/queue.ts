@@ -1,10 +1,11 @@
-import { loadQueue, getQueueItem } from '../queue'
+import { loadQueue, getQueueItem, saveQueue } from '../queue'
 import { discoverBrands } from '../core/paths'
 import { notifyContentQueue } from '../notify/discord-queue'
 import type { QueueItem } from '../core/types'
 import type { CommandContext } from '../cli/types'
-import { existsSync } from 'fs'
+import { existsSync, writeFileSync, readFileSync } from 'fs'
 import { dirname, join } from 'path'
+import { getBrandDir } from '../core/paths'
 
 export interface QueueListResult {
   brand: string | null
@@ -164,23 +165,64 @@ async function notifyQueueItem(args: string[]): Promise<QueueShowResult> {
   return item
 }
 
-export async function run(args: string[], _ctx?: CommandContext): Promise<QueueListResult | QueueShowResult> {
+/**
+ * Archive done/failed items older than 30 days to queue-archive.json
+ */
+function archiveQueue(args: string[]): { brand: string; archived: number } {
+  const brands = discoverBrands()
+  const brand = args.find((arg) => brands.includes(arg))
+
+  if (!brand) {
+    console.error('Usage: queue archive <brand>')
+    throw new Error('Missing brand')
+  }
+
+  const queue = loadQueue(brand)
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
+  const toArchive = queue.filter(
+    (item) =>
+      (item.stage === 'done' || item.stage === 'failed') &&
+      new Date(item.updatedAt).getTime() < cutoff
+  )
+
+  if (toArchive.length === 0) {
+    console.log(`No items older than 30 days to archive for ${brand}.`)
+    return { brand, archived: 0 }
+  }
+
+  // Append to archive file
+  const archivePath = join(getBrandDir(brand), 'queue-archive.json')
+  let existing: QueueItem[] = []
+  if (existsSync(archivePath)) {
+    try {
+      existing = JSON.parse(readFileSync(archivePath, 'utf-8'))
+    } catch {
+      existing = []
+    }
+  }
+  existing.push(...toArchive)
+  writeFileSync(archivePath, JSON.stringify(existing, null, 2))
+
+  // Remove archived items from active queue
+  const remaining = queue.filter((item) => !toArchive.includes(item))
+  saveQueue(brand, remaining)
+
+  console.log(`Archived ${toArchive.length} items for ${brand} (${remaining.length} remain).`)
+  return { brand, archived: toArchive.length }
+}
+
+export async function run(args: string[], _ctx?: CommandContext): Promise<QueueListResult | QueueShowResult | { brand: string; archived: number }> {
   const [subcommand, ...rest] = args
   const normalized = subcommand && !subcommand.startsWith('-') ? subcommand : 'list'
 
-  if (normalized === 'list') {
-    return listQueue(rest)
+  switch (normalized) {
+    case 'list': return listQueue(rest)
+    case 'show': return showQueueItem(rest)
+    case 'notify': return notifyQueueItem(rest)
+    case 'archive': return archiveQueue(rest)
+    default:
+      console.error(`Unknown queue subcommand: ${normalized}`)
+      console.error('Usage: queue [list|show|notify|archive] [brand]')
+      throw new Error(`Unknown queue subcommand: ${normalized}`)
   }
-
-  if (normalized === 'show') {
-    return showQueueItem(rest)
-  }
-
-  if (normalized === 'notify') {
-    return notifyQueueItem(rest)
-  }
-
-  console.error(`Unknown queue subcommand: ${normalized}`)
-  console.error('Usage: queue [list|show|notify <id> <brand>]')
-  throw new Error(`Unknown queue subcommand: ${normalized}`)
 }

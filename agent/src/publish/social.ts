@@ -96,7 +96,7 @@ export async function postToPlatform(
       }
 
       case 'youtube': {
-        return { platform, success: false, error: 'YouTube requires video upload via youtube-direct module' }
+        return { platform, success: false, error: 'YouTube not supported (video pipeline removed)' }
       }
 
       default:

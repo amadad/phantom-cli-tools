@@ -159,50 +159,5 @@ export interface QueueItem {
   }>
 }
 
-/**
- * Video brief for generation pipeline
- */
-export interface VideoBrief {
-  meta: {
-    brand: string
-    topic: string
-    total_duration: number
-    aspect_ratio: '9:16'
-    resolution: [number, number]
-  }
-  style?: {
-    aesthetic: string
-    post_process: boolean
-    grain_intensity?: number
-    saturation?: number
-    warmth?: number
-    blur?: number
-  }
-  voice: {
-    provider: 'cartesia'
-    model: string
-    voice_id: string
-    emotion?: string
-    speed?: number
-  }
-  music?: {
-    provider: string
-    style: string
-    duration: number
-    volume_ratio: number
-  }
-  scenes: Array<{
-    id: number
-    duration: number
-    script: string
-    image_prompt: string
-    motion_prompt: string
-  }>
-  output: {
-    filename: string
-    format: string
-    codec: string
-    audio_codec: string
-  }
-}
+
 

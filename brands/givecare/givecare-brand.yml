@@ -9,6 +9,34 @@ handles:
   twitter: "@givecareapp"
   linkedin: "urn:li:organization:106542185"
 
+content_pillars:
+  lens: "care as infrastructure — not marketing, just: here's what's happening, here's what we saw, here's what needs fixing"
+  pillars:
+    - id: shipped
+      label: "What we shipped"
+      description: "Product, features, fixes — what GiveCare built and launched"
+      voice: "Founder announcing real work. Specific, grounded, no hype."
+      eval_mode: founder
+      volume: loud
+    - id: learned
+      label: "What we learned"
+      description: "From InvisibleBench, from users, from data — real findings, not opinions"
+      voice: "Researcher sharing a discovery. Lead with the finding, then implications."
+      eval_mode: founder
+      volume: vocal
+    - id: amplify
+      label: "What others are doing"
+      description: "Orgs, research, policy worth amplifying — signal from the field"
+      voice: "Curator adding context. Credit the source, add one sharp observation."
+      eval_mode: founder
+      volume: whisper
+    - id: broken
+      label: "What's broken"
+      description: "System failures, gaps, things that need building — honest critique"
+      voice: "Operator naming a real problem. No victim framing. Just: here's the gap."
+      eval_mode: founder
+      volume: quiet
+
 platforms:
   twitter:
     max_chars: 280
@@ -76,12 +104,65 @@ visual:
   layouts: [split, overlay, type-only, card]
   # Layout choice is instance-level. Grammar defines what's available.
 
+  variants:
+    layoutWeights:
+      split: 1
+      overlay: 2
+      type-only: 3
+      card: 2
+    density: [moderate, airy]
+    alignment: [centered, left]
+    background: [warm, light]
+
   image:
-    # These are grammar rules — they govern HOW images behave, not WHAT they show.
-    # Subject matter is an instance decision made per-post.
-    treatment: "image treatment tracks volume — see volume_zones"
-    avoid: [text overlaid on image, literal caregiving scenes, faces]
-    prefer: [abstract, material, metaphorical — content determines specifics]
+    # Derived from actual GiveCare blog hero images — textile mixed-media collage system.
+    # All image generation reads from these fields. Do not change without updating blog images to match.
+    style: >
+      Textile mixed-media collage artwork, photographed flat against warm off-white handmade paper
+      background. Composed of layered pieces of dark charcoal-black wool felt, deep chocolate-brown
+      fabric, natural undyed handmade paper with deckled edges, and coarse linen burlap.
+      Shapes are organic and rounded — circles, ovals, biomorphic stone-like forms — layered and
+      overlapping with visible physical depth and shadows at raised edges. Hand-stitching in
+      saturated periwinkle-cobalt blue thread traces edges and creates running stitch lines.
+      Small woven blue textile insert with fringe ends. All edges are raw and unfinished — fraying,
+      loose threads, and cut fibers preserved as intentional aesthetic. Diffuse even natural light
+      reveals surface texture. Wide landscape format 2:1 ratio. Photographed flat lay, not staged.
+    mood: >
+      Quiet attentiveness. Contemplative, slow, handmade, deeply material. Handmade warmth without
+      sentimentality — serious art objects, not craft. Melancholy tenderness. Earthy and grounded.
+      Care as visible process — every stitch countable, every edge a decision. Trust through honesty:
+      raw edges, visible thread, nothing hidden or polished away.
+    palette_instructions: >
+      Strictly five tones only. Near-black charcoal felt (#1a1410). Deep chocolate-brown fabric
+      (#3d1f0d). Warm ecru/cream handmade paper background (#f0e8d5). Natural linen/buff coarse
+      weave (#c9b99a). Saturated periwinkle-cobalt blue thread accent (#4040cc) — the ONLY pure
+      hue, always appearing as thread, cord, or woven band, never as large filled shape.
+      No other colors. No white-white backgrounds — always warm cream/ecru.
+    prefer:
+      - layered wool felt and fabric appliqué with visible stitch marks
+      - organic rounded circle and oval motifs as primary shapes
+      - running stitch in blue thread tracing edges and outlines
+      - raw unfinished fabric edges with intentional fraying
+      - hand-woven blue textile inserts with visible warp/weft and fringe ends
+      - knotted or tied blue cord/ribbon as connecting motif
+      - multiple simultaneous material textures (smooth felt, rough burlap, pulpy handmade paper)
+      - diffuse even natural light revealing material surface
+      - physical layering with shadow depth between pieces
+      - asymmetric balanced compositions with breathing room around objects
+    avoid:
+      - human figures, faces, hands, or body parts
+      - text, letterforms, or legible symbols
+      - bright or warm colors — no red, orange, yellow, green, pink, or purple
+      - white-white backgrounds — always warm ecru/cream
+      - perfect geometry, laser-cut edges, machine uniformity
+      - digital or printed elements
+      - representational imagery — no flowers, landscapes, animals, recognizable objects
+      - synthetic materials — no plastic, metal, glass, industrial finishes
+      - high contrast dramatic lighting, spotlights, deep shadow pools
+      - pure symmetry
+      - single-material compositions — always 3+ materials
+      - stock photography aesthetic or commercial staging
+      - literal caregiving scenes
 
   # ---------------------------------------------------------------------------
   # VOLUME ZONES — the moving part
@@ -177,3 +258,6 @@ visual:
     light: assets/logo.svg
     colorOnLight: "#54340E"
     colorOnDark: "#FFE8D6"
+    # Logo on social platform assets = redundant (handle/profile IS the brand).
+    # Only use logo on standalone shareable graphics (blog OG, press kit, etc.)
+    social: false

@@ -8,6 +8,7 @@ import { extractJson } from '../core/json'
 import { withTimeout } from '../core/http'
 import { getCopyContext } from '../eval/learnings'
 import { loadBrand, buildVoiceContext, detectFrameType } from '../core/brand'
+import { loadBrandVisual } from '../core/visual'
 import { SLOP_WORDS } from '../core/slop'
 import type { BrandProfile } from '../core/types'
 
@@ -87,6 +88,46 @@ Tone:
 - State things. Skip "It's worth noting that..." and say the thing.
 - Use "you" and "I" when it fits. Address the reader.`
 
+function firstSentence(text: string): string {
+  const normalized = text.replace(/\s+/g, ' ').trim()
+  if (!normalized) return ''
+
+  const match = normalized.match(/^(.+?[.!?])(?:\s|$)/)
+  return match?.[1] ?? normalized
+}
+
+function buildImageDirectionRequirements(brandName: string): string {
+  const image = loadBrandVisual(brandName).image
+  if (!image) {
+    return `Requirements for imageDirection:
+- Must stay within the brand visual system
+- No humans, no stock setups, no representational filler
+- Describe one specific composition, not just a mood
+- Keep it concrete enough for image generation`
+  }
+
+  const styleLine = firstSentence(image.style) || 'Follow the configured brand visual system.'
+  const paletteLine = image.palette_instructions
+    ? `- Palette/material constraints: ${image.palette_instructions.replace(/\s+/g, ' ').trim()}`
+    : null
+  const preferLine = image.prefer.length > 0
+    ? `- Preferred visual cues: ${image.prefer.join('; ')}`
+    : null
+  const avoidLine = image.avoid.length > 0
+    ? `- NO ${image.avoid.join('; NO ')}`
+    : null
+
+  return [
+    'Requirements for imageDirection:',
+    `- Must stay within the brand visual system: ${styleLine}`,
+    paletteLine,
+    preferLine,
+    avoidLine,
+    '- Describe the specific composition: what materials/forms appear, how they are arranged, and where the key accent or connective detail lands',
+    '- Example format: "Dark wool felt circles layered on cream handmade paper, blue running stitch tracing the edges, small woven blue textile insert with fringe in the lower right"',
+  ].filter(Boolean).join('\n')
+}
+
 /**
  * Generate copy for all platforms
  */
@@ -115,6 +156,7 @@ export async function generateCopy(
 
   // Platform limits from brand config
   const platformLimits = buildPlatformLimits(brand)
+  const imageDirectionRequirements = buildImageDirectionRequirements(brandName)
 
   const prompt = `${WRITING_RULES}
 
@@ -137,11 +179,7 @@ FORMATTING RULES for LinkedIn/Instagram/Threads:
 - Mix short punches (5 words) with medium builds (15-20 words)
 - Group related thoughts, then pause. Let one line land hard alone.
 - NO walls of text, but NO robotic staccato either
-Requirements for imageDirection:
-- Bold, editorial, high-contrast OR abstract
-- Empowered, fierce - NOT sad, tired, defeated
-- NEVER coffee mugs, hands holding tea, stock setups
-- Think fashion editorial, bold portraiture, abstract textures
+${imageDirectionRequirements}
 
 Respond in JSON:
 {
@@ -154,10 +192,11 @@ Respond in JSON:
 }`
 
   const ai = new GoogleGenAI({ apiKey })
+  const copyModel = process.env.GEMINI_COPY_MODEL ?? 'gemini-3-flash-preview'
 
   const response = await withTimeout(
     ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: copyModel,
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: { thinkingConfig: { thinkingLevel: 'low' } } as any
     }),

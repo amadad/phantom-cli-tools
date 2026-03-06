@@ -119,27 +119,27 @@ export const commands: CommandDefinition[] = [
     }
   },
   {
-    name: 'video',
-    aliases: ['short'],
-    summary: '[experimental] Generate a short-form video from a brief',
-    usage: 'video <brand> <brief> [options]',
+    name: 'snowball',
+    summary: 'Generate a 30-day content plan and queue posts from one seed topic',
+    usage: 'snowball <brand> "<topic>" [--dry-run] [--json] [--limit N]',
     acceptsBrand: true,
     options: [
-      { flag: '--dry-run', description: 'Show what would be generated' },
-      { flag: '--skip-audio', description: 'Generate without voice audio' },
-      { flag: '--provider=<name>', description: 'Video provider (replicate, runway, luma)' }
+      { flag: '--dry-run', description: 'Generate calendar only, skip explore enqueue runs' },
+      { flag: '--limit N', description: 'Run explore for first N days (default: 5)' },
+      { flag: '--json', description: 'Output full calendar payload as JSON' }
     ],
-    examples: ['phantom video <brand> briefs/example.yml'],
-    preflight: () => {
-      requireEnv('REPLICATE_API_TOKEN')
-      console.warn('\n⚠️  Video generation is experimental and may not work as expected.')
-      console.warn('   Required: REPLICATE_API_TOKEN, CARTESIA_API_KEY\n')
-    },
+    examples: [
+      'phantom snowball givecare "caregiver burnout"',
+      'phantom snowball givecare "caregiver burnout" --dry-run',
+      'phantom snowball givecare "caregiver burnout" --limit 30 --json'
+    ],
+    preflight: () => requireEnv('GEMINI_API_KEY'),
     run: async (args: string[], ctx) => {
-      const { run } = await import('../commands/video')
+      const { run } = await import('../commands/snowball')
       return run(args, ctx)
     }
   },
+
   {
     name: 'post',
     aliases: ['publish'],
@@ -161,14 +161,15 @@ export const commands: CommandDefinition[] = [
   {
     name: 'queue',
     aliases: ['q'],
-    summary: 'Inspect queued content items',
-    usage: 'queue [list|show <id>] [brand]',
+    summary: 'Inspect and manage queued content items',
+    usage: 'queue [list|show|notify|archive] [brand]',
     options: [
       { flag: 'list', description: 'List queue items (default)' },
       { flag: 'show <id>', description: 'Show a specific queue item' },
-      { flag: 'notify <id> <brand>', description: 'Re-post item to #content-queue with image' }
+      { flag: 'notify <id> <brand>', description: 'Re-post item to #content-queue with image' },
+      { flag: 'archive <brand>', description: 'Archive done/failed items older than 30 days' }
     ],
-    examples: ['phantom queue', 'phantom queue list <brand>', 'phantom queue show gen_1234', 'phantom queue notify gen_1234 givecare'],
+    examples: ['phantom queue', 'phantom queue list <brand>', 'phantom queue show gen_1234', 'phantom queue archive givecare'],
     run: async (args: string[], ctx) => {
       const { run } = await import('../commands/queue')
       return run(args, ctx)
