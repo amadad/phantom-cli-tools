@@ -2,15 +2,14 @@
  * Copy command - Generate platform copy for a topic
  *
  * Usage:
- *   copy <brand> "<topic>" [--hook "pattern"] [--json]
+ *   copy <brand> "<topic>" [--json]
  */
 
 import { generateCopy, type CopyResult } from '../generate/copy'
 import { classify } from '../generate/classify'
-import { gradeFast, grade, loadRubric, buildFeedback } from '../eval/grader'
-import { getHookForTopic } from '../intel/hook-bank'
 import { join, slugify, createSessionDir } from '../core/paths'
 import { extractBrandTopic } from '../cli/args'
+import { SLOP_WORDS } from '../core/slop'
 import { writeFileSync } from 'fs'
 import type { CommandContext } from '../cli/types'
 
@@ -26,32 +25,18 @@ export interface CopyCommandResult {
 }
 
 export async function run(args: string[], _ctx?: CommandContext): Promise<CopyCommandResult> {
-  const parsed = extractBrandTopic(args, ['hook'])
+  const parsed = extractBrandTopic(args)
   if (!parsed.topic) throw new Error('Missing topic. Usage: copy <brand> "<topic>"')
 
   const { brand, topic } = parsed
-  const hookArg = parsed.flags.hook
 
   console.log(`[copy] Topic: "${topic}", Brand: ${brand}`)
 
-  // Resolve hook
-  let hookPattern = hookArg
-  if (!hookPattern) {
-    try {
-      const found = getHookForTopic(brand, topic)
-      if (found) {
-        hookPattern = found.amplified || found.original
-        console.log(`  Hook [${found.multiplier}x]: "${hookPattern.slice(0, 50)}..."`)
-      }
-    } catch { console.debug('[copy] No hook bank found') }
-  }
+  const { copy, score, attempts } = await generateAndGradeCopy(topic, brand)
 
-  const { copy, evalResult, attempts } = await generateAndGradeCopy(topic, brand, hookPattern)
-
-  // Write both copy.md (human) and copy.json (machine)
   const sessionDir = createSessionDir(slugify(topic))
   const outputPath = join(sessionDir, 'copy.md')
-  writeFileSync(outputPath, formatCopyMarkdown(topic, copy, evalResult))
+  writeFileSync(outputPath, formatCopyMarkdown(topic, copy, score))
   writeFileSync(join(sessionDir, 'copy.json'), JSON.stringify(copy, null, 2))
   console.log(`[copy] Saved: ${sessionDir}`)
 
@@ -62,67 +47,60 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<CopyCo
     instagram: copy.instagram,
     threads: copy.threads,
     imageDirection: copy.imageDirection,
-    eval: { score: evalResult.score, passed: evalResult.passed, attempts },
+    eval: { score, passed: score >= 60, attempts },
     outputPath
   }
 }
 
 /**
- * Generate copy with eval grading + retry loop.
+ * Generate copy with simple slop check + retry.
  * Used by both `copy` command and `explore`.
  */
 export async function generateAndGradeCopy(
   topic: string,
   brand: string,
   hookPattern?: string
-): Promise<{ copy: CopyResult; evalResult: Awaited<ReturnType<typeof grade>>; attempts: number }> {
+): Promise<{ copy: CopyResult; score: number; passed: boolean; attempts: number }> {
   const { contentType } = classify(topic)
-  const rubric = loadRubric(brand)
-  const maxRetries = rubric.max_retries || 2
+  const maxRetries = 2
 
   let copy = await generateCopy(topic, brand, contentType, hookPattern)
-  let fastResult = gradeFast(copy.linkedin.text, brand, { platform: 'linkedin' })
+  let { score, slopCount } = slopCheck(copy.linkedin.text)
   let attempts = 0
 
   console.log(`  Twitter: ${copy.twitter.text.length} chars, LinkedIn: ${copy.linkedin.text.length} chars`)
-  logScore(fastResult)
+  logScore(score)
 
-  // Retry on deterministic failures only (slop, banned phrases, platform limits)
-  while (!fastResult.passed && attempts < maxRetries) {
+  while (score < 60 && attempts < maxRetries) {
     attempts++
-    console.log(`[copy] Retry ${attempts}/${maxRetries}...`)
-    const feedback = buildFeedback(fastResult, rubric)
+    console.log(`[copy] Retry ${attempts}/${maxRetries} (slop: ${slopCount} words)...`)
+    const feedback = `Rewrite. Remove these slop words/phrases: ${SLOP_WORDS.filter(w => copy.linkedin.text.toLowerCase().includes(w.toLowerCase())).join(', ')}. Be more direct and specific.`
     copy = await generateCopy(topic, brand, contentType, hookPattern, feedback)
-    fastResult = gradeFast(copy.linkedin.text, brand, { platform: 'linkedin' })
-    logScore(fastResult)
+    ;({ score, slopCount } = slopCheck(copy.linkedin.text))
+    logScore(score)
   }
 
-  if (fastResult.hard_fails.length > 0) {
-    console.log(`  Hard fails: ${fastResult.hard_fails.join(', ')}`)
-  }
-
-  // Full LLM grade async for logging/learning — don't block
-  const evalPromise = grade(copy.linkedin.text, brand, { platform: 'linkedin', log: true })
-  evalPromise.catch((e: unknown) => console.warn('[copy] grade failed:', e instanceof Error ? e.message : String(e)))
-
-  // Await it so we still return a real score, but the generate path isn't bottlenecked
-  // since we already have clean copy from the fast check
-  const evalResult = await evalPromise
-
-  return { copy, evalResult, attempts }
+  return { copy, score, passed: score >= 60, attempts }
 }
 
-function logScore(result: { score: number; passed: boolean }): void {
-  const bar = '█'.repeat(Math.round(result.score / 10)) + '░'.repeat(10 - Math.round(result.score / 10))
-  console.log(`  Score: ${bar} ${result.score}/100 ${result.passed ? 'PASS' : 'FAIL'}`)
+function slopCheck(text: string): { score: number; slopCount: number } {
+  const lower = text.toLowerCase()
+  const slopCount = SLOP_WORDS.filter(w => lower.includes(w.toLowerCase())).length
+  // Start at 100, deduct 15 per slop word found
+  const score = Math.max(0, 100 - slopCount * 15)
+  return { score, slopCount }
 }
 
-export function formatCopyMarkdown(topic: string, copy: CopyResult, evalResult: { score: number; passed: boolean; critique?: string; dimensions: Record<string, number> }): string {
-  const dimScores = Object.entries(evalResult.dimensions).map(([k, v]) => `${k}: ${v}/10`).join(' | ')
+function logScore(score: number): void {
+  const bar = '\u2588'.repeat(Math.round(score / 10)) + '\u2591'.repeat(10 - Math.round(score / 10))
+  console.log(`  Score: ${bar} ${score}/100 ${score >= 60 ? 'PASS' : 'FAIL'}`)
+}
+
+export function formatCopyMarkdown(topic: string, copy: CopyResult, score: number): string {
   return `# ${topic}
 
-**Eval: ${evalResult.score}/100 ${evalResult.passed ? 'PASS' : 'FAIL'}** (${dimScores})
-${evalResult.critique ? `\n> ${evalResult.critique}\n` : ''}
+**Score: ${score}/100 ${score >= 60 ? 'PASS' : 'FAIL'}**
+
 ## Twitter
 ${copy.twitter.text}
 

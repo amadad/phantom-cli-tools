@@ -15,7 +15,6 @@ import { extractBrandTopic } from '../cli/args'
 import { generateBrandImage, parseVolume } from './image-cmd'
 import { generateAndGradeCopy, formatCopyMarkdown } from './copy-cmd'
 import { generateFinals } from './poster-cmd'
-import { getHookForTopic } from '../intel/hook-bank'
 import { addToQueue } from '../queue'
 import { notifyContentQueue } from '../notify/discord-queue'
 import { loadBrandVisual } from '../core/visual'
@@ -72,16 +71,8 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Explor
 
   // === Step 1: Copy first (fast — 1 LLM call gives us imageDirection) ===
   console.log(`\n[explore] Generating copy...`)
-  let hookPattern: string | undefined
-  try {
-    const hook = getHookForTopic(brand, topic)
-    if (hook) {
-      hookPattern = hook.amplified || hook.original
-      console.log(`  Hook [${hook.multiplier}x]: "${hookPattern.slice(0, 50)}..."`)
-    }
-  } catch { console.debug('[explore] No hook bank found') }
 
-  const { copy, evalResult, attempts } = await generateAndGradeCopy(topic, brand, hookPattern)
+  const { copy, score, passed, attempts } = await generateAndGradeCopy(topic, brand)
 
   // === Step 2: Image driven by copy's imageDirection ===
   const imageDirection = copy.imageDirection || topic
@@ -101,7 +92,7 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Explor
   }
 
   // Save copy files
-  writeFileSync(join(sessionDir, 'copy.md'), formatCopyMarkdown(topic, copy, evalResult))
+  writeFileSync(join(sessionDir, 'copy.md'), formatCopyMarkdown(topic, copy, score))
   writeFileSync(join(sessionDir, 'copy.json'), JSON.stringify(copy, null, 2))
 
   // === Step 3: Poster finals ===
@@ -139,8 +130,8 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Explor
   notifyContentQueue({
     item: queueItem,
     imagePath: join(sessionDir, isTypeOnly ? 'instagram.png' : 'twitter.png'),
-    evalScore: evalResult.score,
-    evalPassed: evalResult.passed,
+    evalScore: score,
+    evalPassed: passed,
     platform: 'Instagram',
     format: isTypeOnly ? 'type-only' : (selectedStyleName ?? undefined),
   }).catch((e: Error) => {
@@ -158,7 +149,7 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Explor
     model: modelName,
     outputDir: sessionDir,
     selectedStyle: selectedStyleName ?? 'type-only',
-    eval: { score: evalResult.score, passed: evalResult.passed, attempts },
+    eval: { score, passed, attempts },
     queueId: queueItem.id,
     outputs: { selected: isTypeOnly ? '' : join(sessionDir, 'selected.png'), copy: join(sessionDir, 'copy.md') }
   }

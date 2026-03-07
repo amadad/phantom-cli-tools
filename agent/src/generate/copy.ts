@@ -6,9 +6,7 @@ import { GoogleGenAI } from '@google/genai'
 import type { ContentType } from './classify'
 import { extractJson } from '../core/json'
 import { withTimeout } from '../core/http'
-import { getCopyContext } from '../eval/learnings'
 import { loadBrand, buildVoiceContext, detectFrameType } from '../core/brand'
-import { loadBrandVisual } from '../core/visual'
 import { SLOP_WORDS } from '../core/slop'
 import type { BrandProfile } from '../core/types'
 
@@ -88,44 +86,16 @@ Tone:
 - State things. Skip "It's worth noting that..." and say the thing.
 - Use "you" and "I" when it fits. Address the reader.`
 
-function firstSentence(text: string): string {
-  const normalized = text.replace(/\s+/g, ' ').trim()
-  if (!normalized) return ''
-
-  const match = normalized.match(/^(.+?[.!?])(?:\s|$)/)
-  return match?.[1] ?? normalized
-}
-
-function buildImageDirectionRequirements(brandName: string): string {
-  const image = loadBrandVisual(brandName).image
-  if (!image) {
-    return `Requirements for imageDirection:
-- Must stay within the brand visual system
-- No humans, no stock setups, no representational filler
-- Describe one specific composition, not just a mood
-- Keep it concrete enough for image generation`
-  }
-
-  const styleLine = firstSentence(image.style) || 'Follow the configured brand visual system.'
-  const paletteLine = image.palette_instructions
-    ? `- Palette/material constraints: ${image.palette_instructions.replace(/\s+/g, ' ').trim()}`
-    : null
-  const preferLine = image.prefer.length > 0
-    ? `- Preferred visual cues: ${image.prefer.join('; ')}`
-    : null
-  const avoidLine = image.avoid.length > 0
-    ? `- NO ${image.avoid.join('; NO ')}`
-    : null
-
+function buildImageDirectionRequirements(_brandName: string): string {
   return [
     'Requirements for imageDirection:',
-    `- Must stay within the brand visual system: ${styleLine}`,
-    paletteLine,
-    preferLine,
-    avoidLine,
-    '- Describe the specific composition: what materials/forms appear, how they are arranged, and where the key accent or connective detail lands',
-    '- Example format: "Dark wool felt circles layered on cream handmade paper, blue running stitch tracing the edges, small woven blue textile insert with fringe in the lower right"',
-  ].filter(Boolean).join('\n')
+    '- Describe a SUBJECT only (1 sentence) — what object, landscape, or form anchors the image',
+    '- Choose from: desert landscape, solitary chair, doorway/threshold, caregiving hands, hallway, phone, medicine organizer, or abstract landform',
+    '- The system automatically applies: warm terracotta/rust palette, glitch distortion, scanline artifacts, sparse monumental composition',
+    '- DO NOT describe color, texture, or style — those are handled by the brand system',
+    '- Example good directions: \'A solitary wooden chair on an empty desert plateau\' or \'A doorway at the end of a long sparse hallway\' or \'Caregiving hands rendered as warm abstract forms\'',
+    '- Example bad directions: anything mentioning fashion, portraiture, people\'s faces, studio lighting, or specific colors',
+  ].join('\n')
 }
 
 /**
@@ -151,9 +121,6 @@ export async function generateCopy(
     ? buildVoiceContext(brand, frameType)
     : FALLBACK_VOICE[contentType]
 
-  // Inject learnings from past evaluations
-  const learningsContext = getCopyContext(brandName)
-
   // Platform limits from brand config
   const platformLimits = buildPlatformLimits(brand)
   const imageDirectionRequirements = buildImageDirectionRequirements(brandName)
@@ -161,7 +128,6 @@ export async function generateCopy(
   const prompt = `${WRITING_RULES}
 
 ${voiceContext}
-${learningsContext}
 
 Write about: ${topic}
 ${hookPattern ? `\nHook pattern to adapt: "${hookPattern}"` : ''}

@@ -53,7 +53,15 @@ function getTextForPlatform(item: QueueItem, platform: Platform): string {
   const textPlatform = platform as TextPlatform
   const content = item.content[textPlatform] || item.content.twitter
   if (!content) return ''
-  return `${content.text}\n\n${content.hashtags.map((h: string) => `#${h}`).join(' ')}`
+  const hashtags = content.hashtags.map((h: string) => `#${h}`).join(' ')
+  return hashtags ? `${content.text}\n\n${hashtags}` : content.text
+}
+
+function hasPlatformContent(item: QueueItem, platform: Platform): boolean {
+  const textPlatform = platform as TextPlatform
+  const content = item.content[textPlatform]
+  if (!content) return false
+  return content.text.trim().length > 0 || content.hashtags.length > 0
 }
 
 /**
@@ -128,9 +136,11 @@ export async function post(options: PostOptions): Promise<PostSummary | null> {
   } else if (platforms && platforms.length > 0) {
     targetPlatforms = platforms
   } else {
-    // Default to twitter + linkedin
     const available = getAvailablePlatforms(brand)
-    targetPlatforms = available.filter(p => ['twitter', 'linkedin'].includes(p))
+    const populated = available.filter(p => !videoOnly.includes(p) && hasPlatformContent(item, p))
+    targetPlatforms = populated.length > 0
+      ? populated
+      : available.filter(p => ['twitter', 'linkedin'].includes(p))
   }
 
   if (targetPlatforms.length === 0) {

@@ -115,54 +115,55 @@ visual:
     background: [warm, light]
 
   image:
-    # Derived from actual GiveCare blog hero images — textile mixed-media collage system.
-    # All image generation reads from these fields. Do not change without updating blog images to match.
     style: >
-      Textile mixed-media collage artwork, photographed flat against warm off-white handmade paper
-      background. Composed of layered pieces of dark charcoal-black wool felt, deep chocolate-brown
-      fabric, natural undyed handmade paper with deckled edges, and coarse linen burlap.
-      Shapes are organic and rounded — circles, ovals, biomorphic stone-like forms — layered and
-      overlapping with visible physical depth and shadows at raised edges. Hand-stitching in
-      saturated periwinkle-cobalt blue thread traces edges and creates running stitch lines.
-      Small woven blue textile insert with fringe ends. All edges are raw and unfinished — fraying,
-      loose threads, and cut fibers preserved as intentional aesthetic. Diffuse even natural light
-      reveals surface texture. Wide landscape format 2:1 ratio. Photographed flat lay, not staged.
+      Semi-abstract, minimal, monumental composition with strong negative space.
+      Warm terracotta, rust, sandstone, pale ochre, and soft orange palette.
+      Sparse detail, broad simple shapes, reduced visual information, calm but emotionally resonant.
+      Distressed print texture, fine grain, pixel breakup, horizontal tearing, scanline distortion,
+      compression artifacts, raster corruption, and partial image loss. Feels like a corrupted
+      modernist print or degraded editorial image — not polished CGI, not glossy, not stock-photo realism.
     mood: >
-      Quiet attentiveness. Contemplative, slow, handmade, deeply material. Handmade warmth without
-      sentimentality — serious art objects, not craft. Melancholy tenderness. Earthy and grounded.
-      Care as visible process — every stitch countable, every edge a decision. Trust through honesty:
-      raw edges, visible thread, nothing hidden or polished away.
+      Desolate and monumental. Geological time and digital failure collapsing into one another.
+      Ancient and broken. Post-signal. Emotionally quiet, reduced, warm but strange.
+      If it feels like a generic AI illustration, it is wrong.
+      If it feels like a degraded editorial print — calm but strange, with warmth and restraint — it is closer.
     palette_instructions: >
-      Strictly five tones only. Near-black charcoal felt (#1a1410). Deep chocolate-brown fabric
-      (#3d1f0d). Warm ecru/cream handmade paper background (#f0e8d5). Natural linen/buff coarse
-      weave (#c9b99a). Saturated periwinkle-cobalt blue thread accent (#4040cc) — the ONLY pure
-      hue, always appearing as thread, cord, or woven band, never as large filled shape.
-      No other colors. No white-white backgrounds — always warm cream/ecru.
+      Primary: terracotta, rust, sandstone, pale ochre, sun-faded orange, clay.
+      Accent (use sparingly): electric cobalt blue, deep near-black, pale warm cream.
+      Avoid: bright rainbow accents, neon greens, glossy gradients, saturated purple/magenta.
     prefer:
-      - layered wool felt and fabric appliqué with visible stitch marks
-      - organic rounded circle and oval motifs as primary shapes
-      - running stitch in blue thread tracing edges and outlines
-      - raw unfinished fabric edges with intentional fraying
-      - hand-woven blue textile inserts with visible warp/weft and fringe ends
-      - knotted or tied blue cord/ribbon as connecting motif
-      - multiple simultaneous material textures (smooth felt, rough burlap, pulpy handmade paper)
-      - diffuse even natural light revealing material surface
-      - physical layering with shadow depth between pieces
-      - asymmetric balanced compositions with breathing room around objects
+      - broad empty fields with isolated subject
+      - strong silhouette, asymmetric composition
+      - wide cinematic crop with sparse horizon
+      - one dominant subject or landform — not many competing elements
+      - fine grain and distressed print texture
+      - pixel breakup and horizontal tearing
+      - scanline distortion and compression artifacts
+      - raster corruption and partial image loss
+      - semi-abstract rendering, reduced detail, modernist framing
     avoid:
-      - human figures, faces, hands, or body parts
-      - text, letterforms, or legible symbols
-      - bright or warm colors — no red, orange, yellow, green, pink, or purple
-      - white-white backgrounds — always warm ecru/cream
-      - perfect geometry, laser-cut edges, machine uniformity
-      - digital or printed elements
-      - representational imagery — no flowers, landscapes, animals, recognizable objects
-      - synthetic materials — no plastic, metal, glass, industrial finishes
-      - high contrast dramatic lighting, spotlights, deep shadow pools
-      - pure symmetry
-      - single-material compositions — always 3+ materials
-      - stock photography aesthetic or commercial staging
-      - literal caregiving scenes
+      - crowded scenes or many small objects
+      - busy interiors or detailed lifestyle scenes
+      - complex environmental storytelling in one frame
+      - human figures, faces, hands (unless compositionally essential and semi-abstract)
+      - hyperreal, glossy, ultra-detailed rendering
+      - cinematic blockbuster or luxury editorial feel
+      - 3D render or product rendering aesthetic
+      - text, signage, UI, logos in image
+      - polished stock photography staging
+    negative_prompt: >
+      no text, no signage, no UI, no logos, no polished CGI, no glossy rendering,
+      no busy background, no stock-photo staging, no excessive props, no decorative clutter
+    distortion_level: medium
+    subjects:
+      - desert landscape with sandstone cliffs and sparse scrub
+      - solitary chair as sculptural semi-abstract object
+      - bed or simple resting place
+      - caregiving hands as semi-abstract warm-toned forms
+      - doorway or threshold as architectural form
+      - mobile phone as isolated semi-abstract object
+      - medicine bottle or pill organizer as still life
+      - sparse hallway or waiting room
 
   # ---------------------------------------------------------------------------
   # VOLUME ZONES — the moving part

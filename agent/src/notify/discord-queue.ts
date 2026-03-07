@@ -41,10 +41,91 @@ export interface NotifyOptions {
 }
 
 /**
- * Post a queue item to #content-queue via OpenClaw message tool.
- * Uses components v2 with media-gallery for inline images and action buttons.
+ * Post a queue item to #content-queue.
+ * Always uses direct Discord API (Components v2 with media gallery) for inline image rendering.
+ * Gateway path does not support inline images reliably.
  */
 export async function notifyContentQueue(opts: NotifyOptions): Promise<{ messageId: string } | null> {
+  return notifyContentQueueDirect(opts)
+}
+
+/**
+ * Direct Discord API post using Components v2 with media gallery (type 12).
+ * This is the ONLY method that renders images inline in Discord.
+ * The gateway path sends images as file attachments — not inline.
+ */
+async function notifyContentQueueDirect(opts: NotifyOptions): Promise<{ messageId: string } | null> {
+  // Use Mira's bot token for GiveCare content — Orb should not post in content-queue
+  const botToken = process.env.DISCORD_BOT_TOKEN_MIRA ?? process.env.DISCORD_BOT_TOKEN
+  if (!botToken) {
+    console.warn('[discord-queue] DISCORD_BOT_TOKEN not set — skipping')
+    return null
+  }
+
+  const { item, imagePath, evalScore, platform, format } = opts
+
+  if (!existsSync(imagePath)) {
+    console.warn(`[discord-queue] Image not found: ${imagePath} — skipping`)
+    return null
+  }
+
+  const imageBuffer = readFileSync(imagePath)
+  const brand = item.source.brandName
+  const topic = item.content.topic
+  const queueId = item.id
+  const score = evalScore ?? 0
+  const emoji = scoreEmoji(score)
+  const platformStr = [platform, format].filter(Boolean).join(' · ')
+  const snippet = item.content.twitter?.text
+    ? truncate(item.content.twitter.text, 120)
+    : truncate(topic, 120)
+  const scoreStr = evalScore !== undefined ? `Score: **${score}/100**` : ''
+
+  let textContent = `**${brand} · ${truncate(topic, 50)}** ${emoji}\n`
+  if (platformStr) textContent += `\n> *${platformStr}*`
+  if (snippet) textContent += `\n\n${snippet}`
+  if (scoreStr) textContent += `\n\n${scoreStr}`
+  textContent += `\n\nQueue ID: \`${queueId}\` — reply "post it", "regen", or "discard" to act.`
+
+  const IS_COMPONENTS_V2 = 1 << 15
+  const components = [{
+    type: 17,
+    components: [
+      { type: 10, content: textContent },
+      { type: 12, items: [{ media: { url: `attachment://poster.png` } }] },
+    ],
+  }]
+
+  const boundary = `----FormBoundary${Date.now().toString(36)}`
+  const CRLF = '\r\n'
+  const payloadJson = JSON.stringify({ flags: IS_COMPONENTS_V2, components })
+
+  const part1 = [`--${boundary}`, `Content-Disposition: form-data; name="payload_json"`, `Content-Type: application/json`, ``, payloadJson].join(CRLF)
+  const part2Header = [`--${boundary}`, `Content-Disposition: form-data; name="files[0]"; filename="poster.png"`, `Content-Type: image/png`, ``, ``].join(CRLF)
+  const body = Buffer.concat([
+    Buffer.from(part1 + CRLF, 'utf-8'),
+    Buffer.from(part2Header, 'utf-8'),
+    imageBuffer,
+    Buffer.from(`${CRLF}--${boundary}--${CRLF}`, 'utf-8'),
+  ])
+
+  const response = await fetch(`https://discord.com/api/v10/channels/${CONTENT_QUEUE_CHANNEL}/messages`, {
+    method: 'POST',
+    headers: { Authorization: `Bot ${botToken}`, 'Content-Type': `multipart/form-data; boundary=${boundary}` },
+    body,
+  })
+
+  if (!response.ok) {
+    console.error(`[discord-queue] Discord API error ${response.status}: ${await response.text()}`)
+    return null
+  }
+
+  const msg = await response.json() as { id: string }
+  console.log(`[discord-queue] Posted message ${msg.id} (direct)`)
+  return { messageId: msg.id }
+}
+
+async function notifyContentQueueGateway(opts: NotifyOptions): Promise<{ messageId: string } | null> {
   const { item, imagePath, evalScore, platform, format } = opts
 
   if (!existsSync(imagePath)) {

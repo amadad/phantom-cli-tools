@@ -9,30 +9,10 @@ function requireEnv(name: string): void {
 
 export const commands: CommandDefinition[] = [
   {
-    name: 'intel',
-    summary: 'Run intelligence pipeline (enrich → detect → extract)',
-    usage: 'intel <brand> [options]',
-    acceptsBrand: true,
-    options: [
-      { flag: '--skip-enrich', description: 'Skip Apify enrichment' },
-      { flag: '--skip-detect', description: 'Skip outlier detection' },
-      { flag: '--skip-extract', description: 'Skip hook extraction' },
-      { flag: '--dry-run', description: 'Show what would be done' }
-    ],
-    examples: ['phantom intel <brand>', 'phantom intel <brand> --skip-enrich'],
-    run: async (args: string[], ctx) => {
-      const { run } = await import('../commands/intel')
-      return run(args, ctx)
-    }
-  },
-  {
     name: 'copy',
     summary: 'Generate platform copy for a topic',
     usage: 'copy <brand> "<topic>" [options]',
     acceptsBrand: true,
-    options: [
-      { flag: '--hook "<pattern>"', description: 'Inject a specific hook pattern' }
-    ],
     examples: ['phantom copy <brand> "caregiver burnout"', 'phantom copy <brand> "topic" --json'],
     preflight: () => requireEnv('GEMINI_API_KEY'),
     run: async (args: string[], ctx) => {
@@ -77,73 +57,9 @@ export const commands: CommandDefinition[] = [
     }
   },
   {
-    name: 'visual',
-    summary: 'Audit visual-design permutations and label in/out spectrum points',
-    usage: 'visual spectrum <brand> [options]',
-    acceptsBrand: true,
-    options: [
-      { flag: 'spectrum', description: 'Run design spectrum sweep' },
-      { flag: '--ratio <landscape|portrait|story|square|wide>', description: 'Canvas ratio for all points (default landscape)' },
-      { flag: '--profiles <a,b,c>', description: 'Filter design profiles' },
-      { flag: '--layouts <split,overlay,...>', description: 'Filter layouts' },
-      { flag: '--density <relaxed|moderate|tight>', description: 'Filter density values' },
-      { flag: '--alignment <center|left|asymmetric>', description: 'Filter alignments' },
-      { flag: '--background <light|dark|warm>', description: 'Filter backgrounds' },
-      { flag: '--no-image', description: 'Evaluate only type-only layout points' },
-      { flag: '--render', description: 'Generate rendered browser preview for points' },
-      { flag: '--render-limit <number>', description: 'Max points to render for preview (default 24)' },
-      { flag: '--render-dir <path>', description: 'Write preview files to this directory' },
-      { flag: '--render-headline "<text>"', description: 'Optional headline prefix for preview cards' },
-      { flag: '--serve', description: 'Serve preview at localhost and keep server running' },
-      { flag: '--serve-port <port>', description: 'Preview server port (default 4173)' },
-      { flag: '--open', description: 'Open preview/index.html automatically' },
-      { flag: '--seed <text>', description: 'Stable seed for deterministic point IDs' },
-      { flag: '--min-contrast <ratio>', description: 'Fail if text/field contrast is below this ratio' },
-      { flag: '--max-logo-image-overlap <ratio>', description: 'Fail if logo overlaps image above this ratio' },
-      { flag: '--max-logo-text-overlap <ratio>', description: 'Fail if logo overlaps text above this ratio' },
-      { flag: '--max-text-image-overlap <ratio>', description: 'Fail if text overlays image above this ratio' },
-      { flag: '--min-text-area <ratio>', description: 'Fail if text area coverage is below this ratio' },
-      { flag: '--max-text-area <ratio>', description: 'Fail if text area coverage exceeds this ratio' },
-      { flag: '--min-image-area <ratio>', description: 'Fail if image area coverage is below this ratio' },
-      { flag: '--max-logo-area <ratio>', description: 'Fail if logo area coverage exceeds this ratio' },
-    ],
-    examples: [
-      'phantom visual spectrum givecare',
-      'phantom visual spectrum givecare --layouts split,overlay --ratio square --min-contrast 4.5',
-      'phantom visual spectrum givecare --profiles mute,vocal --no-image',
-      'phantom visual spectrum givecare --render --render-limit 12 --open',
-      'phantom visual spectrum givecare --serve --serve-port 4173 --render-limit 12 --open',
-    ],
-    run: async (args: string[], ctx) => {
-      const { run } = await import('../commands/visual-cmd')
-      return run(args, ctx)
-    }
-  },
-  {
-    name: 'enqueue',
-    summary: 'Add generated content to the brand queue',
-    usage: 'enqueue <brand> --topic "<topic>" --copy <path> --image <path> [options]',
-    acceptsBrand: true,
-    options: [
-      { flag: '--topic "<topic>"', description: 'Content topic' },
-      { flag: '--copy <path>', description: 'Path to copy.json or copy.md' },
-      { flag: '--image <path>', description: 'Path to content image' },
-      { flag: '--poster-dir <path>', description: 'Directory with platform posters' },
-      { flag: '--notify', description: 'Post to #content-queue on Discord with image' }
-    ],
-    examples: [
-      'phantom enqueue <brand> --topic "burnout" --copy ./copy.json --image ./selected.png',
-      'phantom enqueue <brand> --topic "burnout" --copy ./copy.json --image ./selected.png --notify'
-    ],
-    run: async (args: string[], ctx) => {
-      const { run } = await import('../commands/enqueue-cmd')
-      return run(args, ctx)
-    }
-  },
-  {
     name: 'explore',
     aliases: ['gen', 'generate'],
-    summary: 'Generate copy + images for a topic',
+    summary: 'Generate copy + image + poster + enqueue',
     usage: 'explore <brand> "<topic>" [options]',
     acceptsBrand: true,
     options: [
@@ -163,27 +79,25 @@ export const commands: CommandDefinition[] = [
     }
   },
   {
-    name: 'snowball',
-    summary: 'Generate a 30-day content plan and queue posts from one seed topic',
-    usage: 'snowball <brand> "<topic>" [--dry-run] [--json] [--limit N]',
+    name: 'enqueue',
+    summary: 'Add generated content to the brand queue',
+    usage: 'enqueue <brand> --topic "<topic>" --copy <path> --image <path>',
     acceptsBrand: true,
     options: [
-      { flag: '--dry-run', description: 'Generate calendar only, skip explore enqueue runs' },
-      { flag: '--limit N', description: 'Run explore for first N days (default: 5)' },
-      { flag: '--json', description: 'Output full calendar payload as JSON' }
+      { flag: '--topic "<topic>"', description: 'Content topic' },
+      { flag: '--copy <path>', description: 'Path to copy.json or copy.md' },
+      { flag: '--image <path>', description: 'Path to content image' },
+      { flag: '--poster-dir <path>', description: 'Directory with platform posters' },
+      { flag: '--notify', description: 'Post to #content-queue on Discord with image' }
     ],
     examples: [
-      'phantom snowball givecare "caregiver burnout"',
-      'phantom snowball givecare "caregiver burnout" --dry-run',
-      'phantom snowball givecare "caregiver burnout" --limit 30 --json'
+      'phantom enqueue <brand> --topic "burnout" --copy ./copy.json --image ./selected.png'
     ],
-    preflight: () => requireEnv('GEMINI_API_KEY'),
     run: async (args: string[], ctx) => {
-      const { run } = await import('../commands/snowball')
+      const { run } = await import('../commands/enqueue-cmd')
       return run(args, ctx)
     }
   },
-
   {
     name: 'post',
     aliases: ['publish'],
@@ -213,53 +127,9 @@ export const commands: CommandDefinition[] = [
       { flag: 'notify <id> <brand>', description: 'Re-post item to #content-queue with image' },
       { flag: 'archive <brand>', description: 'Archive done/failed items older than 30 days' }
     ],
-    examples: ['phantom queue', 'phantom queue list <brand>', 'phantom queue show gen_1234', 'phantom queue archive givecare'],
+    examples: ['phantom queue', 'phantom queue list <brand>', 'phantom queue show gen_1234'],
     run: async (args: string[], ctx) => {
       const { run } = await import('../commands/queue')
-      return run(args, ctx)
-    }
-  },
-  {
-    name: 'moodboard',
-    aliases: ['mood', 'grid'],
-    summary: 'Generate a 3×3 image grid for fast visual selection',
-    usage: 'moodboard <brand> "<topic>" [options]',
-    acceptsBrand: true,
-    options: [
-      { flag: '--json', description: 'Output result as JSON' }
-    ],
-    examples: [
-      'phantom moodboard givecare "caregiver burnout"',
-      'phantom moodboard givecare "caregiver burnout" --json'
-    ],
-    preflight: () => requireEnv('GEMINI_API_KEY'),
-    run: async (args: string[], ctx) => {
-      const { run } = await import('../commands/moodboard-cmd')
-      return run(args, ctx)
-    }
-  },
-  {
-    name: 'grade',
-    aliases: ['eval'],
-    summary: 'Score content against the brand rubric',
-    usage: 'grade <brand> "<text>"',
-    acceptsBrand: true,
-    examples: ['phantom grade <brand> "text to evaluate"'],
-    preflight: () => requireEnv('GEMINI_API_KEY'),
-    run: async (args: string[], ctx) => {
-      const { run } = await import('../eval/grader')
-      return run(args, ctx)
-    }
-  },
-  {
-    name: 'learn',
-    aliases: ['learnings'],
-    summary: 'Aggregate eval log into learnings.json',
-    usage: 'learn <brand>',
-    acceptsBrand: true,
-    examples: ['phantom learn <brand>'],
-    run: async (args: string[], ctx) => {
-      const { run } = await import('../eval/learnings')
       return run(args, ctx)
     }
   },
@@ -289,46 +159,6 @@ export const commands: CommandDefinition[] = [
     examples: ['phantom brand init newbrand'],
     run: async (args: string[], ctx) => {
       const { run } = await import('../commands/brand')
-      return run(args, ctx)
-    }
-  },
-  {
-    name: 'brief',
-    summary: 'Generate a daily research digest for a brand',
-    usage: 'brief <brand> [options]',
-    acceptsBrand: true,
-    options: [
-      { flag: '--topic <text>', description: 'Focus on a specific subtopic' },
-      { flag: '--channel', description: 'Post digest to Discord webhook' },
-      { flag: '--dry-run', description: 'Skip saving/posting output' }
-    ],
-    examples: [
-      'phantom brief givecare',
-      'phantom brief givecare --topic "caregiver burnout"',
-      'phantom brief givecare --channel'
-    ],
-    run: async (args: string[], ctx) => {
-      const { run } = await import('../commands/brief')
-      return run(args, ctx)
-    }
-  },
-  {
-    name: 'blog',
-    summary: 'Generate a long-form blog post for a brand',
-    usage: 'blog <brand> "<topic>" [options]',
-    acceptsBrand: true,
-    options: [
-      { flag: '--publish', description: 'Write post to brand publish_path' },
-      { flag: '--dry-run', description: 'Skip saving/publishing' }
-    ],
-    examples: [
-      'phantom blog givecare "caregiver burnout"',
-      'phantom blog givecare "caregiver burnout" --publish',
-      'phantom blog givecare "caregiver burnout" --dry-run'
-    ],
-    preflight: () => requireEnv('GEMINI_API_KEY'),
-    run: async (args: string[], ctx) => {
-      const { run } = await import('../commands/blog')
       return run(args, ctx)
     }
   }

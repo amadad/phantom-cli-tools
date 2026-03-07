@@ -7,7 +7,6 @@
 
 import type { ImageType } from './classify'
 import { generatePoster, type AspectRatio } from '../composite/poster'
-import { getImageContext } from '../eval/learnings'
 import { loadBrandVisual, resolveVolumeContext, type VolumeContext } from '../core/visual'
 import { loadBrand } from '../core/brand'
 import { createImageProvider } from './providers'
@@ -201,27 +200,34 @@ function buildPrompt(
 ): string {
   const visual = loadBrandVisual(brandName)
   const brand = loadBrand(brandName)
-  const learnings = getImageContext(brandName.toLowerCase())
-
   // SCTY: use modular prompt system if available
   const promptSystem = (brand as any).visual?.prompt_system
   if (promptSystem) {
-    return buildSctyPrompt(imageType, direction, promptSystem, learnings, knockout)
+    return buildSctyPrompt(imageType, direction, promptSystem, '', knockout)
   }
 
   // All other brands: build from visual.image config
   const img = visual.image ?? { style: '', mood: '', avoid: [], prefer: [] }
   const volumeContext = resolveVolumeContext(brandName, volume)
+
+  // For GiveCare: inject explicit distortion texture tokens so Gemini produces
+  // horizontal scan-line displacement + fine film grain (not posterization).
+  // Based on brand-image-prompts.md reference images (01–04.webp).
+  const negativePrompt = (img as any).negative_prompt ?? ''
+  const distortionSuffix = brandName === 'givecare'
+    ? ` Distortion: horizontal scan-line displacement with pixel-row offset creating staircase silhouettes along edges. Dense even fine film grain across entire image. Horizontal pixel smearing at key transitions. Compression artifacts and raster corruption. NOT posterization — soft pixel dither wash, not flat color blocks. ${negativePrompt}`
+    : ''
+
   return buildGenericPrompt(
     imageType,
     direction,
-    img.style,
+    img.style + distortionSuffix,
     img.mood,
     img.prefer,
     img.avoid,
     img.palette_instructions ?? '',
     visual.palette,
-    learnings,
+    '',
     volumeContext,
   )
 }
