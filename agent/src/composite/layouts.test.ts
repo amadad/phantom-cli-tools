@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { BrandVisual } from '../core/visual'
+import { RENDERER_DEFAULTS } from './renderer/defaults'
 import { buildStylePlan, canRenderWithImage, computeLayout } from './layouts'
 
 const visual: BrandVisual = {
@@ -31,6 +32,7 @@ const visual: BrandVisual = {
     alignment: ['left', 'center'],
     background: ['light', 'dark'],
   },
+  renderer: RENDERER_DEFAULTS,
 }
 
 describe('buildStylePlan', () => {
@@ -62,6 +64,55 @@ describe('computeLayout', () => {
     const a = computeLayout('split', 1080, 1080, visual, 'topic')
     const b = computeLayout('split', 1080, 1080, visual, 'topic')
     expect(a.bgColorIndex).toBe(b.bgColorIndex)
+  })
+})
+
+describe('renderer config overrides', () => {
+  it('custom margin ratios produce different zone geometry', () => {
+    const defaultResult = computeLayout('split', 1080, 1080, visual, 'topic')
+    const tightMargins: BrandVisual = {
+      ...visual,
+      renderer: {
+        ...RENDERER_DEFAULTS,
+        margins: { relaxed: 0.02, moderate: 0.01, tight: 0.005 },
+      },
+    }
+    const tightResult = computeLayout('split', 1080, 1080, tightMargins, 'topic')
+    // Smaller margins → larger image zone
+    expect(tightResult.imageZone.width).toBeGreaterThan(defaultResult.imageZone.width)
+  })
+
+  it('custom split.imageHeight changes image zone proportions', () => {
+    const defaultResult = computeLayout('split', 1080, 1080, visual, 'topic')
+    const tallImage: BrandVisual = {
+      ...visual,
+      renderer: {
+        ...RENDERER_DEFAULTS,
+        layouts: {
+          ...RENDERER_DEFAULTS.layouts,
+          split: { ...RENDERER_DEFAULTS.layouts.split, imageHeight: 0.75 },
+        },
+      },
+    }
+    const tallResult = computeLayout('split', 1080, 1080, tallImage, 'topic')
+    // Taller image fraction → larger image zone height
+    expect(tallResult.imageZone.height).toBeGreaterThan(defaultResult.imageZone.height)
+  })
+
+  it('custom overlay.textWidth changes text zone width', () => {
+    const defaultResult = computeLayout('overlay', 1200, 675, visual, 'topic')
+    const wideText: BrandVisual = {
+      ...visual,
+      renderer: {
+        ...RENDERER_DEFAULTS,
+        layouts: {
+          ...RENDERER_DEFAULTS.layouts,
+          overlay: { ...RENDERER_DEFAULTS.layouts.overlay, textWidth: 0.9 },
+        },
+      },
+    }
+    const wideResult = computeLayout('overlay', 1200, 675, wideText, 'topic')
+    expect(wideResult.textZone.width).toBeGreaterThan(defaultResult.textZone.width)
   })
 })
 

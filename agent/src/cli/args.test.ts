@@ -41,6 +41,12 @@ describe('extractBrandTopic', () => {
     expect(result.flags.style).toBe('s09')
   })
 
+  it('treats unknown --flag value as value when next token exists', () => {
+    const result = extractBrandTopic(['scty', '--mystery', 'zone'])
+    expect(result.flags.mystery).toBe('zone')
+    expect(result.topic).toBe('')
+  })
+
   it('quoted topic overrides positional topic', () => {
     const result = extractBrandTopic(['givecare', '"caregiver burnout"'])
     expect(result.topic).toBe('caregiver burnout')

@@ -22,6 +22,7 @@ Brand content pipeline: intel → generate → eval → post. CLI at `agent/src/
   - `layers/GraphicLayer.ts` — background fill, gradient strip, logo drawing
   - `layers/ImageLayer.ts` — content image placement
   - `layers/TypeLayer.ts` — headline text rendering
+  - `defaults.ts` — `RENDERER_DEFAULTS` config; brands override via `visual.renderer:` in YAML
   - `types.ts` — shared types (PixelZone, BrandFrameProps, etc.)
 
 ### Brand Config
@@ -33,6 +34,16 @@ Brand content pipeline: intel → generate → eval → post. CLI at `agent/src/
 - `agent/src/commands/` — each command is self-contained, exports reusable functions
 - `explore.ts` orchestrates: image + copy → grade → poster → enqueue
 - All commands use `agent/src/cli/args.ts` for arg parsing
+- CLI parsing is schema-driven: `extractBrandTopic(args, valueFlags?, booleanFlags?)`.
+  - `valueFlags` require a value (`volume`, `topic`, `copy`, etc.)
+  - `booleanFlags` are explicit switches (`quick`, `pro`, `json`, etc.)
+  - unknown flags default to value-taking when followed by a token unless explicitly boolean
+- `visual spectrum <brand>` runs explicit objective checks across design-space permutations and returns labeled points (`profile | layout | density | alignment | background`) for learnability.
+- `visual spectrum` supports `--render` to write a local review gallery (`index.html`) plus `annotations.json` for manual thumbs-up/down labeling.
+- `visual spectrum --serve` hosts the gallery on localhost (default `127.0.0.1:4173`) and keeps the command open while reviewing.
+- `visual spectrum` uses `listDesignProfiles` in `agent/src/core/visual.ts` and supports both:
+  - new `visual.design.zones` profiles
+  - legacy `visual.volume_zones` (e.g., GiveCare-style configuration)
 
 ## Conventions
 

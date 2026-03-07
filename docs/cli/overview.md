@@ -6,7 +6,7 @@ Phantom Loom CLI is CLI-first. The command line is the primary interface for orc
 
 - **Composable primitives**: Each pipeline step is a standalone command. Agent orchestrates the sequence.
 - **Predictable commands**: Command names are verbs (`copy`, `image`, `poster`, `enqueue`, `post`).
-- **Global flags everywhere**: `--brand`, `--json`, `--quiet`, `--verbose` apply to any command.
+- **Global flags everywhere**: `--brand`, `--json`, `--quiet`, `--help` apply to any command.
 - **Human + machine output**: Human-friendly output by default, structured JSON with `--json`.
 - **Isolated failure**: Copy and image can fail independently. Each step writes to disk for checkpointing.
 
@@ -41,6 +41,10 @@ Each returns structured JSON with `--json`. Agent-composable.
 ### Convenience Wrapper
 - `explore` — chains image → copy → grade → poster → enqueue
 
+### Diagnostics
+- `visual spectrum` — enumerate and evaluate design-space permutations (layouts, density, alignment, backgrounds, profiles), and generate a local "mini browser" HTML review page with IN/OUT auto labels and manual 👍/👎 marking using `--render` or `--serve`
+- manual thumb labels are persisted into `annotations.json` while `--serve` is running, so the command process can be informed in real-time
+
 ### Pipeline
 - `intel` — weekly: scrape → outliers → hooks
 - `post` — publish queue items to platforms
@@ -61,7 +65,11 @@ All commands use `cli/args.ts` for consistent argument parsing:
 ```typescript
 import { extractBrandTopic } from '../cli/args'
 
-const parsed = extractBrandTopic(args, ['style', 'hook']) // knownFlags = value-taking flags
+  const parsed = extractBrandTopic(
+  args,
+  ['style', 'hook'],   // flags that require values
+  ['quick', 'pro', 'json'] // boolean flags
+) 
 // → { brand: "givecare", topic: "burnout", flags: { style: "s09" }, booleans: Set(["quick"]) }
 ```
 

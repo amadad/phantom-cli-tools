@@ -23,8 +23,13 @@ export interface ParsedArgs {
  * Quoted strings override topic detection.
  * --flag value or --flag=value → flags map.
  * --bool (no following value or next arg starts with --) → booleans set.
+ * Pass `booleanFlags` when a command has known non-valued flags.
  */
-export function extractBrandTopic(args: string[], knownFlags: string[] = []): ParsedArgs {
+export function extractBrandTopic(
+  args: string[],
+  valueFlags: string[] = [],
+  booleanFlags: string[] = [],
+): ParsedArgs {
   const positional: string[] = []
   const flags: Record<string, string> = {}
   const booleans = new Set<string>()
@@ -42,7 +47,9 @@ export function extractBrandTopic(args: string[], knownFlags: string[] = []): Pa
         const key = arg.slice(2)
         const next = args[i + 1]
         // Check if this flag expects a value (not a boolean)
-        if (next && !next.startsWith('--') && knownFlags.includes(key)) {
+        const expectsValue = valueFlags.includes(key)
+        const explicitBoolean = booleanFlags.includes(key)
+        if (next && !next.startsWith('--') && (expectsValue || !explicitBoolean)) {
           flags[key] = next
           i++
         } else {

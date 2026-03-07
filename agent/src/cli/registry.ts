@@ -49,7 +49,7 @@ export const commands: CommandDefinition[] = [
     options: [
       { flag: '--pro', description: 'Use Gemini 3 Pro model' },
       { flag: '--quick', description: 'Skip moodboard selection' },
-      { flag: '--style <name>', description: 'Force specific style' }
+      { flag: '--volume <name>', description: 'Apply design zone overrides' },
     ],
     examples: ['phantom image <brand> "topic" --quick', 'phantom image <brand> "topic" --json'],
     preflight: () => requireEnv('GEMINI_API_KEY'),
@@ -67,11 +67,55 @@ export const commands: CommandDefinition[] = [
     options: [
       { flag: '--image <path>', description: 'Path to content image' },
       { flag: '--headline "<text>"', description: 'Headline text for overlay' },
+      { flag: '--volume <name>', description: 'Apply design zone overrides' },
       { flag: '--no-logo', description: 'Disable logo on posters' }
     ],
     examples: ['phantom poster <brand> --image ./selected.png --headline "Your brain is running 20 tabs"'],
     run: async (args: string[], ctx) => {
       const { run } = await import('../commands/poster-cmd')
+      return run(args, ctx)
+    }
+  },
+  {
+    name: 'visual',
+    summary: 'Audit visual-design permutations and label in/out spectrum points',
+    usage: 'visual spectrum <brand> [options]',
+    acceptsBrand: true,
+    options: [
+      { flag: 'spectrum', description: 'Run design spectrum sweep' },
+      { flag: '--ratio <landscape|portrait|story|square|wide>', description: 'Canvas ratio for all points (default landscape)' },
+      { flag: '--profiles <a,b,c>', description: 'Filter design profiles' },
+      { flag: '--layouts <split,overlay,...>', description: 'Filter layouts' },
+      { flag: '--density <relaxed|moderate|tight>', description: 'Filter density values' },
+      { flag: '--alignment <center|left|asymmetric>', description: 'Filter alignments' },
+      { flag: '--background <light|dark|warm>', description: 'Filter backgrounds' },
+      { flag: '--no-image', description: 'Evaluate only type-only layout points' },
+      { flag: '--render', description: 'Generate rendered browser preview for points' },
+      { flag: '--render-limit <number>', description: 'Max points to render for preview (default 24)' },
+      { flag: '--render-dir <path>', description: 'Write preview files to this directory' },
+      { flag: '--render-headline "<text>"', description: 'Optional headline prefix for preview cards' },
+      { flag: '--serve', description: 'Serve preview at localhost and keep server running' },
+      { flag: '--serve-port <port>', description: 'Preview server port (default 4173)' },
+      { flag: '--open', description: 'Open preview/index.html automatically' },
+      { flag: '--seed <text>', description: 'Stable seed for deterministic point IDs' },
+      { flag: '--min-contrast <ratio>', description: 'Fail if text/field contrast is below this ratio' },
+      { flag: '--max-logo-image-overlap <ratio>', description: 'Fail if logo overlaps image above this ratio' },
+      { flag: '--max-logo-text-overlap <ratio>', description: 'Fail if logo overlaps text above this ratio' },
+      { flag: '--max-text-image-overlap <ratio>', description: 'Fail if text overlays image above this ratio' },
+      { flag: '--min-text-area <ratio>', description: 'Fail if text area coverage is below this ratio' },
+      { flag: '--max-text-area <ratio>', description: 'Fail if text area coverage exceeds this ratio' },
+      { flag: '--min-image-area <ratio>', description: 'Fail if image area coverage is below this ratio' },
+      { flag: '--max-logo-area <ratio>', description: 'Fail if logo area coverage exceeds this ratio' },
+    ],
+    examples: [
+      'phantom visual spectrum givecare',
+      'phantom visual spectrum givecare --layouts split,overlay --ratio square --min-contrast 4.5',
+      'phantom visual spectrum givecare --profiles mute,vocal --no-image',
+      'phantom visual spectrum givecare --render --render-limit 12 --open',
+      'phantom visual spectrum givecare --serve --serve-port 4173 --render-limit 12 --open',
+    ],
+    run: async (args: string[], ctx) => {
+      const { run } = await import('../commands/visual-cmd')
       return run(args, ctx)
     }
   },
@@ -105,7 +149,7 @@ export const commands: CommandDefinition[] = [
     options: [
       { flag: '--pro', description: 'Use Gemini 3 Pro model' },
       { flag: '--quick', description: 'Skip moodboard selection' },
-      { flag: '--style <name>', description: 'Force specific style' },
+      { flag: '--volume <name>', description: 'Apply design zone overrides' },
       { flag: '--no-logo', description: 'Disable logo on posters' }
     ],
     examples: [

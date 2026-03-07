@@ -20,8 +20,8 @@ import { drawTypeLayer } from './layers/TypeLayer'
 export async function renderBrandFrame(props: BrandFrameProps): Promise<Buffer> {
   const {
     width, height, visual, layoutName, background, textSize,
-    bgColorIndex, imageDim,
-    category, subtext,
+    bgColorIndex, imageDim, designProfile,
+    category, subtext, typeGravity,
     imageZone, textZone, logoZone,
     headline, contentImage, logoPath,
   } = props
@@ -36,6 +36,7 @@ export async function renderBrandFrame(props: BrandFrameProps): Promise<Buffer> 
     height,
     visual,
     background,
+    designProfile,
     imageZone,
     textZone,
     bgColorIndex,
@@ -60,10 +61,11 @@ export async function renderBrandFrame(props: BrandFrameProps): Promise<Buffer> 
     textZone,
     logoPath,
     layoutName,
+    background,
   })
 
   // ── Layer 4: Type (headline text — always on top) ───────────────────────────
-  const alignment = visual.alignment
+  const alignment = designProfile?.alignment ?? visual.alignment
   const textAlign: 'left' | 'center' | 'right' =
     alignment === 'asymmetric' ? 'left' : alignment === 'center' ? 'center' : 'left'
 
@@ -72,12 +74,14 @@ export async function renderBrandFrame(props: BrandFrameProps): Promise<Buffer> 
     height,
     visual,
     textZone,
+    designProfile,
     textAlign,
     textSize,
     background,
     headline,
     category,
     subtext,
+    typeGravity,
   })
 
   return canvas.toBuffer('image/png')

@@ -2,13 +2,14 @@
  * Poster command - Generate final platform posters from image + headline
  *
  * Usage:
- *   poster <brand> --image <path> --headline "<text>" [--no-logo] [--json]
+ *   poster <brand> --image <path> --headline "<text>" [--volume=<zone>] [--no-logo] [--json]
  */
 
 import { readFileSync, existsSync, writeFileSync } from 'fs'
 import { getBrandDir, join, slugify, createSessionDir } from '../core/paths'
 import { extractBrandTopic } from '../cli/args'
 import { generatePoster } from '../composite/poster'
+import { parseVolume } from './image-cmd'
 import type { AspectRatio } from '../composite/renderer/render'
 import { loadBrandVisual } from '../core/visual'
 import { loadBrand } from '../core/brand'
@@ -28,12 +29,16 @@ const PLATFORM_RATIOS: Record<string, AspectRatio> = {
 }
 
 export async function run(args: string[], _ctx?: CommandContext): Promise<PosterCommandResult> {
-  const parsed = extractBrandTopic(args, ['image', 'headline'])
+  const parsed = extractBrandTopic(args, ['image', 'headline', 'volume'], ['no-logo', 'no-image', 'json'])
   const brand = parsed.brand
   const imagePath = parsed.flags.image
   const headline = parsed.flags.headline
   const noLogo = parsed.booleans.has('no-logo')
   const noImage = parsed.booleans.has('no-image')
+  const volume = parseVolume(parsed.flags.volume)
+  if (parsed.booleans.has('volume')) {
+    throw new Error('Missing --volume value. Use --volume <zone>')
+  }
 
   if (!noImage && !imagePath) throw new Error('Missing --image (or use --no-image for type-only). Usage: poster <brand> --image <path> --headline "<text>"')
   if (!headline) throw new Error('Missing --headline. Usage: poster <brand> --image <path> --headline "<text>"')
@@ -45,7 +50,7 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Poster
   const contentImage = (!noImage && imagePath) ? readFileSync(imagePath) : undefined
   const outputDir = createSessionDir(`poster-${slugify(headline, 30)}`)
 
-  const outputs = await generateFinals(brand, headline, contentImage, { noLogo, outputDir, topic: headline })
+  const outputs = await generateFinals(brand, headline, contentImage, { noLogo, outputDir, topic: headline, volume })
   const visual = loadBrandVisual(brand)
   const logoUsed = !noLogo && [visual.logo.dark, visual.logo.light].some((path): path is string => !!path && existsSync(path))
   return { outputs, logoUsed, outputDir }
@@ -59,9 +64,9 @@ export async function generateFinals(
   brandName: string,
   headline: string,
   contentImage: Buffer | undefined,
-  opts: { noLogo?: boolean; outputDir: string; topic?: string; seed?: string }
+  opts: { noLogo?: boolean; outputDir: string; topic?: string; volume?: string; seed?: string }
 ): Promise<Record<string, string>> {
-  const { noLogo = false, outputDir, topic, seed } = opts
+  const { noLogo = false, outputDir, topic, seed, volume } = opts
 
   // Respect brand-level logo.social config — if false, suppress logo on all platform assets
   const brand = loadBrand(brandName) as any
@@ -78,6 +83,7 @@ export async function generateFinals(
         contentImage,
         ratio,
         noLogo: effectiveNoLogo,
+        designZone: volume,
         topic,
         seed,
       })

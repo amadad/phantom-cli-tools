@@ -2,6 +2,21 @@
 
 Brand content pipeline: **intel → generate → eval → post**
 
+## CLI Contract Baseline
+
+- CLI is the primary automation surface; every command should stay composable.
+- Global contract:
+  - `--brand <name>` defaults brand for brand-aware commands.
+  - `--json` emits structured output for machine consumers.
+  - `--quiet` suppresses non-error output.
+  - `--help` renders usage.
+- Shared parser contract:
+- `extractBrandTopic(args, valueFlags, booleanFlags)` in `agent/src/cli/args.ts`.
+- Unknown flags are treated as value flags when followed by a token, unless explicitly marked boolean.
+- This is the expected behavior for `--volume`, `--pro`, `--quick`, and `--no-logo` style flag sets.
+- `--profiles`, `--layouts`, and all visual threshold flags are explicitly registered in `visual spectrum`.
+- `visual spectrum --serve` starts a localhost static preview server (`127.0.0.1`).
+
 ## Commands
 
 CLI design system docs: `docs/cli/overview.md`
@@ -12,6 +27,8 @@ cd agent
 npx tsx src/cli.ts copy <brand> "topic"         # Generate platform copy + eval
 npx tsx src/cli.ts image <brand> "topic"        # Generate brand image (--knockout for transparent)
 npx tsx src/cli.ts poster <brand> --image <path> --headline "text"  # Platform posters
+npx tsx src/cli.ts visual spectrum <brand> [--profiles ...]  # Audit design-space permutations
+npx tsx src/cli.ts visual spectrum <brand> --serve --open  # Build and open live localhost mini-browser review
 npx tsx src/cli.ts enqueue <brand> --topic "t" --copy <p> --image <p>  # Add to queue
 npx tsx src/cli.ts grade <brand> "text"         # Eval: score against rubric
 
@@ -113,10 +130,11 @@ Commands share logic via exported functions, not abstraction layers:
 import { generateBrandImage } from './commands/image-cmd'    // Self-contained: takes brand name
 import { generateAndGradeCopy } from './commands/copy-cmd'   // Copy + eval retry loop
 import { generateFinals } from './commands/poster-cmd'       // Self-contained: takes brand name
-import { extractBrandTopic } from './cli/args'                // Shared arg parser
+import { extractBrandTopic } from './cli/args'               // Shared arg parser
 import { createSessionDir, slugify } from './core/paths'     // Session dir helper
 import { loadBrandVisual } from './core/visual'               // BrandVisual config loader
 import { resolveVolumeContext } from './core/visual'          // Volume zone resolver → VolumeContext | null
+import { listDesignProfiles } from './core/visual'            // Visual profile enumeration
 import { buildVoiceContext } from './core/brand'             // Copy writing context
 import { checkTokens, refreshTokens, preflightTokenCheck } from './publish/token-refresh'
 ```
@@ -152,7 +170,18 @@ Brand YAML drives a deterministic style plan:
 3. **Logo** — brand logo (drawn after image for z-order)
 4. **TypeLayer** — headline text with brand typography
 
+### Renderer Constants
+All design constants (margins, layout proportions, typography ratios, gradient opacity, logo sizing) live in `composite/renderer/defaults.ts` as `RENDERER_DEFAULTS`. Brands override via `visual.renderer:` in YAML — deep-merged at load time. See `docs/visual-renderer-spec.md` for full reference.
+
+```typescript
+import { RENDERER_DEFAULTS, type RendererConfig } from './composite/renderer/defaults'
+// BrandVisual.renderer is always populated (defaults if no YAML override)
+```
+
+Audit: `npx tsx scripts/audit-renderer-constants.ts` — flags unregistered magic numbers in renderer files.
+
 ### Brand Visual Config
+
 ```yaml
 visual:
   palette: { background, primary, accent, secondary, warm, dark, light }
@@ -195,6 +224,19 @@ visual:
     form_modes: { geometric, typographic, duotone, collage, cosmic, ... }
     texture_modes: { halftone, photocopy, overprint, crosshatch, ... }
 ```
+
+`visual.design` can be used for brand systems with explicit profile grids:
+- `visual.design.zones` for named profiles
+- `visual.design.defaults` for deterministic fallback and profile defaults
+
+Legacy `visual.volume_zones` is still supported for backward compatibility.
+
+Template and existing brand YAMLs remain valid because `visual spectrum` defaults to a base profile when no zone profile is present.
+
+`visual spectrum <brand> ...` enumerates each profile/layout combination, with:
+- `label` (traceable axis marker)
+- `failedChecks` (fail reasons for quick learning)
+- geometric + contrast `checks` + `metrics` for auditability
 
 ### Image Generation
 Prompt-only — brand YAML `visual.image` + `visual.prompt_system` drive the aesthetic. No reference images needed.

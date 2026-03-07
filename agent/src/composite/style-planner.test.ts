@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { BrandVisual } from '../core/visual'
+import { RENDERER_DEFAULTS } from './renderer/defaults'
 import { buildStylePlan, canRenderWithImage, computeLayout } from './layouts'
 
 const visual: BrandVisual = {
@@ -31,6 +32,7 @@ const visual: BrandVisual = {
     alignment: ['left', 'center'],
     background: ['light', 'dark'],
   },
+  renderer: RENDERER_DEFAULTS,
 }
 
 describe('buildStylePlan', () => {

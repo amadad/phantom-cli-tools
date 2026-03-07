@@ -23,6 +23,13 @@ npx tsx src/cli.ts copy <brand> "topic" --json
 npx tsx src/cli.ts image <brand> "topic" --quick --json
 ```
 
+### Global CLI Flags
+
+- `--brand <name>`: default brand for brand-aware commands
+- `--json`: structured output for agent pipelines
+- `--quiet`: suppress non-error output
+- `--help`: command help
+
 ## Commands
 
 ### Atomic Primitives
@@ -33,6 +40,7 @@ Each returns structured JSON with `--json`. Designed for agent orchestration —
 |---------|---------|------------|
 | `copy <brand> "topic"` | Platform copy + eval grading | `copy.md` + `copy.json` |
 | `image <brand> "topic"` | Brand-consistent image | `selected.png` |
+| `visual spectrum <brand>` | Sweep visual design space and get IN/OUT results | Add `--serve` for live localhost review (or `--render` for file output) |
 | `poster <brand> --image <p> --headline "text"` | Platform posters | `twitter.png`, `instagram.png`, `story.png` |
 | `enqueue <brand> --topic "t" --copy <p> --image <p>` | Add to queue | Queue item (stage: review) |
 | `grade <brand> "text"` | Score against rubric | `{ score, passed, dimensions }` |
@@ -60,6 +68,7 @@ npx tsx src/cli.ts learn <brand>              # Aggregate eval learnings
 npx tsx src/cli.ts brand init <name>          # Scaffold new brand
 npx tsx src/cli.ts video <brand> <brief>      # Short-form video
 npx tsx src/cli.ts brief <brand>              # Daily research digest
+npx tsx src/cli.ts visual spectrum <brand> --serve --open    # Start localhost review gallery
 npx tsx src/cli.ts blog <brand> "topic"       # Long-form blog post
 ```
 
@@ -87,14 +96,14 @@ Each step is independently retriable. Agent inspects JSON, decides next step.
 ```
 agent/src/
 ├── commands/   explore, copy-cmd, image-cmd, poster-cmd, enqueue-cmd, intel, post, queue, brand
-├── core/       brand, visual, paths, session, types, json
-├── cli/        args, flags, output, registry, schemas, errors
+├── core/       brand, visual, paths, types, json, http, slop, r2
+├── cli/        args, index, registry, types, errors
+├── queue/      per-brand file-based queue
 ├── generate/   copy, image, classify, upscale, providers/
 ├── eval/       grader, image-grader, learnings
 ├── composite/  poster, layouts, renderer/ (4-layer canvas)
 ├── publish/    twitter, linkedin, facebook, instagram, threads
 ├── intel/      pipeline, enrich-apify, detect-outliers, extract-hooks
-├── queue/      per-brand file-based queue
 └── video/      video pipeline, providers/
 
 brands/<name>/

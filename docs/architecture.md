@@ -89,9 +89,14 @@ Cache invalidation: checks file mtime on each load, reloads if changed.
 
 ### cli/args.ts — Shared Argument Parser
 ```typescript
-extractBrandTopic(args, knownFlags?)
+extractBrandTopic(args, valueFlags?, booleanFlags?)
 // → { brand, topic, flags: Record<string,string>, booleans: Set<string> }
 ```
+
+Parsing contract:
+- `valueFlags`: flag names that require an immediate value (`--topic`, `--volume`, etc.)
+- `booleanFlags`: flags that are explicit booleans (`--quick`, `--pro`, `--json`, etc.)
+- Unknown flags without recognized schema default to value flags only when followed by a positional token.
 
 All commands use this instead of hand-rolling arg parsers.
 

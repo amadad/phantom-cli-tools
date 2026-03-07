@@ -10,7 +10,7 @@ import { existsSync } from 'fs'
 // @ts-expect-error registerFont exists at runtime but isn't in canvas type declarations
 import { registerFont } from 'canvas'
 import { renderBrandFrame } from './BrandFrame'
-import { loadBrandVisual } from '../../core/visual'
+import { imageTreatmentToDim, loadBrandVisual, resolveDesignProfile } from '../../core/visual'
 import { buildStylePlan, computeLayout } from '../layouts'
 
 /** Track which fonts have already been registered (registerFont is global, once per process) */
@@ -34,6 +34,8 @@ export interface RenderCompositionOptions {
   ratio: AspectRatio
   logoPath?: string
   noLogo?: boolean
+  /** Design profile key (alias: --volume) */
+  designZone?: string
   /** Topic string — seeds deterministic layout selection */
   topic?: string
   /** Stable seed for reproducible layout/palette selection (e.g. queue id) */
@@ -44,9 +46,20 @@ export interface RenderCompositionOptions {
  * Render a single still frame of a brand composition, returning a PNG buffer.
  */
 export async function renderComposition(options: RenderCompositionOptions): Promise<Buffer> {
-  const { brand, headline, contentImage, ratio, logoPath, noLogo = false, topic, seed } = options
+  const {
+    brand,
+    headline,
+    contentImage,
+    ratio,
+    logoPath,
+    noLogo = false,
+    designZone,
+    topic,
+    seed,
+  } = options
 
   const visual = loadBrandVisual(brand)
+  const designProfile = resolveDesignProfile(brand, designZone) ?? undefined
   const { width, height } = ASPECT_RATIOS[ratio]
   const hasImage = !!contentImage
 
@@ -62,6 +75,7 @@ export async function renderComposition(options: RenderCompositionOptions): Prom
     visual,
     topic: topic ?? headline,
     hasImage,
+    designProfile,
     seed,
   })
 
@@ -74,9 +88,14 @@ export async function renderComposition(options: RenderCompositionOptions): Prom
 
   const layout = computeLayout(stylePlan.layoutName, width, height, renderVisual, topic, seed)
 
+  // Profile overrides layout defaults for composition axes
+  const resolvedImageDim = designProfile?.imageTreatment
+    ? imageTreatmentToDim(designProfile.imageTreatment)
+    : layout.imageDim
+
   // Resolve logo path: prefer visual config, fall back to param
   const visualLogoPath = noLogo ? undefined : (
-    stylePlan.background === 'dark' ? visual.logo.dark : visual.logo.light
+    stylePlan.background === 'dark' ? renderVisual.logo.dark : renderVisual.logo.light
   )
   const resolvedLogoPath = noLogo ? undefined : (visualLogoPath ?? logoPath)
 
@@ -85,12 +104,14 @@ export async function renderComposition(options: RenderCompositionOptions): Prom
   return renderBrandFrame({
     width,
     height,
-    visual,
+    visual: renderVisual,
     layoutName: stylePlan.layoutName,
+    designProfile,
+    typeGravity: designProfile?.typeGravity,
     background: layout.background,
     textSize: layout.textSize,
     bgColorIndex: layout.bgColorIndex,
-    imageDim: layout.imageDim,
+    imageDim: resolvedImageDim,
     imageZone: layout.imageZone,
     textZone: layout.textZone,
     logoZone: layout.logoZone,

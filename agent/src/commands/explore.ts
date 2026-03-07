@@ -5,14 +5,14 @@
  * Each step is also available as a standalone command.
  *
  * Usage:
- *   explore <brand> "<topic>" [--pro] [--quick] [--no-logo] [--json]
+ *   explore <brand> "<topic>" [--pro] [--quick] [--no-logo] [--volume=<zone>] [--json]
  */
 
 import { randomUUID } from 'crypto'
 import { writeFileSync } from 'fs'
 import { join, slugify, createSessionDir } from '../core/paths'
 import { extractBrandTopic } from '../cli/args'
-import { generateBrandImage } from './image-cmd'
+import { generateBrandImage, parseVolume } from './image-cmd'
 import { generateAndGradeCopy, formatCopyMarkdown } from './copy-cmd'
 import { generateFinals } from './poster-cmd'
 import { getHookForTopic } from '../intel/hook-bank'
@@ -36,7 +36,7 @@ export interface ExploreResult {
 }
 
 export async function run(args: string[], _ctx?: CommandContext): Promise<ExploreResult> {
-  const parsed = extractBrandTopic(args, [])
+  const parsed = extractBrandTopic(args, ['volume'], ['pro', 'quick', 'no-logo', 'json'])
   if (!parsed.topic) throw new Error('Missing topic. Usage: explore <brand> "<topic>"')
 
   const brand = parsed.brand
@@ -44,6 +44,10 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Explor
   const model: 'flash' | 'pro' = parsed.booleans.has('pro') ? 'pro' : 'flash'
   const quickMode = parsed.booleans.has('quick')
   const noLogo = parsed.booleans.has('no-logo')
+  if (parsed.booleans.has('volume')) {
+    throw new Error('Missing --volume value. Use --volume <zone>')
+  }
+  const volume = parseVolume(parsed.flags.volume)
 
   const modeLabel = quickMode ? 'quick' : 'full'
   const modelName = model === 'pro' ? 'gemini-3-pro-image-preview' : 'gemini-2.5-flash-image'
@@ -85,7 +89,7 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Explor
   if (!isTypeOnly) {
     console.log(`\n[explore] Generating image from direction: "${imageDirection.slice(0, 60)}..."`)
     const imgResult = await generateBrandImage(brand, imageDirection, {
-      model, quickMode, outputDir: sessionDir
+      model, quickMode, outputDir: sessionDir, volume
     })
     contentImage = imgResult.contentImage
     selectedStyleName = imgResult.selectedStyleName
@@ -103,7 +107,7 @@ export async function run(args: string[], _ctx?: CommandContext): Promise<Explor
   // === Step 3: Poster finals ===
   console.log(`\n[explore] Generating finals...`)
   const headline = copy.headline || topic.split(/[.!?]/)[0]
-  await generateFinals(brand, headline, contentImage, { noLogo, outputDir: sessionDir, topic })
+  await generateFinals(brand, headline, contentImage, { noLogo, outputDir: sessionDir, topic, volume })
 
   // === Step 4: Queue + notify ===
   const now = new Date().toISOString()

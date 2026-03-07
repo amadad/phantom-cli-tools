@@ -67,3 +67,18 @@ visual:
     avoid: [text, logos]
     prefer: []
     palette_instructions: ""
+
+  # Renderer constants (optional — defaults match standard behavior)
+  # See docs/visual-renderer-spec.md for full reference
+  # renderer:
+  #   margins: { relaxed: 0.08, moderate: 0.05, tight: 0.025 }
+  #   logo: { width: 0.12, height: 0.06, padding: 0.02 }
+  #   layouts:
+  #     split: { imageHeight: 0.55, imageWidth: 0.5, textHeight: 0.6 }
+  #     overlay: { textWidth: 0.7, textHeight: 0.45 }
+  #   type:
+  #     eyebrowRatio: 0.38
+  #     minFontSize: 20
+  #   graphic:
+  #     gradientAlphaBase: 0.06
+  #     darkTextBacking: 0.15

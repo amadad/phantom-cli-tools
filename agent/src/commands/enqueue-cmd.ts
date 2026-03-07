@@ -25,7 +25,7 @@ export interface EnqueueCommandResult {
 }
 
 export async function run(args: string[], _ctx?: CommandContext): Promise<EnqueueCommandResult> {
-  const parsed = extractBrandTopic(args, ['topic', 'copy', 'image', 'poster-dir'])
+  const parsed = extractBrandTopic(args, ['topic', 'copy', 'image', 'poster-dir'], ['notify'])
   const brand = parsed.brand
   const topic = parsed.flags.topic
   const copyPath = parsed.flags.copy

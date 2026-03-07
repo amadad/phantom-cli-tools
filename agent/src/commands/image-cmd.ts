@@ -2,7 +2,7 @@
  * Image command - Generate brand-consistent image for a topic
  *
  * Usage:
- *   image <brand> "<topic>" [--quick] [--json]
+ *   image <brand> "<topic>" [--quick] [--pro] [--volume=<zone>] [--knockout] [--json]
  */
 
 import { writeFileSync } from 'fs'
@@ -25,18 +25,34 @@ export interface ImageOpts {
   quickMode?: boolean
   /** Remove background — output transparent PNG */
   knockout?: boolean
+  volume?: string
+}
+
+export function parseVolume(value: string | undefined): string | undefined {
+  if (!value) return undefined
+  const normalized = value.trim().toLowerCase()
+  return normalized.length > 0 ? normalized : undefined
 }
 
 export async function run(args: string[], _ctx?: CommandContext): Promise<ImageCommandResult> {
-  const parsed = extractBrandTopic(args, [])
+  const parsed = extractBrandTopic(args, ['volume'], ['pro', 'quick', 'knockout', 'json'])
   if (!parsed.topic) throw new Error('Missing topic. Usage: image <brand> "<topic>"')
 
   const brand = parsed.brand
   const topic = parsed.topic
+  if (parsed.booleans.has('volume')) {
+    throw new Error('Missing --volume value. Use --volume <zone>')
+  }
+  const volume = parseVolume(parsed.flags.volume)
+  if (volume && volume.includes(',')) {
+    throw new Error('Invalid --volume format. Use a single zone name, not a comma-separated list.')
+  }
+
   const opts: ImageOpts = {
     model: parsed.booleans.has('pro') ? 'pro' : 'flash',
     quickMode: parsed.booleans.has('quick'),
     knockout: parsed.booleans.has('knockout'),
+    volume
   }
 
   const suffix = opts.quickMode ? '-quick' : (opts.model === 'pro' ? '-pro' : '-flash')
@@ -68,6 +84,7 @@ export async function generateBrandImage(
     imageType, topic, brandName,
     undefined, undefined, undefined,
     opts.knockout,
+    opts.volume,
   )
   if (!result) throw new Error('Image generation failed — all providers returned null')
 

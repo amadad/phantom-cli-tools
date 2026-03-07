@@ -183,6 +183,7 @@ visual:
       type:
         weight: 300
         size: sm
+        gravity: bottom     # text sinks — heavy, grounded
         contrast: low       # text and field close in value — quiet presence
       graphic:
         channels: 1         # monochrome — single palette channel
@@ -199,6 +200,7 @@ visual:
       type:
         weight: 400
         size: sm-md
+        gravity: bottom     # weighted, grounded
         contrast: moderate
       graphic:
         channels: 1         # still single channel, tinted to palette
@@ -215,6 +217,7 @@ visual:
       type:
         weight: 400
         size: md
+        gravity: center     # balanced, everyday
         contrast: clear
         note: "italic serif for pull quotes — hierarchy sharpens here"
       graphic:
@@ -232,6 +235,7 @@ visual:
       type:
         weight: 600
         size: lg
+        gravity: top        # direct, purposeful
         contrast: high
       graphic:
         channels: 3         # near-natural — color forms visible
@@ -248,6 +252,7 @@ visual:
       type:
         weight: 700
         size: display
+        gravity: center     # impactful, centered
         contrast: high
       graphic:
         channels: full      # full palette active

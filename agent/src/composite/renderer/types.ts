@@ -3,7 +3,7 @@
  * Renderer-agnostic: used by BrandFrame, layers, and render.ts.
  */
 
-import type { BrandVisual } from '../../core/visual'
+import type { BrandVisual, TypeGravity, VisualProfile } from '../../core/visual'
 import type { TextSize } from '../layouts'
 
 /** Zone in absolute pixels */
@@ -33,6 +33,10 @@ export interface BrandFrameProps {
   category?: string
   /** Body copy / subtext below headline */
   subtext?: string
+  /** Optional design profile overrides (typically mapped from --volume / zone config) */
+  designProfile?: VisualProfile
+  /** Vertical text position within the text zone */
+  typeGravity?: TypeGravity
   /** Pixel zones from named layout */
   imageZone: PixelZone
   textZone: PixelZone

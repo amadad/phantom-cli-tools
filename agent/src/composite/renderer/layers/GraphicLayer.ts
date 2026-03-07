@@ -12,7 +12,7 @@
 
 import { loadImage, type CanvasRenderingContext2D } from 'canvas'
 import { readFileSync, existsSync } from 'fs'
-import type { BrandVisual } from '../../../core/visual'
+import type { BrandVisual, VisualProfile } from '../../../core/visual'
 import type { PixelZone } from '../types'
 import { buildPalette } from '../../layouts'
 
@@ -21,6 +21,7 @@ export interface GraphicLayerOptions {
   width: number
   height: number
   visual: BrandVisual
+  designProfile?: VisualProfile
   background: 'light' | 'dark' | 'warm'
   imageZone: PixelZone
   textZone: PixelZone
@@ -36,10 +37,16 @@ export interface LogoOptions {
   textZone: PixelZone
   logoPath?: string
   layoutName: string
+  background: 'light' | 'dark' | 'warm'
 }
 
 /** Parse hex color to [r, g, b] */
 function hexToRgb(hex: string): [number, number, number] {
+  const normalized = hex.trim()
+  if (!/^#?[0-9a-fA-F]{6}$/.test(normalized)) {
+    return [0, 0, 0]
+  }
+
   const h = hex.replace('#', '')
   const r = parseInt(h.slice(0, 2), 16)
   const g = parseInt(h.slice(2, 4), 16)
@@ -54,48 +61,94 @@ function resolveBackground(v: BrandVisual, bg: 'light' | 'dark' | 'warm'): strin
   return v.palette.background
 }
 
+function resolveChannels(raw: string | number | undefined): number {
+  if (typeof raw === 'number' && Number.isFinite(raw)) {
+    return Math.max(1, Math.min(4, Math.round(raw)))
+  }
+
+  if (typeof raw === 'string') {
+    if (raw === 'full') return 4
+    const parsed = Number(raw)
+    if (Number.isFinite(parsed)) {
+      return Math.max(1, Math.min(4, Math.round(parsed)))
+    }
+  }
+
+  return 2
+}
+
+function accentFromProfile(accent: string | string[], fallback: string): string {
+  if (Array.isArray(accent)) {
+    return accent[0] ?? fallback
+  }
+  return accent
+}
+
+/**
+ * Draw layered graphics.
+ */
 export async function drawGraphicLayer(options: GraphicLayerOptions): Promise<void> {
   const {
-    ctx, width, height, visual, background,
-    imageZone, textZone,
+    ctx,
+    width,
+    height,
+    visual,
+    background,
+    designProfile,
+    imageZone,
+    textZone,
     bgColorIndex,
   } = options
 
+  const rc = visual.renderer
   const palette = buildPalette(visual)
-  const bgColor = bgColorIndex !== undefined
-    ? palette[bgColorIndex % palette.length]
-    : resolveBackground(visual, background)
-  const accentColor = visual.palette.accent
+  const channelCount = resolveChannels(designProfile?.graphicChannels)
+  const accentColor = accentFromProfile(designProfile?.accent ?? visual.palette.accent, rc.graphic.fallbackAccent)
+  const [ar, ag, ab] = hexToRgb(accentColor)
   const dark = background === 'dark'
+
+  const bgColor = designProfile?.field
+    ? designProfile.field
+    : bgColorIndex !== undefined
+      ? palette[bgColorIndex % palette.length]
+      : resolveBackground(visual, background)
 
   // ── 1. Background fill ──────────────────────────────────────────────────────
   ctx.fillStyle = bgColor
   ctx.fillRect(0, 0, width, height)
 
   // ── 2. Gradient overlay on image zone (accent → transparent) ────────────────
-  const [ar, ag, ab] = hexToRgb(accentColor)
+  const alpha = rc.graphic.gradientAlphaBase + Math.max(0, channelCount - 1) * rc.graphic.gradientAlphaStep
   const grad = ctx.createLinearGradient(
-    imageZone.x, imageZone.y + imageZone.height * 0.6,
-    imageZone.x, imageZone.y + imageZone.height
+    imageZone.x,
+    imageZone.y + imageZone.height * 0.6,
+    imageZone.x,
+    imageZone.y + imageZone.height
   )
-  grad.addColorStop(0, `rgba(${ar},${ag},${ab},0)`)
-  grad.addColorStop(1, `rgba(${ar},${ag},${ab},0.15)`)
+  grad.addColorStop(0, `rgba(${ar},${ag},${ab},0)`) 
+  grad.addColorStop(1, `rgba(${ar},${ag},${ab},${alpha})`)
   ctx.fillStyle = grad
   ctx.fillRect(imageZone.x, imageZone.y, imageZone.width, imageZone.height)
 
   // ── 3. Text zone background (dark mode only — subtle darkening) ────────────
   if (dark) {
-    ctx.fillStyle = `rgba(0,0,0,0.15)`
+    ctx.fillStyle = `rgba(0,0,0,${rc.graphic.darkTextBacking})`
     ctx.fillRect(textZone.x, textZone.y, textZone.width, textZone.height)
   }
+}
+
+/** Replace fill color attributes in an SVG string */
+function recolorSvg(svg: string, targetColor: string): string {
+  return svg.replace(/fill="(#[0-9a-fA-F]{3,8})"/g, `fill="${targetColor}"`)
 }
 
 /**
  * Draw the logo on top of all other layers.
  * For split layouts, centers within the text column. Otherwise centers on canvas.
+ * SVG logos are recolored using colorOnLight/colorOnDark from brand config.
  */
 export async function drawLogo(options: LogoOptions): Promise<void> {
-  const { ctx, width, visual, logoZone, textZone, logoPath, layoutName } = options
+  const { ctx, width, visual, logoZone, textZone, logoPath, layoutName, background } = options
 
   if (!logoPath || !existsSync(logoPath)) return
 
@@ -121,7 +174,13 @@ export async function drawLogo(options: LogoOptions): Promise<void> {
     }
 
     if (logoPath.endsWith('.svg')) {
-      const svgContent = readFileSync(logoPath, 'utf-8')
+      let svgContent = readFileSync(logoPath, 'utf-8')
+      const targetColor = background === 'dark'
+        ? visual.logo.colorOnDark
+        : visual.logo.colorOnLight
+      if (targetColor) {
+        svgContent = recolorSvg(svgContent, targetColor)
+      }
       const dataUri = `data:image/svg+xml;base64,${Buffer.from(svgContent).toString('base64')}`
       await render(await loadImage(dataUri))
     } else {

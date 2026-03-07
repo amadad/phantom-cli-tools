@@ -121,4 +121,84 @@ When `--json` is set, standard console output is suppressed. Only the JSON envel
 }
 ```
 
+### Example: visual spectrum
+
+```json
+{
+  "status": "ok",
+  "command": "visual",
+  "data": {
+    "brand": "givecare",
+    "ratio": "landscape",
+    "topicSeed": "givecare:spectrum",
+    "totalPoints": 12,
+    "accepted": 8,
+    "rejected": 4,
+    "thresholds": {
+      "minContrast": 4.5,
+      "maxLogoImageOverlap": 0.08,
+      "maxLogoTextOverlap": 0.05,
+      "maxTextImageOverlap": 0.6,
+      "minTextArea": 0.03,
+      "maxTextArea": 0.65,
+      "minImageArea": 0.14,
+      "maxLogoArea": 0.18
+    },
+    "preview": {
+      "outputDir": "/output/2026-02-28/visual-givecare-landscape-abc123-1700000000000",
+      "indexPath": "/output/2026-02-28/visual-givecare-landscape-abc123-1700000000000/index.html",
+      "annotationsPath": "/output/2026-02-28/visual-givecare-landscape-abc123-1700000000000/annotations.json",
+      "count": 2,
+      "points": [
+        {
+          "profile": "base",
+          "id": "base:type-only:moderate:center:light",
+          "label": "base | type-only | moderate | center | light",
+          "fileName": "01-base-type-only-moderate-center-light.png",
+          "manual": "unrated",
+          "verdict": "in",
+          "failedChecks": []
+        },
+        {
+          "profile": "base",
+          "id": "base:split:moderate:center:light",
+          "label": "base | split | moderate | center | light",
+          "fileName": "02-base-split-moderate-center-light.png",
+          "manual": "unrated",
+          "verdict": "out",
+          "failedChecks": ["image-coverage", "text-image-overlap"]
+        }
+      ]
+    },
+    "points": [
+      {
+        "id": "base:type-only:moderate:center:light",
+        "label": "base | type-only | moderate | center | light",
+        "profile": "base",
+        "layout": "type-only",
+        "density": "moderate",
+        "alignment": "center",
+        "background": "light",
+        "verdict": "in",
+        "failedChecks": [],
+        "metrics": {
+          "textAreaPct": 0.212,
+          "imageAreaPct": 0,
+          "logoAreaPct": 0.09,
+          "textImageOverlapPct": 0,
+          "logoImageOverlapPct": 0,
+          "logoTextOverlapPct": 0.03,
+          "contrast": 4.8,
+          "fieldColor": "#FDFBF7",
+          "textColor": "#1E1B16"
+        },
+        "checks": [
+          { "name": "contrast", "status": "pass", "value": 4.8, "threshold": 4.5, "message": "..." }
+        ]
+      }
+    ]
+  }
+}
+```
+
 See [errors.md](errors.md) for exit codes and error formats.

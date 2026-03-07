@@ -8,7 +8,8 @@
  * Selection: deterministic from topic hash over the brand's allowed layouts.
  */
 
-import type { BrandVisual, Density, LayoutName, Alignment, VisualBackground } from '../core/visual'
+import type { BrandVisual, Density, LayoutName, Alignment, VisualBackground, VisualProfile } from '../core/visual'
+import type { RendererConfig } from './renderer/defaults'
 import type { PixelZone } from './renderer/types'
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -32,9 +33,8 @@ const EMPTY_ZONE: PixelZone = { x: 0, y: 0, width: 0, height: 0 }
 
 // ── Margin helpers ──────────────────────────────────────────────────────────
 
-function marginFor(density: BrandVisual['density'], minDim: number): number {
-  const ratios = { relaxed: 0.08, moderate: 0.05, tight: 0.025 }
-  return Math.round(minDim * ratios[density])
+function marginFor(density: Density, minDim: number, margins: RendererConfig['margins']): number {
+  return Math.round(minDim * margins[density])
 }
 
 // ── Hashing ─────────────────────────────────────────────────────────────────
@@ -52,8 +52,8 @@ function hashToIndex(s: string, max: number): number {
 // ── Palette builder ─────────────────────────────────────────────────────────
 
 export function buildPalette(v: BrandVisual): string[] {
-  const { background: bg, palette: p } = v
-  if (bg === 'dark') return [p.primary, p.dark ?? '#2A2520', p.accent, '#1a1a2e']
+  const { background: bg, palette: p, renderer: rc } = v
+  if (bg === 'dark') return [p.primary, p.dark ?? rc.graphic.fallbackDark, p.accent, rc.graphic.fallbackAccent]
   if (bg === 'warm') return [p.warm ?? p.background, p.background, p.accent, p.primary]
   return [p.background, p.warm ?? p.background, p.accent, p.primary]
 }
@@ -61,24 +61,25 @@ export function buildPalette(v: BrandVisual): string[] {
 // ── Named layouts ───────────────────────────────────────────────────────────
 
 function layoutSplit(w: number, h: number, v: BrandVisual): LayoutResult {
-  const pad = marginFor(v.density, Math.min(w, h))
-  const vertical = h / w > 0.85
+  const pad = marginFor(v.density, Math.min(w, h), v.renderer.margins)
+  const cfg = v.renderer.layouts.split ?? {}
+  const vertical = h / w > (cfg.verticalThreshold ?? 0.85)
 
   let imageZone: PixelZone
   let textZone: PixelZone
 
   if (vertical) {
-    const imgH = Math.round((h - pad * 3) * 0.55)
+    const imgH = Math.round((h - pad * 3) * (cfg.imageHeight ?? 0.55))
     imageZone = { x: pad, y: pad, width: w - pad * 2, height: imgH }
     textZone = { x: pad, y: pad + imgH + pad, width: w - pad * 2, height: h - imgH - pad * 3 }
   } else {
-    const imgW = Math.round((w - pad * 3) * 0.5)
+    const imgW = Math.round((w - pad * 3) * (cfg.imageWidth ?? 0.5))
     imageZone = { x: pad, y: pad, width: imgW, height: h - pad * 2 }
     const txtX = pad + imgW + pad
-    const txtH = Math.round((h - pad * 2) * 0.6)
+    const txtH = Math.round((h - pad * 2) * (cfg.textHeight ?? 0.6))
     const txtY = v.alignment === 'center'
       ? pad + Math.round(((h - pad * 2) - txtH) / 2)
-      : pad + Math.round((h - pad * 2) * 0.15)
+      : pad + Math.round((h - pad * 2) * (cfg.textYOffset ?? 0.15))
     textZone = { x: txtX, y: txtY, width: w - txtX - pad, height: txtH }
   }
 
@@ -86,7 +87,7 @@ function layoutSplit(w: number, h: number, v: BrandVisual): LayoutResult {
     name: 'split',
     imageZone,
     textZone,
-    logoZone: logoBottom(w, h, pad, v.alignment),
+    logoZone: logoBottom(w, h, pad, v.alignment, v.renderer.logo),
     background: v.background,
     textSize: 'lg',
     bgColorIndex: 0,
@@ -95,29 +96,30 @@ function layoutSplit(w: number, h: number, v: BrandVisual): LayoutResult {
 }
 
 function layoutOverlay(w: number, h: number, v: BrandVisual): LayoutResult {
-  const pad = marginFor(v.density, Math.min(w, h))
+  const pad = marginFor(v.density, Math.min(w, h), v.renderer.margins)
+  const cfg = v.renderer.layouts.overlay ?? {}
   const imageZone: PixelZone = { x: 0, y: 0, width: w, height: h }
 
-  const textW = Math.round(w * 0.7)
-  const textH = Math.round(h * 0.45)
+  const textW = Math.round(w * (cfg.textWidth ?? 0.7))
+  const textH = Math.round(h * (cfg.textHeight ?? 0.45))
   let tx: number, ty: number
 
   if (v.alignment === 'center') {
     tx = Math.round((w - textW) / 2)
-    ty = Math.round((h - textH) * 0.45)
+    ty = Math.round((h - textH) * (cfg.centerY ?? 0.45))
   } else if (v.alignment === 'asymmetric') {
     tx = w - textW - pad
-    ty = h - textH - pad - Math.round(h * 0.06)
+    ty = h - textH - pad - Math.round(h * (cfg.asymmetricYOffset ?? 0.06))
   } else {
-    tx = pad + Math.round(w * 0.04)
-    ty = Math.round((h - textH) * 0.45)
+    tx = pad + Math.round(w * (cfg.leftXOffset ?? 0.04))
+    ty = Math.round((h - textH) * (cfg.centerY ?? 0.45))
   }
 
   return {
     name: 'overlay',
     imageZone,
     textZone: { x: tx, y: ty, width: textW, height: textH },
-    logoZone: logoBottom(w, h, pad, v.alignment),
+    logoZone: logoBottom(w, h, pad, v.alignment, v.renderer.logo),
     background: v.background,
     textSize: 'lg',
     bgColorIndex: 0,
@@ -126,24 +128,25 @@ function layoutOverlay(w: number, h: number, v: BrandVisual): LayoutResult {
 }
 
 function layoutTypeOnly(w: number, h: number, v: BrandVisual): LayoutResult {
-  const pad = marginFor(v.density, Math.min(w, h))
+  const pad = marginFor(v.density, Math.min(w, h), v.renderer.margins)
+  const cfg = v.renderer.layouts['type-only'] ?? {}
   const textW = w - pad * 2
-  const textH = Math.round((h - pad * 2) * 0.65)
+  const textH = Math.round((h - pad * 2) * (cfg.textHeight ?? 0.65))
   let ty: number
 
   if (v.alignment === 'center') {
-    ty = pad + Math.round(((h - pad * 2) - textH) * 0.4)
+    ty = pad + Math.round(((h - pad * 2) - textH) * (cfg.centerY ?? 0.4))
   } else if (v.alignment === 'asymmetric') {
-    ty = pad + Math.round((h - pad * 2) * 0.15)
+    ty = pad + Math.round((h - pad * 2) * (cfg.asymmetricY ?? 0.15))
   } else {
-    ty = pad + Math.round((h - pad * 2) * 0.1)
+    ty = pad + Math.round((h - pad * 2) * (cfg.leftY ?? 0.1))
   }
 
   return {
     name: 'type-only',
     imageZone: EMPTY_ZONE,
     textZone: { x: pad, y: ty, width: textW, height: textH },
-    logoZone: logoBottom(w, h, pad, v.alignment),
+    logoZone: logoBottom(w, h, pad, v.alignment, v.renderer.logo),
     background: v.background,
     textSize: 'display',
     bgColorIndex: 0,
@@ -152,11 +155,12 @@ function layoutTypeOnly(w: number, h: number, v: BrandVisual): LayoutResult {
 }
 
 function layoutCard(w: number, h: number, v: BrandVisual): LayoutResult {
-  const pad = marginFor(v.density, Math.min(w, h))
-  const imgH = Math.round((h - pad * 2) * 0.65)
+  const pad = marginFor(v.density, Math.min(w, h), v.renderer.margins)
+  const cfg = v.renderer.layouts.card ?? {}
+  const imgH = Math.round((h - pad * 2) * (cfg.imageHeight ?? 0.65))
   const imageZone: PixelZone = { x: pad, y: pad, width: w - pad * 2, height: imgH }
 
-  const txtY = pad + imgH + Math.round(pad * 0.5)
+  const txtY = pad + imgH + Math.round(pad * (cfg.textGap ?? 0.5))
   const txtH = h - txtY - pad
   const textZone: PixelZone = { x: pad, y: txtY, width: w - pad * 2, height: txtH }
 
@@ -164,7 +168,7 @@ function layoutCard(w: number, h: number, v: BrandVisual): LayoutResult {
     name: 'card',
     imageZone,
     textZone,
-    logoZone: logoBottom(w, h, pad, v.alignment),
+    logoZone: logoBottom(w, h, pad, v.alignment, v.renderer.logo),
     background: v.background,
     textSize: 'md',
     bgColorIndex: 0,
@@ -173,26 +177,29 @@ function layoutCard(w: number, h: number, v: BrandVisual): LayoutResult {
 }
 
 function layoutFullBleed(w: number, h: number, v: BrandVisual): LayoutResult {
-  const pad = marginFor(v.density, Math.min(w, h))
+  const pad = marginFor(v.density, Math.min(w, h), v.renderer.margins)
+  const cfg = v.renderer.layouts['full-bleed'] ?? {}
+  const logoW = Math.round(w * v.renderer.logo.width)
+  const logoH = Math.round(h * v.renderer.logo.height)
 
   return {
     name: 'full-bleed',
     imageZone: { x: 0, y: 0, width: w, height: h },
-    textZone: { x: pad, y: h - pad - Math.round(h * 0.08), width: w * 0.5, height: Math.round(h * 0.06) },
-    logoZone: { x: w - Math.round(w * 0.12) - pad, y: pad, width: Math.round(w * 0.12), height: Math.round(h * 0.06) },
+    textZone: { x: pad, y: h - pad - Math.round(h * (cfg.textYOffset ?? 0.08)), width: w * (cfg.textWidth ?? 0.5), height: Math.round(h * (cfg.textHeight ?? 0.06)) },
+    logoZone: { x: w - logoW - pad, y: pad, width: logoW, height: logoH },
     background: v.background,
     textSize: 'sm',
     bgColorIndex: 0,
-    imageDim: 0.15,
+    imageDim: cfg.imageDim ?? 0.15,
   }
 }
 
 // ── Logo helper ─────────────────────────────────────────────────────────────
 
-function logoBottom(w: number, h: number, pad: number, alignment: string): PixelZone {
-  const logoW = Math.round(w * 0.12)
-  const logoH = Math.round(h * 0.06)
-  const lp = pad + Math.round(Math.min(w, h) * 0.02)
+function logoBottom(w: number, h: number, pad: number, alignment: string, logo: RendererConfig['logo']): PixelZone {
+  const logoW = Math.round(w * logo.width)
+  const logoH = Math.round(h * logo.height)
+  const lp = pad + Math.round(Math.min(w, h) * logo.padding)
   if (alignment === 'asymmetric') {
     return { x: lp, y: h - logoH - lp, width: logoW, height: logoH }
   }
@@ -246,6 +253,7 @@ interface StylePlanOptions {
   topic: string
   hasImage: boolean
   seed?: string
+  designProfile?: VisualProfile
 }
 
 function chooseWithUniformPriority<T extends string>(values: readonly T[], seed: string): T {
@@ -314,34 +322,39 @@ export function buildStylePlan({
   topic,
   hasImage,
   seed,
+  designProfile,
 }: StylePlanOptions): StylePlan {
   const topicSeed = normalizeSeed(seed, topic)
 
   const validLayouts = filterLayouts(visual, hasImage)
+  const layoutWeights = designProfile?.layoutWeights && Object.keys(designProfile.layoutWeights).length > 0
+    ? designProfile.layoutWeights
+    : visual.variants.layoutWeights
+
   const layoutName = chooseFromWeights(
     validLayouts,
     normalizeSeed(topicSeed, 'layout'),
     (layout) => {
-      const configuredWeight = visual.variants.layoutWeights[layout]
+      const configuredWeight = layoutWeights[layout]
       if (!configuredWeight) return 1
       return Math.max(1, configuredWeight)
     },
   )
 
   const density = chooseVisualProperty(
-    visual.variants.density,
+    designProfile?.density ? [designProfile.density] : visual.variants.density,
     normalizeSeed(topicSeed, 'density'),
     visual.density,
   )
 
   const alignment = chooseVisualProperty(
-    visual.variants.alignment,
+    designProfile?.alignment ? [designProfile.alignment] : visual.variants.alignment,
     normalizeSeed(topicSeed, 'alignment'),
     visual.alignment,
   )
 
   const background = chooseVisualProperty(
-    visual.variants.background,
+    designProfile?.background ? [designProfile.background] : visual.variants.background,
     normalizeSeed(topicSeed, 'background'),
     visual.background,
   )
