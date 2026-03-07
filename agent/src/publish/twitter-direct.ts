@@ -6,7 +6,7 @@
 import crypto from 'crypto'
 import { downloadImage } from '../core/http'
 import type { Brand } from '../core/types'
-import { createHasCredentials, createGetConfiguredBrands, type PostResult } from './base'
+import type { PostResult } from './base'
 
 export type TwitterBrand = Brand
 
@@ -216,8 +216,3 @@ export async function postToTwitter(
   }
 }
 
-/** Check if credentials are configured for a brand */
-export const hasCredentials = createHasCredentials(getCredentials)
-
-/** Get configured brands */
-export const getConfiguredBrands = createGetConfiguredBrands(hasCredentials)

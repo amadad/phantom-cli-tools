@@ -1,9 +1,7 @@
 /**
  * Base utilities for platform publishing
- * Provides common patterns for credential management and brand discovery
  */
 
-import { discoverBrands } from '../core/paths'
 import type { Brand } from '../core/types'
 
 export interface PostResult {
@@ -37,33 +35,6 @@ export function createCredentialGetter<T>(
     }
 
     return result
-  }
-}
-
-/**
- * Create hasCredentials checker from a credential getter
- */
-export function createHasCredentials<T>(
-  getCredentials: (brand: Brand) => T
-): (brand: Brand) => boolean {
-  return (brand: Brand): boolean => {
-    try {
-      getCredentials(brand)
-      return true
-    } catch {
-      return false
-    }
-  }
-}
-
-/**
- * Create getConfiguredBrands function from hasCredentials
- */
-export function createGetConfiguredBrands(
-  hasCredentials: (brand: Brand) => boolean
-): () => Brand[] {
-  return (): Brand[] => {
-    return discoverBrands().filter(brand => hasCredentials(brand))
   }
 }
 

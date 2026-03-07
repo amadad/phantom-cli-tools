@@ -8,8 +8,6 @@ import { loadBrand } from '../core/brand'
 import type { Brand } from '../core/types'
 import {
   createCredentialGetter,
-  createHasCredentials,
-  createGetConfiguredBrands,
   type PostResult
 } from './base'
 
@@ -299,10 +297,3 @@ export async function postToThreads(
   return postToMetaGraph('threads', brand, text, imageUrl)
 }
 
-// --- Credential checks ---
-
-export const hasInstagramCredentials = createHasCredentials(getInstagramCredentials)
-export const hasThreadsCredentials = createHasCredentials(getThreadsCredentials)
-
-export const getConfiguredInstagramBrands = createGetConfiguredBrands(hasInstagramCredentials)
-export const getConfiguredThreadsBrands = createGetConfiguredBrands(hasThreadsCredentials)

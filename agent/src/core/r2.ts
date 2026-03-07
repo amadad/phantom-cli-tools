@@ -85,39 +85,6 @@ export async function uploadToR2(filePath: string): Promise<string> {
   return publicUrl
 }
 
-/**
- * Upload a buffer to R2 and return the public URL
- */
-export async function uploadBufferToR2(
-  data: Buffer,
-  mimeType: string,
-  filename?: string
-): Promise<string> {
-  const config = getConfig()
-  const client = getClient(config)
-
-  const hash = crypto.createHash('md5').update(data).digest('hex').slice(0, 8)
-  const ext = mimeType.includes('png') ? '.png' : mimeType.includes('gif') ? '.gif' : '.jpg'
-  const key = `phantom-loom/${Date.now()}-${hash}${ext}`
-
-  const command = new PutObjectCommand({
-    Bucket: config.bucketName,
-    Key: key,
-    Body: data,
-    ContentType: mimeType
-  })
-
-  try {
-    await client.send(command)
-  } catch (err) {
-    throw new Error(`R2 upload failed for buffer: ${err instanceof Error ? err.message : String(err)}`)
-  }
-
-  const publicUrl = `${config.publicUrl.replace(/\/$/, '')}/${key}`
-  console.log(`[r2] Uploaded: ${publicUrl}`)
-
-  return publicUrl
-}
 
 /**
  * Check if R2 is configured

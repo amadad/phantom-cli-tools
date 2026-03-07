@@ -150,31 +150,3 @@ export function withTimeout<T>(promise: Promise<T>, ms: number, label: string): 
   ])
 }
 
-/**
- * Fetch JSON with timeout and error handling
- */
-export async function fetchJson<T>(
-  url: string,
-  options: RequestInit & { timeout?: number } = {}
-): Promise<T> {
-  const { timeout = 30000, ...fetchOptions } = options
-
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), timeout)
-
-  try {
-    const response = await fetch(url, {
-      ...fetchOptions,
-      signal: controller.signal
-    })
-
-    if (!response.ok) {
-      const text = await response.text()
-      throw new Error(`HTTP ${response.status}: ${text.slice(0, 200)}`)
-    }
-
-    return await response.json()
-  } finally {
-    clearTimeout(timeoutId)
-  }
-}

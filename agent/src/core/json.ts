@@ -60,35 +60,3 @@ export function extractJson<T>(
   }
 }
 
-/**
- * Parse JSON with a default fallback
- */
-export function parseJsonOrDefault<T>(jsonString: string, defaultValue: T): T {
-  const result = safeJsonParse<T>(jsonString)
-  return result.success ? result.data : defaultValue
-}
-
-/**
- * Validate parsed JSON against expected keys
- */
-export function validateJsonStructure<T extends Record<string, unknown>>(
-  data: unknown,
-  requiredKeys: (keyof T)[],
-  context?: string
-): { valid: true; data: T } | { valid: false; error: string } {
-  if (typeof data !== 'object' || data === null) {
-    return { valid: false, error: `Expected object${context ? ` (${context})` : ''}, got ${typeof data}` }
-  }
-
-  const obj = data as Record<string, unknown>
-  const missingKeys = requiredKeys.filter(key => !(key in obj))
-
-  if (missingKeys.length > 0) {
-    return {
-      valid: false,
-      error: `Missing required keys${context ? ` (${context})` : ''}: ${missingKeys.join(', ')}`
-    }
-  }
-
-  return { valid: true, data: obj as T }
-}
