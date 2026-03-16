@@ -7,17 +7,14 @@ Generate brand-consistent social content. Available as atomic primitives or a si
 ```bash
 cd agent
 
-# Step 1a: Generate copy (can run in parallel with 1b)
+# Step 1: Generate copy (gives imageDirection for step 2)
 npx tsx src/cli.ts copy <brand> "weekend self-care reset" --json
 
-# Step 1b: Generate image (can run in parallel with 1a)
+# Step 2: Generate image
 npx tsx src/cli.ts image <brand> "weekend self-care reset" --quick --json
 
-# Step 1b alt: Generate knockout image (transparent background)
+# Step 2 alt: Generate knockout image (transparent background)
 npx tsx src/cli.ts image <brand> "weekend self-care reset" --quick --knockout --json
-
-# Step 2: Grade copy quality
-npx tsx src/cli.ts grade <brand> "$(cat output/.../copy.md)" --json
 
 # Step 3: Generate platform posters
 npx tsx src/cli.ts poster <brand> --image output/.../selected.png --headline "Your brain is running 20 tabs" --json
@@ -34,14 +31,27 @@ Each step is independently retriable. Agent inspects JSON, decides next step.
 ## One-Shot Wrapper
 
 ```bash
-# Full explore (generate → upscale → copy → grade → poster → enqueue)
+# Full explore (copy → image → poster → enqueue → notify)
 npx tsx src/cli.ts explore <brand> "weekend self-care reset"
 
 # Quick mode (skip upscale)
 npx tsx src/cli.ts explore <brand> "weekend self-care reset" --quick
 
+# Nano mode — Gemini single-shot poster generation + pixel sort post-processing
+npx tsx src/cli.ts explore <brand> "weekend self-care reset" --nano --pixel-sort
+
 # Use Gemini 3 Pro for higher quality
 npx tsx src/cli.ts explore <brand> "weekend self-care reset" --pro
+
+# Texture mode — p5.brush generative background (no API cost, ~5s)
+npx tsx src/cli.ts explore <brand> "weekend self-care reset" --texture=editorial
+npx tsx src/cli.ts explore <brand> "weekend self-care reset" --texture=architectural
+
+# Gradient mode — mesh gradient background (no API cost, ~1s)
+npx tsx src/cli.ts explore <brand> "weekend self-care reset" --gradient=blush-silk
+
+# Force a specific layout (overlay, split, type-only, card, full-bleed)
+npx tsx src/cli.ts explore <brand> "weekend self-care reset" --texture=editorial --layout overlay
 ```
 
 ## Image Generation
@@ -56,6 +66,9 @@ Prompt-only — no reference images needed. Brand visual config drives the aesth
 | `--quick` | Skip upscale step |
 | `--pro` | Use Gemini 3 Pro model |
 | `--knockout` | Remove background → transparent PNG |
+| `--texture [style]` | Use p5.brush texture instead of AI image (editorial, expressive, architectural, gestural, layered) |
+| `--gradient [preset]` | Use mesh gradient instead of AI image |
+| `--layout <name>` | Force layout (overlay, split, type-only, card, full-bleed) |
 
 ### SCTY Prompt System
 
@@ -122,7 +135,7 @@ import { loadBrandVisual } from './core/visual'        // Visual config loader
 import { buildStylePlan, canRenderWithImage, computeLayout } from './composite/layouts'
 ```
 
-`explore` is a thin orchestrator that calls these — ~160 LOC.
+`explore` is a thin orchestrator that calls these — ~200 LOC.
 
 ## Named Layouts
 
@@ -137,6 +150,41 @@ Layout is selected deterministically from topic hash using brand `layoutWeights`
 | `full-bleed` | Full canvas | Small label | Image IS the post |
 
 Platform ratios: `twitter: landscape`, `instagram: portrait`, `story: story`
+
+## Nano Poster Mode
+
+Single-shot Gemini image generation (`--nano`). Gemini renders image + typography + layout in one call. Post-processing stack:
+
+1. **Pixel sort** (`--pixel-sort`) — horizontal brightness-threshold sorting, masked to protect upper 35% (typography zone)
+2. **Film grain** — per-pixel luminance noise via seeded PRNG
+3. **Ordered dither** — Bayer 4x4 matrix for print-like texture
+
+Preset: `GIVECARE_FULL` — threshold 0.08, streak 220, intensity 0.8, grain 0.18, dither 0.10.
+
+### Content Pillars → Visual Identity
+
+Each pillar drives the poster's accent color, eyebrow label, and image direction:
+
+| Pillar | Eyebrow | Accent | Image Direction |
+|--------|---------|--------|-----------------|
+| shipped | TOOLS | `#FF9F00` orange | constructed, architectural, precise |
+| learned | FIELD NOTES | `#2855AE` cobalt | observational, close study, quiet details |
+| amplify | SIGNAL | `#84531E` sage | wide perspective, horizon, distance |
+| broken | OUTLOOK | `#DF7900` rust | tension, erosion, absence |
+
+Accent color flows through: eyebrow text color, geometric accent shapes, image color hints.
+
+### Review
+
+```bash
+# Open gallery for latest session
+npx tsx src/cli.ts review latest
+
+# Open gallery for specific directory
+npx tsx src/cli.ts review ./output/2026-03-09/topic-slug/
+```
+
+Self-contained HTML with approve/reject per image. Exports `review.json`.
 
 ## Environment Variables
 

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>html,body{margin:0;padding:0;overflow:hidden;background:#000}canvas{display:block}</style>
+<!--
+  p5.brush texture generator for Phantom Loom.
+  Text-zone-aware: marks interact with where the headline will be.
+
+  Query params:
+    w, h        — canvas dimensions (default 1200x675)
+    style       — editorial | expressive | architectural | gestural | layered (default editorial)
+    bg          — background hex without # (default FDF9EC)
+    colors      — comma-separated hex values without # (palette)
+    accent      — accent color hex without # (for key marks)
+    density     — light | moderate | heavy (default moderate)
+    seed        — random seed for reproducibility
+    tx, ty, tw, th — text zone rectangle (where headline will be composited)
+-->
+<script src="p5.min.js"></script>
+<script src="p5.brush.min.js"></script>
+</head>
+<body>
+<script>
+window.__errors = [];
+window.addEventListener('error', e => window.__errors.push(e.message));
+</script>
+<script>
+const P = new URLSearchParams(window.location.search);
+const W = parseInt(P.get('w') || '1200');
+const H = parseInt(P.get('h') || '675');
+const STYLE = P.get('style') || 'editorial';
+const BG = '#' + (P.get('bg') || 'FDF9EC');
+const COLORS = (P.get('colors') || 'FF9F00,5F2C00,874300,DF7900,84531E')
+  .split(',').map(c => '#' + c);
+const ACCENT = '#' + (P.get('accent') || P.get('colors')?.split(',')[0] || 'FF9F00');
+const DENSITY = P.get('density') || 'moderate';
+const SEED = parseInt(P.get('seed') || String(Math.floor(Math.random() * 99999)));
+
+// Text zone — where the headline will be placed by node-canvas
+// Default: center-ish overlay position
+const TX = parseInt(P.get('tx') || String(Math.round(W * 0.15)));
+const TY = parseInt(P.get('ty') || String(Math.round(H * 0.3)));
+const TW = parseInt(P.get('tw') || String(Math.round(W * 0.7)));
+const TH = parseInt(P.get('th') || String(Math.round(H * 0.4)));
+
+const dm = { light: 0.5, moderate: 1, heavy: 1.8 }[DENSITY] || 1;
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// Text zone helpers
+const textCenter = { x: TX + TW / 2, y: TY + TH / 2 };
+const textBottom = TY + TH;
+const textTop = TY;
+const textLeft = TX;
+const textRight = TX + TW;
+const pad = Math.min(W, H) * 0.04;  // breathing room around text
+
+function setup() {
+  createCanvas(W, H, WEBGL);
+  brush.load();
+  randomSeed(SEED);
+  noiseSeed(SEED);
+  background(BG);
+  translate(-W / 2, -H / 2);
+
+  if (STYLE === 'editorial') drawEditorial();
+  else if (STYLE === 'expressive') drawExpressive();
+  else if (STYLE === 'architectural') drawArchitectural();
+  else if (STYLE === 'gestural') drawGestural();
+  else if (STYLE === 'layered') drawLayered();
+  // Legacy styles
+  else if (STYLE === 'watercolor') drawEditorial();
+  else if (STYLE === 'crosshatch') drawArchitectural();
+  else if (STYLE === 'brushstroke') drawGestural();
+  else if (STYLE === 'mixed') drawLayered();
+  else drawEditorial();
+
+  window.__textureReady = true;
+  noLoop();
+}
+
+// ─── EDITORIAL ──────────────────────────────────────────────
+// Subtle watercolor wash + deliberate accent lines that frame the text.
+// Think: magazine editorial spread — restrained, with one bold gesture.
+function drawEditorial() {
+  // Soft watercolor wash, biased away from text zone
+  const count = Math.floor(4 * dm);
+  for (let i = 0; i < count; i++) {
+    brush.fill(pick(COLORS), 40 + Math.random() * 30);
+    brush.fillBleed(0.4 + Math.random() * 0.3);
+    brush.fillTexture(0.3, 0.2);
+    brush.noStroke();
+
+    // Place blobs in the margins, not over text
+    let cx, cy;
+    if (Math.random() > 0.5) {
+      cx = Math.random() > 0.5 ? Math.random() * textLeft : textRight + Math.random() * (W - textRight);
+      cy = Math.random() * H;
+    } else {
+      cx = Math.random() * W;
+      cy = Math.random() > 0.5 ? Math.random() * (textTop - pad) : textBottom + pad + Math.random() * (H - textBottom - pad);
+    }
+    const r = Math.min(W, H) * (0.2 + Math.random() * 0.3);
+    brush.circle(cx, cy, r * 2, 0.15);
+  }
+
+  // Accent line — a single bold horizontal stroke under the text zone
+  brush.set('pen', ACCENT, 1.5 + Math.random());
+  const lineY = textBottom + pad * 1.5;
+  brush.line(textLeft, lineY, textRight, lineY);
+
+  // Short vertical tick at the start of text (like a drop cap marker)
+  brush.set('pen', pick(COLORS), 1);
+  brush.line(textLeft - pad, textTop - pad * 0.5, textLeft - pad, textTop + TH * 0.3);
+
+  // Optional: thin diagonal accent in corner
+  if (dm > 0.8) {
+    brush.set('2B', pick(COLORS), 0.5);
+    brush.line(0, H * 0.85, W * 0.15, H);
+  }
+}
+
+// ─── EXPRESSIVE ─────────────────────────────────────────────
+// Bold marks that interact directly with the text zone.
+// Arcs that cradle the headline, thick strokes that cross through.
+function drawExpressive() {
+  // Large arc that curves around the text zone
+  brush.set('marker', ACCENT, 3 + Math.random() * 3);
+  const arcPts = [];
+  const arcSteps = 20;
+  const arcRadius = Math.max(TW, TH) * 0.7;
+  const arcStart = -PI * 0.3;
+  const arcEnd = PI * 0.8;
+  for (let i = 0; i <= arcSteps; i++) {
+    const t = arcStart + (arcEnd - arcStart) * (i / arcSteps);
+    arcPts.push([
+      textCenter.x + Math.cos(t) * arcRadius * 1.1,
+      textCenter.y + Math.sin(t) * arcRadius * 0.7
+    ]);
+  }
+  brush.spline(arcPts, 0.5);
+
+  // Crossing stroke — a bold line that cuts through the composition
+  brush.set('charcoal', pick(COLORS), 2 + Math.random() * 3);
+  const crossY = textCenter.y + (Math.random() - 0.5) * TH * 0.3;
+  brush.line(0, crossY + Math.random() * H * 0.1, W, crossY - Math.random() * H * 0.1);
+
+  // Scatter small marks around text edges
+  const markCount = Math.floor(6 * dm);
+  for (let i = 0; i < markCount; i++) {
+    brush.set(pick(['2B', 'pen']), pick(COLORS), 0.5 + Math.random());
+    // Place near text zone edges
+    const side = Math.floor(Math.random() * 4);
+    let mx, my;
+    if (side === 0) { mx = textLeft - pad * (1 + Math.random() * 2); my = textTop + Math.random() * TH; }
+    else if (side === 1) { mx = textRight + pad * (1 + Math.random() * 2); my = textTop + Math.random() * TH; }
+    else if (side === 2) { mx = textLeft + Math.random() * TW; my = textTop - pad * (1 + Math.random() * 2); }
+    else { mx = textLeft + Math.random() * TW; my = textBottom + pad * (1 + Math.random() * 2); }
+    brush.line(mx, my, mx + (Math.random() - 0.5) * pad * 3, my + (Math.random() - 0.5) * pad * 3);
+  }
+
+  // Soft watercolor accent — one blob near text
+  brush.fill(ACCENT, 25);
+  brush.fillBleed(0.5);
+  brush.fillTexture(0.3, 0.2);
+  brush.noStroke();
+  brush.circle(textLeft - TW * 0.2, textCenter.y, TH * 0.8, 0.2);
+}
+
+// ─── ARCHITECTURAL ──────────────────────────────────────────
+// Precise hatching and geometric lines that construct a grid
+// around the text. The text lives in negative space.
+function drawArchitectural() {
+  const spacing = Math.max(6, Math.floor(14 / dm));
+
+  // Hatch region ABOVE text zone
+  if (textTop > pad * 3) {
+    brush.hatch(spacing, 45, { rand: 0.15, continuous: false, gradient: 0.3 });
+    brush.hatchStyle('HB', pick(COLORS), 0.6);
+    brush.noFill();
+    brush.noStroke();
+    brush.rect(pad, pad, W - pad * 2, textTop - pad * 2);
+    brush.noHatch();
+  }
+
+  // Hatch region BELOW text zone
+  if (H - textBottom > pad * 3) {
+    brush.hatch(spacing, -30, { rand: 0.2, continuous: false });
+    brush.hatchStyle('pen', pick(COLORS), 0.5);
+    brush.noFill();
+    brush.noStroke();
+    brush.rect(pad, textBottom + pad, W - pad * 2, H - textBottom - pad * 2);
+    brush.noHatch();
+  }
+
+  // Hatch region LEFT of text
+  if (textLeft > pad * 4) {
+    brush.hatch(spacing * 1.5, 60, { rand: 0.1, continuous: false });
+    brush.hatchStyle('2B', ACCENT, 0.7);
+    brush.noFill();
+    brush.noStroke();
+    brush.rect(pad, textTop, textLeft - pad * 2, TH);
+    brush.noHatch();
+  }
+
+  // Framing lines — precise rectangles around text zone
+  brush.set('pen', pick(COLORS), 0.8);
+  // Top edge
+  brush.line(textLeft - pad, textTop - pad, textRight + pad, textTop - pad);
+  // Bottom edge
+  brush.line(textLeft - pad, textBottom + pad, textRight + pad, textBottom + pad);
+
+  // Corner marks (like crop marks)
+  const cm = pad * 2;
+  brush.set('pen', ACCENT, 1);
+  // Top-left
+  brush.line(textLeft - pad, textTop - pad, textLeft - pad, textTop - pad - cm);
+  brush.line(textLeft - pad, textTop - pad, textLeft - pad - cm, textTop - pad);
+  // Bottom-right
+  brush.line(textRight + pad, textBottom + pad, textRight + pad, textBottom + pad + cm);
+  brush.line(textRight + pad, textBottom + pad, textRight + pad + cm, textBottom + pad);
+
+  // Grid lines extending from text zone
+  if (dm > 0.8) {
+    brush.set('2B', pick(COLORS), 0.3);
+    brush.line(textLeft, 0, textLeft, H);
+    brush.line(textRight, 0, textRight, H);
+  }
+}
+
+// ─── GESTURAL ───────────────────────────────────────────────
+// Flowing, energetic strokes that sweep toward or around the text.
+// The text is the calm in the storm.
+function drawGestural() {
+  brush.field('waves');
+
+  // Strokes that flow TOWARD the text zone from edges
+  const strokes = Math.floor(6 * dm);
+  for (let i = 0; i < strokes; i++) {
+    const brushType = pick(['charcoal', 'marker', '2B']);
+    brush.set(brushType, pick(COLORS), 1.5 + Math.random() * 3);
+
+    // Start from canvas edges
+    const edge = Math.floor(Math.random() * 4);
+    let sx, sy, dir;
+    if (edge === 0) { sx = 0; sy = Math.random() * H; dir = Math.atan2(textCenter.y - sy, textCenter.x - sx); }
+    else if (edge === 1) { sx = W; sy = Math.random() * H; dir = Math.atan2(textCenter.y - sy, textCenter.x - sx); }
+    else if (edge === 2) { sx = Math.random() * W; sy = 0; dir = Math.atan2(textCenter.y - sy, textCenter.x - sx); }
+    else { sx = Math.random() * W; sy = H; dir = Math.atan2(textCenter.y - sy, textCenter.x - sx); }
+
+    // Stop before reaching text zone (flow toward but don't cross)
+    const dist = Math.sqrt((textCenter.x - sx) ** 2 + (textCenter.y - sy) ** 2);
+    const len = Math.max(dist * 0.4, W * 0.15);
+
+    dir += (Math.random() - 0.5) * 0.5; // slight wobble
+    brush.flowLine(sx, sy, len, dir);
+  }
+
+  brush.noField();
+
+  // Bold accent stroke that underscores
+  brush.set('marker', ACCENT, 3 + Math.random() * 2);
+  brush.line(
+    textLeft - pad, textBottom + pad * 2,
+    textRight + pad, textBottom + pad * 2 + (Math.random() - 0.5) * pad
+  );
+
+  // Fine marks at text corners
+  for (let i = 0; i < 3; i++) {
+    brush.set('pen', pick(COLORS), 0.5 + Math.random() * 0.5);
+    const nearX = textLeft + Math.random() * TW;
+    const nearY = (Math.random() > 0.5 ? textTop - pad : textBottom + pad) + (Math.random() - 0.5) * pad;
+    brush.line(nearX, nearY, nearX + (Math.random() - 0.5) * pad * 4, nearY);
+  }
+}
+
+// ─── LAYERED ────────────────────────────────────────────────
+// All techniques combined: watercolor base in margins,
+// hatching that fills non-text space, expressive strokes that frame.
+function drawLayered() {
+  // Layer 1: watercolor wash in margins
+  const washPositions = [
+    { x: W * 0.1, y: H * 0.1 },
+    { x: W * 0.85, y: H * 0.8 },
+    { x: W * 0.05, y: H * 0.75 },
+  ];
+  for (const pos of washPositions) {
+    // Skip if too close to text zone
+    const dx = Math.abs(pos.x - textCenter.x);
+    const dy = Math.abs(pos.y - textCenter.y);
+    if (dx < TW * 0.6 && dy < TH * 0.6) continue;
+
+    brush.fill(pick(COLORS), 35 + Math.random() * 25);
+    brush.fillBleed(0.4 + Math.random() * 0.3);
+    brush.fillTexture(0.3, 0.2);
+    brush.noStroke();
+    brush.circle(pos.x, pos.y, Math.min(W, H) * (0.2 + Math.random() * 0.2), 0.15);
+  }
+
+  // Layer 2: hatching below text
+  if (H - textBottom > pad * 4) {
+    const spacing = Math.max(8, Math.floor(16 / dm));
+    brush.hatch(spacing, 35 + Math.random() * 30, { rand: 0.2, continuous: false });
+    brush.hatchStyle(pick(['HB', '2B']), pick(COLORS), 0.6);
+    brush.noFill();
+    brush.noStroke();
+    brush.rect(textLeft, textBottom + pad * 2, TW, H - textBottom - pad * 3);
+    brush.noHatch();
+  }
+
+  // Layer 3: framing stroke — sweeping line above text
+  brush.set('marker', ACCENT, 2 + Math.random() * 2);
+  const sweepY = textTop - pad * 2;
+  brush.line(textLeft - W * 0.1, sweepY, textRight + W * 0.05, sweepY + (Math.random() - 0.5) * pad);
+
+  // Layer 4: short accent marks at text edges
+  for (let i = 0; i < Math.floor(4 * dm); i++) {
+    brush.set(pick(['pen', '2B']), pick(COLORS), 0.5 + Math.random());
+    const side = Math.random() > 0.5;
+    const mx = side ? textLeft - pad * (1 + Math.random()) : textRight + pad * (1 + Math.random());
+    const my = textTop + Math.random() * TH;
+    brush.line(mx, my, mx, my + pad * (1 + Math.random() * 2));
+  }
+}
+</script>
+</body>
+</html>

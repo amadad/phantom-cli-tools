@@ -254,6 +254,8 @@ interface StylePlanOptions {
   hasImage: boolean
   seed?: string
   designProfile?: VisualProfile
+  /** Force a specific layout, bypassing deterministic selection */
+  layoutOverride?: LayoutName
 }
 
 function chooseWithUniformPriority<T extends string>(values: readonly T[], seed: string): T {
@@ -323,6 +325,7 @@ export function buildStylePlan({
   hasImage,
   seed,
   designProfile,
+  layoutOverride,
 }: StylePlanOptions): StylePlan {
   const topicSeed = normalizeSeed(seed, topic)
 
@@ -331,7 +334,7 @@ export function buildStylePlan({
     ? designProfile.layoutWeights
     : visual.variants.layoutWeights
 
-  const layoutName = chooseFromWeights(
+  const layoutName = layoutOverride ?? chooseFromWeights(
     validLayouts,
     normalizeSeed(topicSeed, 'layout'),
     (layout) => {

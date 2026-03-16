@@ -5,6 +5,7 @@
  */
 
 import { ASPECT_RATIOS, type AspectRatio, renderComposition } from './renderer/render'
+import type { LayoutName } from '../core/visual'
 
 interface PosterOptions {
   brand: string
@@ -18,6 +19,8 @@ interface PosterOptions {
   topic?: string
   /** Stable seed for reproducible layout/palette selection */
   seed?: string
+  /** Force a specific layout (overrides deterministic selection) */
+  layout?: LayoutName
 }
 
 /**
@@ -34,6 +37,7 @@ export async function generatePoster(options: PosterOptions): Promise<Buffer> {
     designZone,
     topic,
     seed,
+    layout,
   } = options
 
   const pngBuffer = await renderComposition({
@@ -46,6 +50,7 @@ export async function generatePoster(options: PosterOptions): Promise<Buffer> {
     designZone,
     topic,
     seed,
+    layout,
   })
 
   return pngBuffer

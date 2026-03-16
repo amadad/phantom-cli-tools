@@ -1,6 +1,6 @@
 # Phantom Loom CLI
 
-Brand content pipeline: **intel → generate → eval → post**
+Brand content pipeline: **generate → poster → enqueue → post**
 
 ## CLI Contract Baseline
 
@@ -14,9 +14,6 @@ Brand content pipeline: **intel → generate → eval → post**
 - `extractBrandTopic(args, valueFlags, booleanFlags)` in `agent/src/cli/args.ts`.
 - Unknown flags are treated as value flags when followed by a token, unless explicitly marked boolean.
 - This is the expected behavior for `--volume`, `--pro`, `--quick`, and `--no-logo` style flag sets.
-- `--profiles`, `--layouts`, and all visual threshold flags are explicitly registered in `visual spectrum`.
-- `visual spectrum --serve` starts a localhost static preview server (`127.0.0.1`).
-
 ## Commands
 
 CLI design system docs: `docs/cli/overview.md`
@@ -27,16 +24,10 @@ cd agent
 npx tsx src/cli.ts copy <brand> "topic"         # Generate platform copy + eval
 npx tsx src/cli.ts image <brand> "topic"        # Generate brand image (--knockout for transparent)
 npx tsx src/cli.ts poster <brand> --image <path> --headline "text"  # Platform posters
-npx tsx src/cli.ts visual spectrum <brand> [--profiles ...]  # Audit design-space permutations
-npx tsx src/cli.ts visual spectrum <brand> --serve --open  # Build and open live localhost mini-browser review
 npx tsx src/cli.ts enqueue <brand> --topic "t" --copy <p> --image <p>  # Add to queue
-npx tsx src/cli.ts grade <brand> "text"         # Eval: score against rubric
 
 # Convenience wrapper (chains the primitives)
-npx tsx src/cli.ts explore <brand> "topic"      # image + copy + grade + poster + enqueue
-
-# Intel
-npx tsx src/cli.ts intel <brand>                # Weekly: scrape → outliers → hooks
+npx tsx src/cli.ts explore <brand> "topic"      # copy + image + poster + enqueue + notify
 
 # Queue & publish
 npx tsx src/cli.ts post <brand> [--dry-run]     # Publish queue items
@@ -49,9 +40,26 @@ npx tsx src/cli.ts token check [brand]          # Check all token statuses
 npx tsx src/cli.ts token refresh [brand]        # Refresh expiring tokens
 npx tsx src/cli.ts token refresh --all [brand]  # Force refresh all tokens
 
+# Nano poster (single-shot Gemini generation + pixel sort post-processing)
+npx tsx src/cli.ts explore <brand> "topic" --nano --pixel-sort
+npx tsx src/cli.ts poster <brand> --headline "text" --nano --pixel-sort --eyebrow "FIELD NOTES"
+
+# Review
+npx tsx src/cli.ts review latest                # Open visual gallery for latest session
+npx tsx src/cli.ts review ./output/dir/         # Open gallery for specific directory
+
+# Texture (p5.brush via Pinch Tab — no API cost)
+npx tsx src/cli.ts texture <brand> --style=editorial    # Watercolor wash + accent lines
+npx tsx src/cli.ts texture <brand> --style=expressive   # Bold arcs + crossing strokes
+npx tsx src/cli.ts texture <brand> --style=architectural # Hatching + crop marks
+npx tsx src/cli.ts texture <brand> --style=gestural     # Flowing strokes toward text
+npx tsx src/cli.ts texture <brand> --style=layered      # All techniques combined
+npx tsx src/cli.ts texture --list                       # List available styles
+
+# Pixel sort (standalone)
+npx tsx src/cli.ts pixel-sort <input> [output]  # Apply glitch effect
+
 # Other
-npx tsx src/cli.ts learn <brand>                # Aggregate learnings from eval-log
-npx tsx src/cli.ts video <brand> <brief>        # Generate short-form video
 npx tsx src/cli.ts brand init <name>            # Scaffold a new brand
 ```
 
@@ -60,33 +68,44 @@ npx tsx src/cli.ts brand init <name>            # Scaffold a new brand
 Each primitive returns structured JSON with `--json`. Agent orchestrates:
 
 ```bash
-# Steps 1a + 1b run in parallel
+# Copy first (gives imageDirection), then image in parallel or sequential
 phantom copy givecare "topic" --json        # → { headline, twitter, linkedin, ... }
 phantom image givecare "topic" --quick --json # → { imagePath, style, model }
 # --knockout for transparent PNG (bg removed via sharp threshold)
 
 # Sequential steps
-phantom grade givecare "text" --json         # → { score, passed, dimensions }
 phantom poster givecare --image ... --headline ... --json  # → { outputs }
 phantom enqueue givecare --topic ... --copy copy.json --image ... --json  # → { queueId }
 phantom post givecare --id gen_... --json    # → { posted, failed }
 ```
 
-Copy and image are parallelizable. Failure is isolated — if image gen fails, copy is preserved. Each step writes to disk for checkpointing.
+Failure is isolated — if image gen fails, copy is preserved. Each step writes to disk for checkpointing.
+
+### Texture + Poster (no API cost)
+
+```bash
+# Two-step: texture → poster (text-zone-aware p5.brush marks)
+phantom texture givecare --style=editorial --out=bg.png
+phantom poster givecare --image bg.png --headline "Text" --layout overlay
+
+# One-shot: explore with texture (skips Gemini image, auto-overlay layout)
+phantom explore givecare "topic" --texture=editorial
+phantom explore givecare "topic" --texture=architectural --layout overlay
+```
+
+Textures render via Pinch Tab (headless Chrome + p5.brush). ~5s per render, zero API cost. Text zone coordinates from the layout system are passed to the sketch so marks interact with headline placement.
 
 ## Structure
 
 ```
 agent/src/
 ├── core/       brand, visual, paths, types, json, http, slop, r2
-├── intel/      pipeline, enrich-apify, detect-outliers, extract-hooks
-├── generate/   copy, image, classify, upscale, providers/
-├── video/      video pipeline, conform, providers/ (replicate/kling)
-├── eval/       grader, image-grader, learnings
-├── composite/  poster, layouts, renderer/ (canvas compositor)
+├── generate/   copy, image, classify, upscale, pixel-sort, providers/
+├── composite/  poster, nano-poster, layouts, renderer/ (canvas compositor)
 ├── publish/    social, meta-graph, twitter/linkedin/facebook/youtube, rate-limit, token-refresh
 ├── cli/        args, index, registry, types, errors
-├── commands/   explore, copy-cmd, image-cmd, poster-cmd, enqueue-cmd, intel, post, video, queue, brand, token
+├── commands/   explore, copy-cmd, image-cmd, poster-cmd, enqueue-cmd, post, queue, brand, token, review, pixel-sort-cmd, texture-cmd, gradient-cmd
+├── textures/   p5.brush sketch template + vendored JS (rendered via Pinch Tab)
 └── queue/      per-brand file-based queue
 
 brands/<name>/
@@ -94,9 +113,7 @@ brands/<name>/
 ├── <name>-rubric.yml  # Eval dimensions + threshold
 ├── queue.json         # Per-brand post queue
 ├── assets/            # logo.svg, fonts/
-├── styles/            # Style reference images (visual direction)
-├── intel/             # hooks.json, outliers.json, influencers.json
-└── learnings.json     # Aggregated feedback loop
+└── styles/            # Style reference images (visual direction)
 
 output/
 ├── YYYY-MM-DD/        # Daily sessions
@@ -107,20 +124,20 @@ output/
 │       ├── twitter.png    # Platform poster
 │       ├── instagram.png
 │       └── story.png
-└── eval-log.jsonl     # All evaluations
+└── ...
 ```
 
 ## Data Flow
 
 | Stage | Flow |
 |-------|------|
-| Intel | Influencers → Apify → Outliers (50x+ median) → Hooks |
-| Copy | Topic → Classify → Voice + Hooks + Learnings → Gemini → Eval → Retry |
-| Image | Topic → Classify → Brand prompt (visual.image / prompt_system) → Generate → [Knockout] → [Upscale] |
-| Poster | Image + Headline → Named layout → Platform-specific ratios |
+| Copy | Topic → Classify → Voice → Gemini → Eval → Retry |
+| Image | Topic → Classify → Brand prompt (visual.image / prompt_system) → Gemini → [Knockout] |
+| Texture | Brand palette + text zone coords → p5.brush sketch → Pinch Tab render → PNG |
+| Poster | Image + Headline → Named layout (or `--layout` override) → Platform-specific ratios |
+| Nano Poster | Topic + Headline + Pillar → Gemini single-shot → Pixel sort + grain → Output |
 | Enqueue | Copy.json + Image → Queue item (stage: review) |
 | Post | Queue → Rate limit → Platform API → Done/Failed |
-| Video | Brief → Images → Kling animation → TTS → Conform → Stitch |
 
 ## Shared Internals
 
@@ -137,6 +154,9 @@ import { resolveVolumeContext } from './core/visual'          // Volume zone res
 import { listDesignProfiles } from './core/visual'            // Visual profile enumeration
 import { buildVoiceContext } from './core/brand'             // Copy writing context
 import { checkTokens, refreshTokens, preflightTokenCheck } from './publish/token-refresh'
+import { generateNanoPoster } from './composite/nano-poster'  // Single-shot Gemini poster
+import { pixelSort, GIVECARE_FULL } from './generate/pixel-sort' // Pixel sort post-processing
+import { computeLayout, buildStylePlan } from './composite/layouts' // Layout system (text zones, style plans)
 ```
 
 ## Visual System
@@ -231,28 +251,48 @@ visual:
 
 Legacy `visual.volume_zones` is still supported for backward compatibility.
 
-Template and existing brand YAMLs remain valid because `visual spectrum` defaults to a base profile when no zone profile is present.
+Template and existing brand YAMLs remain valid — design profiles resolve to a base profile when no zone profile is present.
 
-`visual spectrum <brand> ...` enumerates each profile/layout combination, with:
-- `label` (traceable axis marker)
-- `failedChecks` (fail reasons for quick learning)
-- geometric + contrast `checks` + `metrics` for auditability
+### Content Pillars → Visual Identity
+
+Brand YAML `content_pillars.pillars` drives per-pillar visual differentiation in nano poster mode:
+
+```yaml
+content_pillars:
+  pillars:
+    - id: shipped
+      label: "Tools"              # → eyebrow text
+      color: "#FF9F00"            # → accent color for geometric shapes + eyebrow
+      image_direction: "constructed, architectural, precise"  # → image mood guidance
+```
+
+The nano poster prompt builder resolves: pillar color → accent shapes, eyebrow label → typography, image_direction + random global subject → image content.
 
 ### Image Generation
 Prompt-only — brand YAML `visual.image` + `visual.prompt_system` drive the aesthetic. No reference images needed.
 
 - **Generic brands**: `buildGenericPrompt()` composes from `image.style`, `image.mood`, `image.prefer`, `image.avoid`
+- **Nano poster**: `generateNanoPoster()` — single Gemini call renders image + typography + layout. Pillar-aware accent colors + image direction. Pixel sort + grain + dither as post-processing.
 - **Volume zones** (GiveCare): `resolveVolumeContext(brand, volume?)` reads `visual.volume_zones` from brand YAML, resolves palette tokens to hex, returns `VolumeContext`. Injected as a VOLUME block in `buildGenericPrompt()`. Pass `--volume <zone>` to override per-post (mute/quiet/whisper/vocal/loud). Defaults to `visual.default_volume`.
 - **SCTY**: `buildSctyPrompt()` randomly selects from curated subject/form/texture pools per image type
 - **`--knockout`**: Prompts for solid white background, then sharp threshold removes it → transparent PNG
+
+### Pixel Sort Post-Processing
+
+`generate/pixel-sort.ts` — programmatic glitch effect applied after Gemini generation:
+
+- **Pixel sort**: horizontal brightness-threshold sorting with configurable streak/intensity/randomness
+- **Film grain**: per-pixel luminance noise via seeded PRNG (mulberry32)
+- **Ordered dither**: Bayer 4×4 matrix for print-like texture
+- **Mask**: `maskTopPercent` skips top N% of rows for sort (protects typography), grain applies everywhere
+
+Presets: `GIVECARE_FULL` (threshold 0.08, streak 220, grain 0.18, dither 0.10), `GRAINRAD_ORIGINAL` (threshold 0.3, streak 180)
 
 ## Env
 
 ```bash
 GEMINI_API_KEY         # Required - copy + image generation
-APIFY_API_TOKEN        # Intel scraping
-REPLICATE_API_TOKEN    # Image upscale + video animation
-CARTESIA_API_KEY       # TTS voice generation
+REPLICATE_API_TOKEN    # Image upscale
 
 # Per-brand platform creds: TWITTER_<BRAND>_*, LINKEDIN_<BRAND>_*, etc.
 ```

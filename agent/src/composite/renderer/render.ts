@@ -12,6 +12,7 @@ import { registerFont } from 'canvas'
 import { renderBrandFrame } from './BrandFrame'
 import { imageTreatmentToDim, loadBrandVisual, resolveDesignProfile } from '../../core/visual'
 import { buildStylePlan, computeLayout } from '../layouts'
+import type { LayoutName } from '../../core/visual'
 
 /** Track which fonts have already been registered (registerFont is global, once per process) */
 const registeredFonts = new Set<string>()
@@ -40,6 +41,8 @@ export interface RenderCompositionOptions {
   topic?: string
   /** Stable seed for reproducible layout/palette selection (e.g. queue id) */
   seed?: string
+  /** Force a specific layout (overrides deterministic selection) */
+  layout?: LayoutName
 }
 
 /**
@@ -56,6 +59,7 @@ export async function renderComposition(options: RenderCompositionOptions): Prom
     designZone,
     topic,
     seed,
+    layout: layoutOverride,
   } = options
 
   const visual = loadBrandVisual(brand)
@@ -77,6 +81,7 @@ export async function renderComposition(options: RenderCompositionOptions): Prom
     hasImage,
     designProfile,
     seed,
+    layoutOverride,
   })
 
   const renderVisual = {
