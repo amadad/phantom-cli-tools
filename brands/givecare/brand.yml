@@ -1,0 +1,46 @@
+id: givecare
+name: GiveCare
+positioning: Care as infrastructure, not as soft marketing language.
+audiences:
+  - id: caregivers
+    summary: Family caregivers carrying operational work across home, health, and employment.
+offers:
+  - id: invisiblebench
+    summary: Research and tooling that make caregiving systems more legible.
+proof_points:
+  - 63 million Americans are caregivers.
+  - Caregiving is operational work, not just emotional labor.
+voice:
+  tone: Warm, direct, grounded.
+  style: Plainspoken, human, specific.
+  do:
+    - Name the structural problem directly.
+    - Use concrete consequences and real-world language.
+  dont:
+    - Use therapeutic cliches.
+    - Hide behind polished abstractions.
+channels:
+  social:
+    objective: Build signal and authority around caregiving systems.
+  blog:
+    objective: Publish durable thinking that sharpens the category.
+  outreach:
+    objective: Start useful conversations with partners, buyers, and institutions.
+  respond:
+    objective: Reply with care, clarity, and evidence.
+visual:
+  palette:
+    background: "#FDF9EC"
+    primary: "#3D1600"
+    accent: "#FF9F00"
+  motif: Soft concentric rings, paper layers, and warm editorial space.
+  image_style: Warm documentary abstraction with calm contrast.
+  layout: calm-editorial
+response_playbooks:
+  - id: skeptical-comment
+    trigger: skepticism
+    approach: Clarify the claim, add evidence, and stay calm.
+outreach_playbooks:
+  - id: intro
+    trigger: first-touch
+    approach: Lead with one sharp observation and one clear ask.

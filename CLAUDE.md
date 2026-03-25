@@ -46,7 +46,10 @@ runtime/
     cli/         command dispatch
     commands/    public command handlers
     domain/      workflow/run/artifact types
-    runtime/     SQLite-backed run engine
+    generate/    copy drafts, explore grid, source image (fal.ai Flux / Gemini)
+    publish/     social platform adapters (Twitter, LinkedIn, Meta, Threads)
+    render/      canvas-based typographic compositing per platform
+    runtime/     SQLite-backed run engine + step definitions
 
 brands/
   <name>/brand.yml
@@ -54,6 +57,16 @@ brands/
 state/          generated at runtime, gitignored
 archive/        archived legacy implementation
 ```
+
+## Image Generation
+
+The `social.post` workflow includes AI-powered image generation:
+
+- **Explore step**: generates a 3x3 visual direction grid via fal.ai Flux Pro 1.1
+- **Image step**: generates a full-res source image via API (canvas fallback when no key)
+- **Render step**: composites headline, body, brand name onto source image per platform
+
+Requires `FAL_KEY` or `GEMINI_API_KEY` in env. Without either, explore is skipped and image falls back to deterministic canvas art.
 
 ## Verification
 
