@@ -11,7 +11,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.967.0",
+    "@aws-sdk/client-s3": "^3.1017.0",
     "@google/genai": "^0.14.0",
     "canvas": "^3.2.1",
     "dotenv": "^16.4.7",
