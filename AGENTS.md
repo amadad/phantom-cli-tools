@@ -4,77 +4,82 @@ Instructions for AI agents working on this codebase.
 
 ## Project
 
-Brand content pipeline: intel → generate → eval → post. CLI at `agent/src/cli.ts`.
+Loom is a brand communications runtime. The active CLI lives at `runtime/src/cli.ts`.
 
-## Key Architecture
+Primary workflows:
 
-### Visual System (single source of truth)
-- `agent/src/core/visual.ts` — `BrandVisual` type + `loadBrandVisual()` loader
-- Brand YAML `visual:` section holds all visual config (palette, typography, logo, layouts, density, alignment, background)
-- No build step, no token pipeline, no separate style files
+- `social.post`
+- `blog.post`
+- `outreach.touch`
+- `respond.reply`
 
-### Poster Pipeline
-- `agent/src/composite/poster.ts` — thin wrapper around `renderComposition()`
-- `agent/src/composite/layouts.ts` — 5 named layouts: split, overlay, type-only, card, full-bleed
-- `agent/src/composite/renderer/` — 4-layer node-canvas compositor:
-  - `render.ts` — orchestrator: loads visual, picks layout, computes zones, calls BrandFrame
-  - `BrandFrame.ts` — 4 layers: GraphicLayer → ImageLayer → Logo → TypeLayer
-  - `layers/GraphicLayer.ts` — background fill, gradient strip, logo drawing
-  - `layers/ImageLayer.ts` — content image placement
-  - `layers/TypeLayer.ts` — headline text rendering
-  - `defaults.ts` — `RENDERER_DEFAULTS` config; brands override via `visual.renderer:` in YAML
-  - `types.ts` — shared types (PixelZone, BrandFrameProps, etc.)
+The previous content-pipeline implementation is archived under `archive/legacy-20260325/`.
 
-### Brand Config
-- `brands/<name>/<name>-brand.yml` — voice + visual config
-- `agent/src/core/brand.ts` — `loadBrand()`, `resolvePalette()`, voice context
-- `agent/src/core/visual.ts` — `loadBrandVisual()` reads visual section, applies defaults, resolves paths
+## Architecture
 
-### Commands
-- `agent/src/commands/` — each command is self-contained, exports reusable functions
-- `explore.ts` orchestrates: image + copy → grade → poster → enqueue
-- All commands use `agent/src/cli/args.ts` for arg parsing
-- CLI parsing is schema-driven: `extractBrandTopic(args, valueFlags?, booleanFlags?)`.
-  - `valueFlags` require a value (`volume`, `topic`, `copy`, etc.)
-  - `booleanFlags` are explicit switches (`quick`, `pro`, `json`, etc.)
-  - unknown flags default to value-taking when followed by a token unless explicitly boolean
-- `visual spectrum <brand>` runs explicit objective checks across design-space permutations and returns labeled points (`profile | layout | density | alignment | background`) for learnability.
-- `visual spectrum` supports `--render` to write a local review gallery (`index.html`) plus `annotations.json` for manual thumbs-up/down labeling.
-- `visual spectrum --serve` hosts the gallery on localhost (default `127.0.0.1:4173`) and keeps the command open while reviewing.
-- `visual spectrum` uses `listDesignProfiles` in `agent/src/core/visual.ts` and supports both:
-  - new `visual.design.zones` profiles
-  - legacy `visual.volume_zones` (e.g., GiveCare-style configuration)
+### Runtime
+- `runtime/src/domain/types.ts` — core workflow, run, step, and artifact types
+- `runtime/src/brands/load.ts` — brand foundation loader for `brands/<name>/brand.yml`
+- `runtime/src/runtime/db.ts` — SQLite initialization
+- `runtime/src/runtime/runtime.ts` — run engine, artifact writing, review, publish, retry
+- `runtime/src/commands/` — CLI command handlers
+- `runtime/src/cli/index.ts` — command dispatch and help output
+
+### Brand Foundations
+- `brands/<name>/brand.yml` — positioning, audiences, offers, voice, channel objectives, playbooks, visual palette
+- do not recreate the old `*-brand.yml`, queue, rubric, or visual-pipeline structure in active code
+
+### Runtime State
+- `state/` is generated at runtime
+- `state/loom.sqlite` stores runs and artifact indexes
+- `state/artifacts/` stores artifact payloads
+- `state/exports/` stores publish/export outputs
+- do not check `state/` into git
+
+## CLI Contract
+
+This CLI is meant to work well for agents:
+
+- non-interactive by default
+- all meaningful inputs must be passable as flags
+- every command should support `--json`
+- `--help` should stay example-heavy
+- failures should be actionable and immediate
+- side effects should be idempotent or explicitly resumable
 
 ## Conventions
 
 - TypeScript, strict mode
-- `npx tsc --noEmit` must pass before commit
-- No satori, no token build step — canvas-only rendering
-- Brand fonts loaded from `brands/<name>/assets/` via `canvas.registerFont()`
-- Layout selected deterministically from topic hash (FNV-1a)
-- Commands share logic via exported functions, not abstraction layers
+- keep workflows explicit and low-complexity
+- prefer typed artifacts between steps over implicit file coupling
+- side effects belong at publish time, not draft time
+- do not reintroduce the archived monolithic `explore` pattern into active code
 
 ## Testing
 
 ```bash
-cd agent
-npx vitest run           # All tests
-npx tsc --noEmit         # Typecheck
+cd runtime
+npx vitest run
+npx tsc --noEmit
 ```
 
 ## Common Tasks
 
-### Add a layout
-1. Add to `LayoutName` union in `agent/src/core/visual.ts`
-2. Add layout function in `agent/src/composite/layouts.ts`
-3. Register in `LAYOUT_FNS` map
-4. Add to brand YAML `visual.layouts` array
+### Add a workflow
+1. Add the workflow name in `runtime/src/domain/types.ts`
+2. Define its step sequence in `runtime/src/runtime/runtime.ts`
+3. Reuse or add step builders that emit typed artifacts
+4. Add or update tests in `runtime/src/runtime/runtime.test.ts`
 
 ### Add a brand
 ```bash
+cd runtime
 npx tsx src/cli.ts brand init <name>
 ```
-Then edit brand YAML `visual:` section with palette, typography, logo, layouts.
 
-### Modify rendering
-All rendering in `agent/src/composite/renderer/`. BrandFrame draws 4 layers sequentially on a single canvas. Logo is drawn after image to maintain z-order.
+Then edit `brands/<name>/brand.yml`.
+
+### Add a command
+1. Add a command handler in `runtime/src/commands/`
+2. Register it in `runtime/src/cli/index.ts`
+3. Keep the command non-interactive and machine-readable

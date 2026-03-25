@@ -1,0 +1,46 @@
+id: scty
+name: SCTY
+positioning: Technical ideas for how software, systems, and society actually behave under pressure.
+audiences:
+  - id: builders
+    summary: Operators, founders, engineers, and technical decision-makers.
+offers:
+  - id: advisory
+    summary: Strategic and technical guidance for organizations using AI and software systems.
+proof_points:
+  - Software is becoming cheaper to produce and harder to operate.
+  - Reliability matters more than theatrical demos.
+voice:
+  tone: Direct, sharp, technical.
+  style: Precise, opinionated, plain.
+  do:
+    - Make one strong claim at a time.
+    - Prefer operational language to marketing language.
+  dont:
+    - Drift into vague futurism.
+    - Soften the claim with filler.
+channels:
+  social:
+    objective: Build authority around systems, software, and AI operations.
+  blog:
+    objective: Publish durable essays and operator thinking.
+  outreach:
+    objective: Open technical and commercial conversations with credibility.
+  respond:
+    objective: Answer clearly without hedging or hype.
+visual:
+  palette:
+    background: "#FAFAFA"
+    primary: "#111111"
+    accent: "#FF3300"
+  motif: Signal grids, system diagrams, and hard geometric interruption.
+  image_style: Stark technical poster with sharp contrast and structural rhythm.
+  layout: signal-grid
+response_playbooks:
+  - id: technical-pushback
+    trigger: disagreement
+    approach: Clarify the operational claim and narrow the disagreement.
+outreach_playbooks:
+  - id: operator-intro
+    trigger: first-touch
+    approach: Start with an observation about system friction and one concrete reason to reply.

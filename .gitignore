@@ -29,9 +29,16 @@ social_pipeline.log
 
 # Archive
 _archive
+archive/
+
+# Agent/tool configs (local only)
+.agents/
+.codex/
+.openclaw/
 
 # Output
 output/
+state/
 
 # Private notes
 private/
