@@ -52,7 +52,7 @@ runtime/
     runtime/     SQLite-backed run engine + step definitions
 
 brands/
-  <name>/brand.yml
+  <name>/brand.yml    pillars, voice, visual system, image_prompt, playbooks
 
 state/          generated at runtime, gitignored
 archive/        archived legacy implementation
@@ -66,7 +66,13 @@ The `social.post` workflow includes AI-powered image generation:
 - **Image step**: generates a full-res source image via API (canvas fallback when no key)
 - **Render step**: composites headline, body, brand name onto source image per platform
 
-Requires `FAL_KEY` or `GEMINI_API_KEY` in env. Without either, explore is skipped and image falls back to deterministic canvas art.
+Requires `FAL_KEY` or `GOOGLE_API_KEY` in env. Preferred model: `gemini-3.1-flash-image-preview`. Without keys, explore is skipped and image falls back to deterministic canvas art.
+
+Each brand.yml includes an `image_prompt` field with a complete generation directive and `[SUBJECT]` slot. SCTY uses a damaged-reproduction process system. GiveCare uses a grounded-fragment with single-intervention system.
+
+## Content Pillars
+
+Each brand defines 3 content pillars in `brand.yml` with `perspective`, `signals`, `format`, and `frequency` fields. The `signals` array connects to external signal sources (e.g. last30days) for topical content routing.
 
 ## Verification
 

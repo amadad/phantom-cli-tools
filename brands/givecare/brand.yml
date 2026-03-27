@@ -10,6 +10,23 @@ offers:
 proof_points:
   - 63 million Americans are caregivers.
   - Caregiving is operational work, not just emotional labor.
+  - The U.S. care economy is worth $470B+ in unpaid labor annually.
+pillars:
+  - id: ai-safety-ethics
+    perspective: AI in caregiving touches vulnerable people. How it's built matters as much as what it does. Consent, data dignity, algorithmic bias, trauma-informed design.
+    signals: [AI regulation, healthcare AI safety, EU AI Act, data privacy, algorithmic bias, AI in eldercare, consent frameworks]
+    format: opinionated-take
+    frequency: weekly
+  - id: policy-advocacy
+    perspective: The systems that should support caregivers — legislation, funding, institutional programs — and whether they actually do.
+    signals: [RAISE Act, ACL programs, MAHA ELEVATE, state caregiver legislation, CBO funding, Medicaid waivers, paid leave policy]
+    format: analysis
+    frequency: weekly
+  - id: care-economy
+    perspective: "Caregiving is infrastructure. 63 million people do this work. Here's the structural reality: who does it, what it costs, what breaks when it's invisible."
+    signals: [BLS data, caregiver workforce studies, economic impact reports, time-use data, employer caregiver benefits, care deserts]
+    format: data-driven
+    frequency: weekly
 voice:
   tone: Warm, direct, grounded.
   style: Plainspoken, human, specific.
@@ -29,13 +46,107 @@ channels:
   respond:
     objective: Reply with care, clarity, and evidence.
 visual:
+  logo: logo.png
   palette:
     background: "#FDF9EC"
     primary: "#3D1600"
     accent: "#FF9F00"
+  typography:
+    headline: "Alegreya Variable, serif, bold, high contrast weight"
+    body: "Inter, sans-serif, regular weight, clean"
+    accent: "Gabarito, display sans-serif, bold, uppercase wide tracking"
+  style: >
+    Semi-abstract, minimal, monumental composition with strong negative space.
+    Warm terracotta, rust, sandstone, pale ochre, and soft orange palette.
+    Sparse detail, broad simple shapes, reduced visual information, calm but emotionally resonant.
+    Distressed print texture, fine grain, pixel breakup, horizontal tearing, scanline distortion,
+    compression artifacts, raster corruption, and partial image loss.
+    Feels like a corrupted modernist print or degraded editorial image,
+    not polished CGI, not glossy, not stock-photo realism.
+  composition:
+    - broad empty fields
+    - isolated subject
+    - strong silhouette
+    - asymmetry
+    - wide cinematic crop
+    - sparse horizon or sparse background
+    - 1 dominant subject or landform, not many competing elements
+  texture:
+    - fine grain
+    - distressed print texture
+    - pixel breakup
+    - horizontal tearing
+    - compression artifacts
+    - scanline distortion
+    - raster corruption
+    - partial image loss
+  content_types:
+    - id: desert-landscape
+      description: monumental desert landscape with sandstone cliffs, red rock formations, sparse scrub
+      elements: broad empty fields, strong silhouette, minimal detail, warm earth tones, optional electric cobalt sky
+      camera: wide cinematic crop, low horizon, sparse background
+    - id: solitary-object
+      description: isolated sculptural object in a minimal monumental composition with strong negative space
+      elements: single subject (chair, bed, phone, medicine bottle), reduced detail, emotionally quiet presence
+      camera: centered or slightly off-center, studio-like framing
+    - id: caregiving-hands
+      description: semi-abstract warm-toned hand gesture of holding or supporting
+      elements: strong shape language, minimal detail, sparse composition, dignified, emotionally resonant
+      camera: close framing, warm tones, soft edges
+    - id: threshold
+      description: doorway or architectural threshold rendered as semi-abstract architectural form
+      elements: broad flat planes, strong negative space, minimal detail, symbolic, monumental
+      camera: centered perspective, geometric framing
+    - id: hallway
+      description: sparse hallway or waiting-room scene with broad empty fields and quiet emotional tension
+      elements: reduced detail, broad shapes, muted cream highlights, emotional tension between spaces
+      camera: deep perspective, low contrast, institutional geometry
+    - id: quote-card
+      description: bold typography on textured background
+      elements: headline as hero element, brand mark, warm background with paper grain texture
+    - id: type-forward
+      description: oversized bold typography filling the frame as the primary visual
+      elements: large text as primary visual, contrasting background, minimal decoration, strong weight
+  negative:
+    - polished CGI or glossy rendering
+    - busy backgrounds or crowded scenes
+    - stock-photo staging or poses
+    - generic AI illustration
+    - detailed lifestyle scenes
+    - hyperreal or ultra-detailed rendering
+    - cinematic blockbuster aesthetic
+    - luxury editorial gloss
+    - 3D product rendering
+    - bright rainbow accents or neon greens
+    - saturated purple or magenta
+    - many small objects or decorative clutter
+    - text, signage, UI, or labels in generated imagery
   motif: Soft concentric rings, paper layers, and warm editorial space.
-  image_style: Warm documentary abstraction with calm contrast.
+  image_style: Grounded fragment with single intervention, not full composition.
   layout: calm-editorial
+  image_prompt: >
+    Start from a grounded, real-feeling scene (domestic, outdoor, or transitional space with tactile surfaces).
+    Do not make a full composition. Crop into a fragment.
+    Subject: A partial moment about [SUBJECT]. Not literal instruments or screens.
+    The tension between systematic evaluation and the thing being evaluated (care, empathy, safety) that resists capture by a score.
+    Examples of scenes that carry this: a worn surface with faint parallel scratches at uneven intervals as if something was tested repeatedly,
+    a threshold where light falls differently on each side suggesting comparison, a corner where two different materials meet imperfectly
+    implying a boundary or standard, a fabric or paper with a crease pattern suggesting folding and refolding like iteration.
+    Composition: square crop, off-center, large negative space, subject partially cut off, feels like a fragment not a complete image.
+    Core system:
+    1. Base layer (real) — grounded textures (wood, plaster, fabric, floor, wall, water), natural light slightly uneven, no cinematic polish.
+    2. Single intervention (graphic or structural) — choose ONE only: a faint repeated mark drifting across a surface,
+    a line that doesn't quite align with perspective, a duplicated fragment slightly offset, a cropped shape that interrupts the scene,
+    or a subtle color field that bleeds into part of the image.
+    3. Tension — something slightly off: spacing irregular, repetition imperfect, alignment almost correct but not, presence implied but not shown.
+    Constraints: no symbols (no circles, sacred geometry, diagrams), no glow or aura or mystical effects, no multiple overlays,
+    no clean graphic system, no full narrative, no centered subject, no screens monitors dashboards or digital devices,
+    no clipboards paperwork or office supplies, no clinical or institutional spaces.
+    Color: restrained warm palette (ochre, sandstone, terracotta, cream, rust), optional single accent color used minimally.
+    Texture: slight grain, minor imperfection (blur, noise, wear).
+    Output intent: A quiet unresolved fragment that feels designed but not explained.
+    The idea of measurement and iteration should be felt through material traces, not depicted literally.
+    No text, no words, no logos. 1:1 square. Model: gemini-3.1-flash-image-preview. No reference images.
 response_playbooks:
   - id: skeptical-comment
     trigger: skepticism

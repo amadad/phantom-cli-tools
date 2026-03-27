@@ -33,7 +33,13 @@ Every workflow emits typed artifacts:
 signal → brief → draft → explore (3x3 grid) → image (full-res) → render (per-platform)
 ```
 
-The explore and image steps call fal.ai Flux Pro 1.1 when `FAL_KEY` is set, or Gemini when `GEMINI_API_KEY` is set. Without either, explore is skipped and image falls back to deterministic canvas generation.
+The explore and image steps call fal.ai Flux Pro 1.1 when `FAL_KEY` is set, or Gemini when `GOOGLE_API_KEY` is set. Preferred model: `gemini-3.1-flash-image-preview`. Without either, explore is skipped and image falls back to deterministic canvas generation.
+
+Each brand.yml includes an `image_prompt` field containing a complete generation directive with a `[SUBJECT]` slot that the pipeline fills per post. Brand-specific image prompts define the visual grammar (SCTY: damaged-reproduction process; GiveCare: grounded-fragment with single intervention).
+
+### Brand pillars
+
+Each brand defines content pillars in `brand.yml` with `perspective`, `signals`, `format`, and `frequency`. Pillars drive content strategy: the `signals` array lists topics to monitor, and the `perspective` field shapes how the brand responds to those signals.
 
 ### Step definitions
 

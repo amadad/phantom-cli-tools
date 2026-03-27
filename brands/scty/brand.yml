@@ -1,31 +1,60 @@
 id: scty
 name: SCTY
-positioning: Technical ideas for how software, systems, and society actually behave under pressure.
+positioning: AI transformation for creative, marketing, and design organizations — what actually works, not what the pitch deck says.
 audiences:
-  - id: builders
-    summary: Operators, founders, engineers, and technical decision-makers.
+  - id: creative-operators
+    summary: Agency leaders, creative directors, marketing operators, and design team leads navigating AI adoption.
+  - id: founders
+    summary: Founders and technical decision-makers building or buying AI-native creative tools and services.
 offers:
-  - id: advisory
-    summary: Strategic and technical guidance for organizations using AI and software systems.
+  - id: corporate-ai
+    summary: 10x internal workflows — readiness audits, workflow redesign, and AI-native process architecture.
+  - id: operational-ai
+    summary: Reduce operational costs — agentic automation, pod-based execution, data unification.
+  - id: product-ai
+    summary: New AI-native revenue — helping organizations build and sell AI-powered creative services.
+  - id: critbench
+    summary: Benchmark for creative process quality. Scores LLM judgment, voice fidelity, and workflow coherence across multi-turn campaigns.
 proof_points:
-  - Software is becoming cheaper to produce and harder to operate.
-  - Reliability matters more than theatrical demos.
+  - 94% of organizations report no meaningful bottom-line AI impact. The gap is execution, not tooling.
+  - Agencies cutting 30-50% of traditional creative tasks — but only the ones that redesigned workflows, not just bought software.
+  - 80% feel pressure to embed AI; only 6% have done it.
+pillars:
+  - id: transformation-gap
+    perspective: Most AI adoption fails. Not because the tools are wrong — because the process, data, and org design didn't change.
+    signals: [AI adoption failures, agency transformation, ROI studies, org restructuring, workflow redesign]
+    format: opinionated-take
+    frequency: weekly
+  - id: operators-primer
+    perspective: "Here's what people are talking about. Here's what it actually means. Get caught up in 90 seconds."
+    signals: [new tools, emerging patterns, industry terms, vendor launches, workflow shifts]
+    format: primer
+    frequency: 2x-weekly
+  - id: whats-working
+    perspective: What's production-ready, what's actually changing workflows, and who's doing it. Case studies and tool reviews through an operator lens.
+    signals: [case studies, agency wins, tool launches, stack decisions, benchmark data, production workflows]
+    format: case-study
+    frequency: weekly
 voice:
   tone: Direct, sharp, technical.
   style: Precise, opinionated, plain.
   do:
     - Make one strong claim at a time.
     - Prefer operational language to marketing language.
+    - Name the specific failure mode, not the generic category.
+    - Tie every claim to an observable outcome.
   dont:
     - Drift into vague futurism.
     - Soften the claim with filler.
+    - Hype a tool without saying who it's for and what it replaces.
+    - Write like a vendor. Write like an operator.
 channels:
   social:
-    objective: Build authority around systems, software, and AI operations.
+    objective: Build authority around AI transformation in creative and marketing organizations.
   blog:
-    objective: Publish durable essays and operator thinking.
+    objective: Publish durable essays and operator thinking on the execution gap.
   outreach:
-    objective: Open technical and commercial conversations with credibility.
+    objective: Open conversations with agency leaders and creative operators who feel the pressure but haven't moved.
   respond:
     objective: Answer clearly without hedging or hype.
 visual:
@@ -34,13 +63,52 @@ visual:
     primary: "#111111"
     accent: "#FF3300"
   motif: Signal grids, system diagrams, and hard geometric interruption.
-  image_style: Stark technical poster with sharp contrast and structural rhythm.
+  image_style: Damaged reproduction process, not designed composition.
   layout: signal-grid
+  image_prompt: >
+    You are not generating a designed image. You are simulating a damaged reproduction process.
+    Simulate a low-quality photocopy / risograph reproduction of a fragmented visual artifact about [SUBJECT].
+    Do not compose a clean layout. Do not design a poster. Do not balance elements.
+    Process:
+    1. SOURCE FRAGMENTATION — Break the subject into unrelated visual fragments (silhouettes, textures, cropped pieces, partial forms). Do not assemble them logically. Some fragments should feel unrelated or misplaced.
+    2. RANDOMIZED PLACEMENT — Place elements with slight randomness, not centered composition. Allow awkward spacing, collisions, and dead zones. Avoid symmetry and grid-perfect alignment.
+    3. SCALE CHAOS — Mix extreme scales: one element too large and cropped, others too small or barely visible. No consistent sizing logic.
+    4. INK + PRINT FAILURE (PRIMARY DRIVER) — Simulate physical print issues: heavy ink bleed, uneven coverage (some areas faded, some oversaturated), misregistration between black and red layers (slight offset), banding or streaks from scanning. Add areas where ink looks smeared or missing entirely.
+    5. HARD THRESHOLD DEGRADATION — Convert everything to harsh black and off-white shapes. Destroy midtones. Break edges into noise or jagged fragments. Some shapes should partially disintegrate.
+    6. HALFTONE + NOISE (INCONSISTENT) — Use halftone only in patches, not evenly. Mix clean solid areas with noisy ones. Add random grain, dust, scratches.
+    7. INTERRUPTION (CRITICAL) — Insert 1-2 large disruptive elements: thick bar, smear, block. These must obscure content, not decorate it.
+    8. DIAGRAM ELEMENTS (MISUSED) — Add a few lines/arcs/arrows. They should NOT align cleanly. They should feel incorrectly placed or arbitrary. Avoid dense, perfect geometric systems.
+    9. NO CLEAR HIERARCHY — Do not create a focal point. Do not guide the eye cleanly. The image should feel unresolved.
+    10. NO TEXT. NO WORDS. NO LETTERS. NO NUMBERS. PURELY VISUAL.
+    COLOR — Primarily black and off-white. Red #FF3300 used VERY sparingly as rare punctuation, less than 5% of image area.
+    The image must feel like a bad scan of something physical, a piece of printed matter that degraded over time, an accidental composition, not an intentional design.
+    Reject outputs that look clean, centered, poster-like, balanced, or stylistically cool.
+    Accept outputs that feel wrong, uneven, partially broken, materially real.
+    1:1 square. Model: gemini-3.1-flash-image-preview. No reference images.
+  content_types:
+    - id: damaged-artifact
+      description: fragmented print-collage simulating damaged reproduction process
+      elements: thresholded silhouettes, xerox grain, halftone patches, misregistered ink layers, diagram interference, thick bar interruptions, scan streaks
+    - id: primer-card
+      description: bold term/concept with sharp one-line explanation, designed for quick scanning
+      elements: large term as headline, concise explanation, SCTY mark, high-contrast background
+    - id: signal-post
+      description: data point or market signal with opinionated framing
+      elements: stat or quote as hero, one-line take below, stark layout, accent color for emphasis
+    - id: type-forward
+      description: oversized bold typography as the primary visual element
+      elements: large text as primary visual, contrasting background, minimal decoration, strong weight
 response_playbooks:
   - id: technical-pushback
     trigger: disagreement
     approach: Clarify the operational claim and narrow the disagreement.
+  - id: hype-check
+    trigger: vendor-hype
+    approach: Acknowledge the tool, name what it actually changes, and what it doesn't.
 outreach_playbooks:
   - id: operator-intro
     trigger: first-touch
-    approach: Start with an observation about system friction and one concrete reason to reply.
+    approach: Start with an observation about their specific AI adoption friction and one concrete reason to reply.
+  - id: post-event
+    trigger: conference-follow-up
+    approach: Reference a specific talk or trend from the event, connect it to their operational reality.
