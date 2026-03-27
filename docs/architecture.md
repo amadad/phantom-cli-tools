@@ -33,7 +33,7 @@ Every workflow emits typed artifacts:
 signal → brief → draft → explore (3x3 grid) → image (full-res) → render (per-platform)
 ```
 
-The explore and image steps call fal.ai Flux Pro 1.1 when `FAL_KEY` is set, or Gemini when `GOOGLE_API_KEY` is set. Preferred model: `gemini-3.1-flash-image-preview`. Without either, explore is skipped and image falls back to deterministic canvas generation.
+The explore and image steps use Gemini when `GEMINI_API_KEY` or `GOOGLE_API_KEY` is set. Preferred model: `gemini-3.1-flash-image-preview`. Without either, image falls back to deterministic canvas generation. Both `buildExplorePrompt()` and `buildSourceImagePrompt()` read `brand.visual.imagePrompt` from brand.yml and fill the `[SUBJECT]` slot with the topic. If no `imagePrompt` is set, they fall back to generic prompts constructed from visual fields.
 
 Each brand.yml includes an `image_prompt` field containing a complete generation directive with a `[SUBJECT]` slot that the pipeline fills per post. Brand-specific image prompts define the visual grammar (SCTY: damaged-reproduction process; GiveCare: grounded-fragment with single intervention).
 

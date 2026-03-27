@@ -66,7 +66,7 @@ The `social.post` workflow includes AI-powered image generation:
 - **Image step**: generates a full-res source image via API (canvas fallback when no key)
 - **Render step**: composites headline, body, brand name onto source image per platform
 
-Requires `FAL_KEY` or `GOOGLE_API_KEY` in env. Preferred model: `gemini-3.1-flash-image-preview`. Without keys, explore is skipped and image falls back to deterministic canvas art.
+Requires `GEMINI_API_KEY` or `GOOGLE_API_KEY` (either works). Preferred model: `gemini-3.1-flash-image-preview`. Without keys, image falls back to deterministic canvas art.
 
 Each brand.yml includes an `image_prompt` field with a complete generation directive and `[SUBJECT]` slot. SCTY uses a damaged-reproduction process system. GiveCare uses a grounded-fragment with single-intervention system.
 

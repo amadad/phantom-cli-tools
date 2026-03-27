@@ -89,6 +89,59 @@ export function buildSocialImageBrief(options: ImageBriefOptions): Record<string
   }
 }
 
+function buildSourceImagePrompt(options: SourceImageOptions): string {
+  const { brand, topic } = options
+
+  // Use brand.yml image_prompt if available — fill [SUBJECT] with topic
+  if (brand.visual.imagePrompt) {
+    return brand.visual.imagePrompt.replace(/\[SUBJECT\]/gi, topic)
+  }
+
+  // Fallback: generic editorial prompt
+  return [
+    `A warm, editorial documentary photograph about ${topic}.`,
+    `Medium shot, slightly off-center composition with negative space.`,
+    `Color palette: ${brand.visual.palette.background}, ${brand.visual.palette.primary}, ${brand.visual.palette.accent}.`,
+    `No text, no logos, no watermarks.`,
+  ].join(' ')
+}
+
+async function generateWithGemini(options: SourceImageOptions): Promise<{ imagePath: string; width: number; height: number; provider: string } | null> {
+  const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
+  if (!key) return null
+
+  const outputPath = join(options.paths.artifactsDir, options.runId, 'source-image.png')
+  const prompt = buildSourceImagePrompt(options)
+
+  try {
+    const { GoogleGenAI } = await import('@google/genai')
+    const client = new GoogleGenAI({ apiKey: key })
+
+    const response = await client.models.generateContent({
+      model: 'gemini-3.1-flash-image-preview',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      config: {
+        responseModalities: ['IMAGE', 'TEXT'],
+      },
+    })
+
+    const parts = response.candidates?.[0]?.content?.parts ?? []
+    const imagePart = parts.find(
+      (part) => part.inlineData?.mimeType?.startsWith('image/'),
+    )
+
+    if (!imagePart?.inlineData?.data) return null
+
+    const imageBytes = Buffer.from(imagePart.inlineData.data, 'base64')
+    ensureParentDir(outputPath)
+    writeFileSync(outputPath, imageBytes)
+
+    return { imagePath: outputPath, width: 1600, height: 1600, provider: 'gemini-3.1-flash-image-preview' }
+  } catch {
+    return null
+  }
+}
+
 function roundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number): void {
   const r = Math.min(radius, width / 2, height / 2)
   ctx.moveTo(x + r, y)
@@ -153,84 +206,8 @@ function drawGridMotif(ctx: CanvasRenderingContext2D, width: number, height: num
   }
 }
 
-async function generateWithApi(options: SourceImageOptions): Promise<{ imagePath: string; width: number; height: number; provider: string } | null> {
-  const outputPath = join(options.paths.artifactsDir, options.runId, 'source-image.png')
-  const prompt = [
-    `High-resolution editorial image for ${options.brand.name}.`,
-    `Topic: ${options.topic}.`,
-    `Visual direction: ${options.brand.visual.imageStyle ?? options.brand.voice.tone}.`,
-    `Motif: ${options.brand.visual.motif ?? 'bold brand geometry'}.`,
-    `Mood: ${options.brand.voice.tone}, ${options.brand.voice.style}.`,
-    'No text, no logos, no watermarks. Clean, studio-quality lighting.',
-    'Single composition, not a grid.',
-  ].join(' ')
-
-  if (process.env.FAL_KEY) {
-    try {
-      const falResponse = await fetch('https://queue.fal.run/fal-ai/flux-pro/v1.1', {
-        method: 'POST',
-        headers: {
-          Authorization: `Key ${process.env.FAL_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt,
-          image_size: { width: 1600, height: 1600 },
-          num_images: 1,
-          safety_tolerance: '5',
-        }),
-      })
-
-      if (!falResponse.ok) {
-        return null
-      }
-
-      const queued = await falResponse.json() as { status?: string; response_url?: string; status_url?: string; images?: Array<{ url: string }> }
-      let imageUrl: string | undefined = queued.images?.[0]?.url
-      const falKey = process.env.FAL_KEY!
-      const headers = { Authorization: `Key ${falKey}` }
-
-      if (!imageUrl && queued.status_url && queued.response_url) {
-        for (let attempt = 0; attempt < 120 && !imageUrl; attempt += 1) {
-          const statusPoll = await fetch(queued.status_url, { headers })
-          if (!statusPoll.ok) {
-            await new Promise((resolve) => setTimeout(resolve, 1000))
-            continue
-          }
-          const status = await statusPoll.json() as { status: string }
-          if (status.status === 'IN_QUEUE' || status.status === 'IN_PROGRESS') {
-            await new Promise((resolve) => setTimeout(resolve, 1000))
-            continue
-          }
-          if (status.status === 'COMPLETED') {
-            const resultResponse = await fetch(queued.response_url, { headers })
-            if (resultResponse.ok) {
-              const result = await resultResponse.json() as { images?: Array<{ url: string }> }
-              imageUrl = result.images?.[0]?.url
-            }
-          }
-          break
-        }
-      }
-
-      if (!imageUrl) return null
-
-      const imageResponse = await fetch(imageUrl)
-      if (!imageResponse.ok) return null
-
-      ensureParentDir(outputPath)
-      writeFileSync(outputPath, Buffer.from(await imageResponse.arrayBuffer()))
-      return { imagePath: outputPath, width: 1600, height: 1600, provider: 'fal-flux-pro-1.1' }
-    } catch {
-      return null
-    }
-  }
-
-  return null
-}
-
 export async function generateSourceImage(options: SourceImageOptions): Promise<{ imagePath: string; width: number; height: number; seed?: number; provider?: string }> {
-  const apiResult = await generateWithApi(options)
+  const apiResult = await generateWithGemini(options)
   if (apiResult) {
     return apiResult
   }

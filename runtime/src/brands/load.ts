@@ -110,13 +110,39 @@ export function loadBrandFoundation(id: string, options: LoadBrandOptions = {}):
         )
       : undefined,
     visual: {
+      logo: optionalString(visual.logo),
       palette: {
         background: expectString(palette.background, 'visual.palette.background'),
         primary: expectString(palette.primary, 'visual.palette.primary'),
         accent: expectString(palette.accent, 'visual.palette.accent'),
       },
+      typography: visual.typography
+        ? {
+            headline: optionalString((visual.typography as Record<string, unknown>).headline),
+            body: optionalString((visual.typography as Record<string, unknown>).body),
+            accent: optionalString((visual.typography as Record<string, unknown>).accent),
+          }
+        : undefined,
+      style: optionalString(visual.style),
+      composition: Array.isArray(visual.composition) ? (visual.composition as string[]) : undefined,
+      texture: Array.isArray(visual.texture) ? (visual.texture as string[]) : undefined,
+      contentTypes: Array.isArray(visual.content_types)
+        ? (visual.content_types as unknown[]).map((entry) => {
+            const item = expectRecord(entry, 'content_type')
+            return {
+              id: expectString(item.id, 'content_type.id'),
+              description: expectString(item.description, 'content_type.description'),
+              elements: expectString(item.elements, 'content_type.elements'),
+              camera: optionalString(item.camera),
+            }
+          })
+        : undefined,
+      negative: Array.isArray(visual.negative)
+        ? (visual.negative as string[])
+        : undefined,
       motif: optionalString(visual.motif),
       imageStyle: optionalString(visual.image_style),
+      imagePrompt: optionalString(visual.image_prompt),
       layout: optionalString(visual.layout),
     },
     responsePlaybooks,

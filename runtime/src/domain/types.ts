@@ -57,6 +57,13 @@ export interface BrandPlaybook {
   approach: string
 }
 
+export interface BrandContentType {
+  id: string
+  description: string
+  elements: string
+  camera?: string
+}
+
 export interface BrandFoundation {
   id: string
   name: string
@@ -78,13 +85,25 @@ export interface BrandFoundation {
   }
   handles?: Partial<Record<SocialPlatform, string>>
   visual: {
+    logo?: string
     palette: {
       background: string
       primary: string
       accent: string
     }
+    typography?: {
+      headline?: string
+      body?: string
+      accent?: string
+    }
+    style?: string
+    composition?: string[]
+    texture?: string[]
+    contentTypes?: BrandContentType[]
+    negative?: string[]
     motif?: string
     imageStyle?: string
+    imagePrompt?: string
     layout?: string
   }
   responsePlaybooks: BrandPlaybook[]
