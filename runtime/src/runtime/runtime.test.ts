@@ -3,6 +3,7 @@ import { tmpdir } from 'os'
 import { join } from 'path'
 import { afterAll, afterEach, describe, expect, test } from 'vitest'
 import { createRuntime } from './runtime'
+import { openRuntimeDb } from './db'
 import { getSocialAuthReport, type SocialPublishRequest } from '../publish/social'
 
 const roots: string[] = []
@@ -150,6 +151,12 @@ describe('runtime workflows', () => {
       brand: 'givecare',
     })
 
+    const draftSet = details.artifacts.find((artifact) => artifact.type === 'draft_set')
+    const socialMain = Array.isArray(draftSet?.data.variants)
+      ? draftSet.data.variants.find((variant) => typeof variant === 'object' && variant && (variant as Record<string, unknown>).id === 'social-main') as Record<string, unknown> | undefined
+      : undefined
+    expect(String(socialMain?.body)).toContain('Caregiving is infrastructure and should be discussed as such.')
+
     const sourceImage = details.artifacts.find((artifact) => artifact.type === 'source_image')
     expect(typeof sourceImage?.data.imagePath).toBe('string')
     expect(existsSync(String(sourceImage?.data.imagePath))).toBe(true)
@@ -201,6 +208,7 @@ describe('runtime workflows', () => {
 
     const details = runtime.inspectRun(run.id)
     const brief = details.artifacts.find((artifact) => artifact.type === 'brief')
+    const article = details.artifacts.find((artifact) => artifact.type === 'article_draft')
 
     expect(brief?.data).toMatchObject({
       pillar: 'policy',
@@ -208,6 +216,31 @@ describe('runtime workflows', () => {
       perspective: 'Policy should be judged by whether it reduces caregiver burden.',
       signals: ['paid leave', 'Medicaid waivers'],
     })
+    expect(String(article?.data.markdown)).toContain('Policy should be judged by whether it reduces caregiver burden.')
+    expect(String(article?.data.markdown)).toContain('paid leave and Medicaid waivers')
+  })
+
+  test('marks runs as failed with the failing step and error message', async () => {
+    const root = createWorkspace()
+    const runtime = createRuntime({ root })
+    suppressImageApiKeys()
+
+    await expect(runtime.runWorkflow({
+      workflow: 'blog.post',
+      brand: 'givecare',
+      input: {
+        topic: 'why caregiver benefits fail',
+        pillar: 'missing-pillar',
+      },
+    })).rejects.toThrow('Unknown pillar for brand givecare: missing-pillar')
+
+    const db = openRuntimeDb(root)
+    const row = db.prepare(`SELECT * FROM runs ORDER BY created_at DESC LIMIT 1`).get() as Record<string, unknown>
+
+    expect(row.status).toBe('failed')
+    expect(row.current_step).toBe('brief')
+    expect(row.error_message).toBe('Unknown pillar for brand givecare: missing-pillar')
+    expect(runtime.health()).toMatchObject({ failedRuns: 1, totalRuns: 1 })
   })
 
   test('approves, publishes through the social publisher, and retries a run with lineage intact', async () => {

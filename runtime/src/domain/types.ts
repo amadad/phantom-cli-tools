@@ -9,6 +9,7 @@ export type RunStatus =
   | 'approved'
   | 'rejected'
   | 'published'
+  | 'failed'
 
 export type ArtifactType =
   | 'signal_packet'
@@ -124,6 +125,7 @@ export interface RunRecord {
   createdAt: string
   updatedAt: string
   parentRunId?: string
+  errorMessage?: string
 }
 
 export interface ArtifactRecord {

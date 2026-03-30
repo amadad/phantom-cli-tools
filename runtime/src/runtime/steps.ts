@@ -140,9 +140,11 @@ async function buildBriefArtifacts(context: WorkflowContext): Promise<StepOutput
 async function buildSocialDraftArtifacts(context: WorkflowContext): Promise<StepOutput[]> {
   const brief = findArtifact(context.priorArtifacts, 'brief')
   const topic = String(brief?.data.topic ?? context.input.topic ?? 'Untitled')
+  const perspective = typeof brief?.data.perspective === 'string' ? brief.data.perspective : undefined
   const draftSet = generateSocialDraftSet({
     brand: context.brand,
     topic,
+    perspective,
   })
 
   return [
@@ -357,10 +359,19 @@ async function buildOutlineArtifacts(context: WorkflowContext): Promise<StepOutp
 
 async function buildArticleDraftArtifacts(context: WorkflowContext): Promise<StepOutput[]> {
   const outline = findArtifact(context.priorArtifacts, 'outline')
+  const brief = findArtifact(context.priorArtifacts, 'brief')
   const sections = Array.isArray(outline?.data.sections) ? outline?.data.sections : []
   const title = String(outline?.data.title ?? context.input.topic ?? 'Untitled')
+  const perspective = typeof brief?.data.perspective === 'string'
+    ? brief.data.perspective
+    : `${context.brand.name} treats this as an operational problem, not a branding problem.`
+  const signals = Array.isArray(brief?.data.signals)
+    ? brief.data.signals.filter((value): value is string => typeof value === 'string')
+    : []
   const body = [
     `# ${title}`,
+    '',
+    perspective,
     '',
     `## ${sections[0] ?? 'What is actually happening'}`,
     `${context.brand.name} treats this as an operational problem, not a branding problem.`,
@@ -372,7 +383,9 @@ async function buildArticleDraftArtifacts(context: WorkflowContext): Promise<Ste
     `Build around audience reality, specific evidence, and one strong claim that the reader can test.`,
     '',
     `## ${sections[3] ?? 'Where to go next'}`,
-    `Turn the argument into action: a sharper post, a better reply, or a more grounded outreach touch.`,
+    signals.length > 0
+      ? `Track signals like ${signals.slice(0, 2).join(' and ')} and turn the argument into action.`
+      : `Turn the argument into action: a sharper post, a better reply, or a more grounded outreach touch.`,
   ].join('\n')
 
   return [

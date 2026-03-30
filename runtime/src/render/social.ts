@@ -36,14 +36,22 @@ const DEFAULT_CONTENT_TYPE: BrandContentType = {
   camera: '50mm f/4, editorial lighting',
 }
 
-function resolveContentType(brand: BrandFoundation, requestedId?: string): BrandContentType {
+function selectDeterministicIndex(input: string, length: number): number {
+  let hash = 0
+  for (let index = 0; index < input.length; index += 1) {
+    hash = ((hash << 5) - hash + input.charCodeAt(index)) | 0
+  }
+  return Math.abs(hash) % length
+}
+
+function resolveContentType(brand: BrandFoundation, seed: string, requestedId?: string): BrandContentType {
   const types = brand.visual.contentTypes
   if (!types || types.length === 0) return DEFAULT_CONTENT_TYPE
   if (requestedId) {
     const match = types.find((t) => t.id === requestedId)
     if (match) return match
   }
-  return types[Math.floor(Math.random() * types.length)]
+  return types[selectDeterministicIndex(`${brand.id}:${seed}`, types.length)]
 }
 
 function resolveLogoPath(brand: BrandFoundation, brandsDir: string): string | undefined {
@@ -113,7 +121,7 @@ async function generatePlatformAsset(
   prompt: string,
   logoPath?: string,
 ): Promise<Buffer> {
-  const key = process.env.GEMINI_API_KEY
+  const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
   if (!key) {
     throw new Error('GEMINI_API_KEY not set')
   }
@@ -265,11 +273,11 @@ function outputPath(paths: RuntimePaths, runId: string, platform: SocialPlatform
 }
 
 export async function renderSocialAssets(options: RenderSocialAssetsOptions): Promise<Record<SocialPlatform, string>> {
-  if (!process.env.GEMINI_API_KEY) {
+  if (!process.env.GEMINI_API_KEY && !process.env.GOOGLE_API_KEY) {
     return renderCanvasFallback(options)
   }
 
-  const contentType = resolveContentType(options.brand, options.contentType)
+  const contentType = resolveContentType(options.brand, options.headline, options.contentType)
   const logoPath = resolveLogoPath(options.brand, join(options.paths.root, 'brands'))
   const assets = {} as Record<SocialPlatform, string>
 

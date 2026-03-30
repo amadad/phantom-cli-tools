@@ -62,7 +62,7 @@ export class Runtime {
       brand: input.brand,
       status: 'in_review',
       input: input.input,
-      currentStep: steps[steps.length - 1].name,
+      currentStep: steps[0].name,
       createdAt,
       updatedAt: createdAt,
     }
@@ -202,6 +202,7 @@ export class Runtime {
     const brand = loadBrandFoundation(original.brand, { root: this.paths.root })
     const createdAt = nowIso()
     const steps = WORKFLOWS[original.workflow]
+    const startIndex = selectStepIndex(original.workflow, input.fromStep)
     const newRun: RunRecord = {
       id: createId('run'),
       workflow: original.workflow,
@@ -214,7 +215,7 @@ export class Runtime {
           fromStep: input.fromStep,
         },
       },
-      currentStep: steps[steps.length - 1].name,
+      currentStep: steps[startIndex].name,
       createdAt,
       updatedAt: createdAt,
       parentRunId: runId,
@@ -223,7 +224,7 @@ export class Runtime {
     this.insertRun(newRun)
 
     const originalArtifacts = this.listArtifacts(runId)
-    const startIndex = selectStepIndex(original.workflow, input.fromStep)
+
     const reused = originalArtifacts
       .filter((artifact) => {
         const stepIndex = steps.findIndex((step) => step.name === artifact.step)
@@ -235,22 +236,27 @@ export class Runtime {
         data: cloneArtifactData(artifact.data),
       }))
 
-    for (const artifact of reused) {
-      this.writeArtifact(newRun.id, artifact.type, artifact.step, artifact.data)
-    }
-
-    const priorArtifacts = this.listArtifacts(newRun.id)
+    const priorArtifacts = reused.map((artifact) =>
+      this.writeArtifact(newRun.id, artifact.type, artifact.step, artifact.data),
+    )
     await this.executeWorkflow(newRun, brand, priorArtifacts, startIndex)
     return this.getRun(newRun.id)
   }
 
   health(): Record<string, unknown> {
+    const counts = this.db.prepare(`SELECT status, COUNT(*) as count FROM runs GROUP BY status`).all() as Array<Record<string, unknown>>
+    const byStatus = Object.fromEntries(
+      counts.map((row) => [String(row.status), Number(row.count)]),
+    ) as Partial<Record<RunStatus, number>>
+
     return {
       root: this.paths.root,
       dbPath: this.paths.dbPath,
       brandsDir: this.paths.brandsDir,
       stateDir: this.paths.stateDir,
-      reviewRuns: this.listReviewRuns().length,
+      reviewRuns: byStatus.in_review ?? 0,
+      failedRuns: byStatus.failed ?? 0,
+      totalRuns: Object.values(byStatus).reduce((sum, count) => sum + (count ?? 0), 0),
     }
   }
 
@@ -264,28 +270,33 @@ export class Runtime {
     const steps = WORKFLOWS[run.workflow]
 
     for (const step of steps.slice(startIndex)) {
-      const outputs = await step.run({
-        brand,
-        workflow: run.workflow,
-        runId: run.id,
-        input: run.input,
-        priorArtifacts,
-        paths: this.paths,
-      })
+      try {
+        const outputs = await step.run({
+          brand,
+          workflow: run.workflow,
+          runId: run.id,
+          input: run.input,
+          priorArtifacts,
+          paths: this.paths,
+        })
 
-      for (const output of outputs) {
-        this.writeArtifact(run.id, output.type, step.name, output.data)
+        const writtenArtifacts = outputs.map((output) =>
+          this.writeArtifact(run.id, output.type, step.name, output.data),
+        )
+
+        priorArtifacts = [...priorArtifacts, ...writtenArtifacts]
+        this.updateRun(run.id, 'in_review', step.name)
+      } catch (error) {
+        this.updateRunFailure(run.id, step.name, error)
+        throw error
       }
-
-      priorArtifacts = this.listArtifacts(run.id)
-      this.updateRun(run.id, 'in_review', step.name)
     }
   }
 
   private insertRun(run: RunRecord): void {
     this.db.prepare(`
-      INSERT INTO runs (id, workflow, brand, status, input_json, current_step, created_at, updated_at, parent_run_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO runs (id, workflow, brand, status, input_json, current_step, created_at, updated_at, parent_run_id, error_message)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       run.id,
       run.workflow,
@@ -296,15 +307,25 @@ export class Runtime {
       run.createdAt,
       run.updatedAt,
       run.parentRunId ?? null,
+      run.errorMessage ?? null,
     )
   }
 
   private updateRun(runId: string, status: RunStatus, currentStep: StepName): void {
     this.db.prepare(`
       UPDATE runs
-      SET status = ?, current_step = ?, updated_at = ?
+      SET status = ?, current_step = ?, updated_at = ?, error_message = NULL
       WHERE id = ?
     `).run(status, currentStep, nowIso(), runId)
+  }
+
+  private updateRunFailure(runId: string, currentStep: StepName, error: unknown): void {
+    const message = error instanceof Error ? error.message : String(error)
+    this.db.prepare(`
+      UPDATE runs
+      SET status = 'failed', current_step = ?, updated_at = ?, error_message = ?
+      WHERE id = ?
+    `).run(currentStep, nowIso(), message, runId)
   }
 
   private writeArtifact(runId: string, type: ArtifactType, step: StepName, data: Record<string, unknown>): ArtifactRecord {
@@ -367,6 +388,7 @@ export class Runtime {
       createdAt: String(row.created_at),
       updatedAt: String(row.updated_at),
       parentRunId: row.parent_run_id ? String(row.parent_run_id) : undefined,
+      errorMessage: row.error_message ? String(row.error_message) : undefined,
     }
   }
 }

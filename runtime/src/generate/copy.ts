@@ -3,6 +3,7 @@ import type { BrandFoundation } from '../domain/types'
 interface SocialDraftOptions {
   brand: BrandFoundation
   topic: string
+  perspective?: string
 }
 
 interface SocialDraftVariant {
@@ -47,6 +48,12 @@ function buildImageDirection(brand: BrandFoundation, topic: string): string {
   return compact(`${imageStyle}. ${motif} around the idea of ${cleanTopic(topic)}.`)
 }
 
+function firstSentence(value: string): string {
+  const normalized = compact(value)
+  const match = normalized.match(/^(.+?[.!?])(?:\s|$)/)
+  return match ? match[1] : normalized
+}
+
 export function generateSocialDraftSet(options: SocialDraftOptions): SocialDraftSet {
   const { brand } = options
   const topic = cleanTopic(options.topic)
@@ -55,6 +62,7 @@ export function generateSocialDraftSet(options: SocialDraftOptions): SocialDraft
   const evidence = buildEvidenceLine(brand)
   const dont = brand.voice.dont[0] ?? 'generic language'
   const doRule = brand.voice.do[0] ?? 'say the real thing plainly'
+  const angle = options.perspective ? firstSentence(options.perspective) : brand.positioning
 
   return {
     channel: 'social',
@@ -64,13 +72,13 @@ export function generateSocialDraftSet(options: SocialDraftOptions): SocialDraft
       {
         id: 'social-main',
         hook: `${sentenceCase(topic)} is usually treated like a personal problem. It is not.`,
-        body: compact(`${brand.name} frames it as a systems issue for ${audience}. ${evidence}`),
+        body: compact(`${brand.name} frames it as a systems issue for ${audience}. ${angle} ${evidence}`),
         cta: compact(`${doRule}. ${objective}`),
       },
       {
         id: 'social-alt',
         hook: `The usual story about ${topic} hides the real failure.`,
-        body: compact(`Most takes fall into ${dont}. ${brand.name} starts with the operational constraint, then names one concrete consequence.`),
+        body: compact(`Most takes fall into ${dont}. ${brand.name} starts with this angle: ${angle}. Then it names one concrete consequence.`),
         cta: compact(`Start with the system. Then make one useful change.`),
       },
     ],
