@@ -96,6 +96,67 @@ describe('loadBrandFoundation', () => {
     ])
   })
 
+  test('rejects unsupported handle keys', () => {
+    const root = createWorkspace()
+    writeFileSync(
+      join(root, 'brands', 'givecare', 'brand.yml'),
+      `
+id: givecare
+name: GiveCare
+positioning: Care as infrastructure.
+audiences:
+  - id: caregivers
+    summary: Family caregivers balancing work and care.
+offers:
+  - id: invisiblebench
+    summary: Benchmarking and care tooling.
+proof_points:
+  - 63 million Americans are caregivers.
+pillars:
+  - id: care-economy
+    perspective: Caregiving is infrastructure and should be discussed as such.
+    signals:
+      - caregiver benefits
+    format: analysis
+    frequency: weekly
+voice:
+  tone: Warm, direct, specific.
+  style: Human, plainspoken.
+  do:
+    - Name the problem directly.
+  dont:
+    - Use therapeutic cliches.
+channels:
+  social:
+    objective: Build signal and authority.
+  blog:
+    objective: Publish durable longform thinking.
+  outreach:
+    objective: Start useful conversations.
+  respond:
+    objective: Reply with clarity and care.
+handles:
+  mastodon: '@givecare'
+visual:
+  palette:
+    background: "#FDF9EC"
+    primary: "#3D1600"
+    accent: "#FF9F00"
+response_playbooks:
+  - id: skeptical-comment
+    trigger: skepticism
+    approach: Clarify the claim and add evidence.
+outreach_playbooks:
+  - id: intro
+    trigger: first-touch
+    approach: Lead with a sharp observation and one ask.
+`.trim(),
+      'utf8',
+    )
+
+    expect(() => loadBrandFoundation('givecare', { root })).toThrow('Invalid brand foundation: handles.mastodon is not a supported platform')
+  })
+
   test('resolves the workspace root when invoked from the agent directory', () => {
     const root = createWorkspace()
     const agentDir = join(root, 'agent')

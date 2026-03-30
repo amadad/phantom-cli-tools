@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'fs'
 import yaml from 'js-yaml'
 import { join } from 'path'
 import { resolveRuntimePaths } from '../core/paths'
-import type { BrandFoundation } from '../domain/types'
+import { isSocialPlatform, type BrandFoundation } from '../domain/types'
 
 interface LoadBrandOptions {
   root?: string
@@ -118,7 +118,12 @@ export function loadBrandFoundation(id: string, options: LoadBrandOptions = {}):
       ? Object.fromEntries(
           Object.entries(handlesRaw)
             .filter(([, value]) => typeof value === 'string' && value.trim().length > 0)
-            .map(([key, value]) => [key, String(value).trim()]),
+            .map(([key, value]) => {
+              if (!isSocialPlatform(key)) {
+                throw new Error(`Invalid brand foundation: handles.${key} is not a supported platform`)
+              }
+              return [key, String(value).trim()]
+            }),
         )
       : undefined,
     visual: {

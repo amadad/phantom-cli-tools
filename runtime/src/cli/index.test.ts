@@ -244,4 +244,78 @@ describe.sequential('runCli', () => {
       },
     })
   })
+
+  test('rejects brand validation when referenced assets are missing', async () => {
+    const root = createWorkspace()
+    process.env.LOOM_ROOT = root
+    process.env.HOME = root
+
+    mkdirSync(join(root, 'brands', 'broken'), { recursive: true })
+    writeFileSync(
+      join(root, 'brands', 'broken', 'brand.yml'),
+      `
+id: broken
+name: Broken Brand
+positioning: Broken positioning.
+audiences:
+  - id: primary
+    summary: Someone.
+offers:
+  - id: primary
+    summary: Something.
+proof_points:
+  - One proof point.
+pillars:
+  - id: primary-theme
+    perspective: One angle.
+    signals:
+      - one signal
+    format: analysis
+    frequency: weekly
+voice:
+  tone: Direct.
+  style: Plain.
+  do:
+    - Say the real thing plainly.
+  dont:
+    - Hide behind abstractions.
+channels:
+  social:
+    objective: Build signal.
+  blog:
+    objective: Publish thinking.
+  outreach:
+    objective: Start conversations.
+  respond:
+    objective: Reply clearly.
+visual:
+  logo: missing-logo.png
+  palette:
+    background: "#FFFFFF"
+    primary: "#111111"
+    accent: "#FF6600"
+response_playbooks:
+  - id: default-response
+    trigger: inbound-question
+    approach: Clarify the claim and answer directly.
+outreach_playbooks:
+  - id: default-outreach
+    trigger: first-touch
+    approach: Lead with one specific observation and one ask.
+`.trim(),
+      'utf8',
+    )
+
+    const { result, stdout } = await captureStdout(() =>
+      runCli(['brand', 'validate', 'broken', '--json']),
+    )
+
+    expect(result).toBe(1)
+    expect(JSON.parse(stdout)).toMatchObject({
+      status: 'error',
+      error: {
+        message: expect.stringContaining(join(root, 'brands', 'broken', 'missing-logo.png')),
+      },
+    })
+  })
 })

@@ -3,6 +3,19 @@ import { join } from 'path'
 import { loadBrandFoundation } from '../brands/load'
 import { resolveRuntimePaths } from '../core/paths'
 
+function validateBrandAssets(brand: ReturnType<typeof loadBrandFoundation>, brandsDir: string): { logo: 'not_set' | 'found' } {
+  if (!brand.visual.logo) {
+    return { logo: 'not_set' }
+  }
+
+  const logoPath = join(brandsDir, brand.id, brand.visual.logo)
+  if (!existsSync(logoPath)) {
+    throw new Error(`Brand asset missing: ${logoPath}`)
+  }
+
+  return { logo: 'found' }
+}
+
 const TEMPLATE = `id: __ID__
 name: __NAME__
 positioning: Replace with the sharpest explanation of the brand.
@@ -95,7 +108,14 @@ export function runBrandCommand(args: string[], root?: string): unknown {
       throw new Error('Usage: brand validate <id>')
     }
     const brand = loadBrandFoundation(brandId, { root: paths.root })
-    return { valid: true, brand: brand.id }
+    return {
+      valid: true,
+      brand: brand.id,
+      checks: {
+        assets: validateBrandAssets(brand, paths.brandsDir),
+        pillars: brand.pillars.length,
+      },
+    }
   }
 
   throw new Error('Usage: brand <init|show|validate> ...')
