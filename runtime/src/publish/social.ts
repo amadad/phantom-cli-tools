@@ -83,12 +83,12 @@ export function getSocialAuthReport(brand: string): SocialAuthReport {
   }
 }
 
-function selectPlatforms(brand: string, options: PublishInput = {}): SocialPlatform[] {
+function selectPlatforms(auth: SocialAuthReport, options: PublishInput = {}): SocialPlatform[] {
   if (options.platforms && options.platforms.length > 0) {
     return options.platforms
   }
 
-  return getSocialAuthReport(brand).available
+  return auth.available
 }
 
 async function postToPlatform(platform: SocialPlatform, brand: string, text: string, imagePath: string, root?: string): Promise<SocialPostResult> {
@@ -139,6 +139,18 @@ export async function publishSocialPost(request: SocialPublishRequest): Promise<
 
 export function buildSocialPublishPlan(brand: string, options: PublishInput = {}): { platforms: SocialPlatform[]; auth: SocialAuthReport } {
   const auth = getSocialAuthReport(brand)
-  const platforms = selectPlatforms(brand, options)
+  const platforms = selectPlatforms(auth, options)
+
+  if (options.platforms && options.platforms.length > 0 && !options.dryRun) {
+    const unavailable = options.platforms.filter((platform) => !auth.available.includes(platform))
+    if (unavailable.length > 0) {
+      throw new Error(`Requested platforms not configured for ${brand}: ${unavailable.join(', ')}. Run "loom ops auth check --brand ${brand}" first.`)
+    }
+  }
+
+  if (platforms.length === 0) {
+    throw new Error(`No configured social platforms for ${brand}. Run "loom ops auth check --brand ${brand}" first.`)
+  }
+
   return { platforms, auth }
 }

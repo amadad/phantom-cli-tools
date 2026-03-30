@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { loadBrandFoundation } from '../brands/load'
 import { resolveRuntimePaths } from '../core/paths'
@@ -69,14 +69,18 @@ export function runBrandCommand(args: string[], root?: string): unknown {
       throw new Error('Usage: brand init <id>')
     }
     const dir = join(paths.brandsDir, brandId)
+    const brandPath = join(dir, 'brand.yml')
+    if (existsSync(brandPath)) {
+      throw new Error(`Brand already exists: ${brandPath}`)
+    }
     mkdirSync(dir, { recursive: true })
     const name = displayNameFromId(brandId)
     writeFileSync(
-      join(dir, 'brand.yml'),
+      brandPath,
       TEMPLATE.replaceAll('__ID__', brandId).replaceAll('__NAME__', name),
       'utf8',
     )
-    return { id: brandId, path: join(dir, 'brand.yml') }
+    return { id: brandId, path: brandPath }
   }
 
   if (subcommand === 'show') {

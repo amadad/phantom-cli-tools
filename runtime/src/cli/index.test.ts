@@ -199,4 +199,49 @@ describe.sequential('runCli', () => {
       },
     })
   })
+
+  test('rejects publish requests for unconfigured platforms', async () => {
+    const root = createWorkspace()
+    process.env.LOOM_ROOT = root
+    process.env.HOME = root
+    suppressImageApiKeys()
+
+    const runtime = createRuntime({ root })
+    const run = await runtime.runWorkflow({
+      workflow: 'social.post',
+      brand: 'givecare',
+      input: { topic: 'caregiver systems' },
+    })
+    runtime.reviewRun(run.id, { decision: 'approve', selectedVariantId: 'social-main' })
+
+    const { result, stdout } = await captureStdout(() =>
+      runCli(['publish', run.id, '--platforms', 'twitter', '--json']),
+    )
+
+    expect(result).toBe(1)
+    expect(JSON.parse(stdout)).toEqual({
+      status: 'error',
+      error: {
+        message: 'Requested platforms not configured for givecare: twitter. Run "loom ops auth check --brand givecare" first.',
+      },
+    })
+  })
+
+  test('rejects brand init when the brand already exists', async () => {
+    const root = createWorkspace()
+    process.env.LOOM_ROOT = root
+    process.env.HOME = root
+
+    const { result, stdout } = await captureStdout(() =>
+      runCli(['brand', 'init', 'givecare', '--json']),
+    )
+
+    expect(result).toBe(1)
+    expect(JSON.parse(stdout)).toMatchObject({
+      status: 'error',
+      error: {
+        message: expect.stringContaining(join(root, 'brands', 'givecare', 'brand.yml')),
+      },
+    })
+  })
 })
