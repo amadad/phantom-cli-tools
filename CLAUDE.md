@@ -18,12 +18,15 @@ Core commands:
 ```bash
 cd runtime
 npx tsx src/cli.ts help
-npx tsx src/cli.ts run social.post --brand givecare --topic "caregiver benefits gap"
-npx tsx src/cli.ts review list
-npx tsx src/cli.ts review approve <run_id> --variant social-main
-npx tsx src/cli.ts publish <run_id>
-npx tsx src/cli.ts inspect run <run_id>
-npx tsx src/cli.ts retry <run_id> --from draft
+npx tsx src/cli.ts ops health --json
+npx tsx src/cli.ts brand validate givecare --json
+npx tsx src/cli.ts run social.post --brand givecare --topic "caregiver benefits gap" --json
+npx tsx src/cli.ts run blog.post --brand givecare --pillar policy --topic "paid leave" --json
+npx tsx src/cli.ts review list --json
+npx tsx src/cli.ts review approve <run_id> --variant social-main --json
+npx tsx src/cli.ts publish <run_id> --platforms twitter,linkedin --dry-run --json
+npx tsx src/cli.ts inspect run <run_id> --json
+npx tsx src/cli.ts retry <run_id> --from draft --json
 ```
 
 ## CLI Rules
@@ -72,7 +75,14 @@ Each brand.yml includes an `image_prompt` field with a complete generation direc
 
 ## Content Pillars
 
-Each brand defines content pillars in `brand.yml` with `perspective`, `signals`, `format`, and `frequency` fields. The runtime loads those pillars into the brand foundation, includes the selected pillar in the brief, and accepts `--pillar <id>` as workflow input when you want to force a specific angle.
+Each brand defines content pillars in `brand.yml` with `perspective`, `signals`, `format`, and `frequency` fields. The runtime loads those pillars into the brand foundation, includes the selected pillar in the brief, uses that perspective in social/blog draft generation, and accepts `--pillar <id>` as workflow input when you want to force a specific angle.
+
+## Runtime Safety
+
+- failed runs are persisted with the failing step and error message
+- published runs cannot be reviewed again
+- explicit publish targets must already be configured for the brand
+- `inspect artifact` is limited to files under `state/artifacts/`
 
 ## Verification
 

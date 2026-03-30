@@ -24,10 +24,14 @@ Everything flows through the same primitives:
 ```bash
 cd runtime
 npx tsx src/cli.ts help
-npx tsx src/cli.ts run social.post --brand givecare --topic "caregiver benefits gap"
-npx tsx src/cli.ts review list
-npx tsx src/cli.ts review approve <run_id> --variant social-main
-npx tsx src/cli.ts publish <run_id>
+npx tsx src/cli.ts ops health --json
+npx tsx src/cli.ts brand validate givecare --json
+npx tsx src/cli.ts run social.post --brand givecare --topic "caregiver benefits gap" --json
+npx tsx src/cli.ts run blog.post --brand givecare --pillar policy --topic "paid leave" --json
+npx tsx src/cli.ts review list --json
+npx tsx src/cli.ts review approve <run_id> --variant social-main --json
+npx tsx src/cli.ts inspect run <run_id> --json
+npx tsx src/cli.ts publish <run_id> --platforms twitter,linkedin --dry-run --json
 ```
 
 ## Architecture
@@ -36,7 +40,7 @@ npx tsx src/cli.ts publish <run_id>
 - `runtime/src/brands/` — brand foundation loader
 - `runtime/src/runtime/` — SQLite-backed runtime and workflow engine
 - `runtime/src/commands/` — public CLI commands
-- `brands/<brand>/brand.yml` — brand foundations
+- `brands/<brand>/brand.yml` — brand foundations, including pillars, visual system, handles, and playbooks
 - `state/` — runtime database, artifacts, and exports, generated on demand and gitignored
 
 ## Principles
@@ -45,7 +49,9 @@ npx tsx src/cli.ts publish <run_id>
 - typed artifacts between every step
 - SQLite-backed state
 - resumable runs
+- explicit failed-run state with stored error messages
 - approval before publish
+- fail-fast validation at command boundaries
 - no legacy content pipeline assumptions in the active code path
 
 ## Notes

@@ -26,12 +26,14 @@ The previous content-pipeline implementation is archived under `archive/legacy-2
 - `runtime/src/cli/index.ts` — command dispatch and help output
 
 ### Brand Foundations
-- `brands/<name>/brand.yml` — positioning, audiences, offers, voice, channel objectives, playbooks, visual palette
+- `brands/<name>/brand.yml` — positioning, audiences, offers, pillars, voice, handles, channel objectives, playbooks, image prompts, visual palette
+- `brand validate <name>` checks the foundation shape and referenced assets like logos
 - do not recreate the old `*-brand.yml`, queue, rubric, or visual-pipeline structure in active code
 
 ### Runtime State
 - `state/` is generated at runtime
 - `state/loom.sqlite` stores runs and artifact indexes
+- runs can end in `failed` and store `error_message` for retry/debug flows
 - `state/artifacts/` stores artifact payloads
 - `state/exports/` stores publish/export outputs
 - do not check `state/` into git
@@ -44,7 +46,7 @@ This CLI is meant to work well for agents:
 - all meaningful inputs must be passable as flags
 - every command should support `--json`
 - `--help` should stay example-heavy
-- failures should be actionable and immediate
+- failures should be actionable, immediate, and machine-readable under `--json`
 - side effects should be idempotent or explicitly resumable
 
 ## Conventions
@@ -77,7 +79,12 @@ cd runtime
 npx tsx src/cli.ts brand init <name>
 ```
 
-Then edit `brands/<name>/brand.yml`.
+Then edit `brands/<name>/brand.yml` and run:
+
+```bash
+cd runtime
+npx tsx src/cli.ts brand validate <name> --json
+```
 
 ### Add a command
 1. Add a command handler in `runtime/src/commands/`

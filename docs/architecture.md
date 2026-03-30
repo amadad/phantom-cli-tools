@@ -30,7 +30,7 @@ Every workflow emits typed artifacts:
 ### social.post pipeline
 
 ```
-signal → brief → draft → explore (3x3 grid) → image (full-res) → render (per-platform)
+signal → brief → draft → explore (3x3 grid) → image brief / optional source image → render (per-platform)
 ```
 
 The explore step uses Gemini when `GEMINI_API_KEY` or `GOOGLE_API_KEY` is set. The render step also uses Gemini to generate final per-platform assets directly. When Gemini is unavailable, the runtime falls back to deterministic canvas generation and uses `source_image` as the render input. Both `buildExplorePrompt()` and `buildSourceImagePrompt()` read `brand.visual.imagePrompt` from brand.yml and fill the `[SUBJECT]` slot with the topic. If no `imagePrompt` is set, they fall back to generic prompts constructed from visual fields.
@@ -39,7 +39,7 @@ Each brand.yml includes an `image_prompt` field containing a complete generation
 
 ### Brand pillars
 
-Each brand defines content pillars in `brand.yml` with `perspective`, `signals`, `format`, and `frequency`. The loader preserves those pillars in the brand foundation, and the brief step includes the selected pillar so downstream steps can stay aligned with the intended angle.
+Each brand defines content pillars in `brand.yml` with `perspective`, `signals`, `format`, and `frequency`. The loader preserves those pillars in the brand foundation, the brief step includes the selected pillar, and social/blog drafting uses that perspective so downstream content stays aligned with the intended angle.
 
 ### Step definitions
 
@@ -48,16 +48,17 @@ Workflow steps are defined in `runtime/src/runtime/steps.ts`. All steps are asyn
 ## State
 
 - SQLite stores runs and artifact indexes.
+- Runs can end in `failed`; the database stores the failing step and `error_message` for retry/debug flows.
 - Artifact payloads are written to `state/artifacts/`.
 - Blog publishes export Markdown to `state/exports/`.
 - `state/` is runtime-generated and not meant to be committed.
 
 ## Public Commands
 
-- `brand`
-- `run`
-- `review`
-- `publish`
-- `inspect`
-- `retry`
-- `ops`
+- `brand` — init, show, validate
+- `run` — workflow execution with optional `--pillar`
+- `review` — list, show, approve, reject
+- `publish` — dry-run or publish to configured platforms
+- `inspect` — run details or stored artifacts under `state/artifacts/`
+- `retry` — resume from an explicit step
+- `ops` — health, auth checks, migration status
