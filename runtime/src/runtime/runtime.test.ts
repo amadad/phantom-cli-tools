@@ -34,6 +34,21 @@ offers:
     summary: Benchmarking and care tooling.
 proof_points:
   - Caregiving is operational work.
+pillars:
+  - id: care-economy
+    perspective: Caregiving is infrastructure and should be discussed as such.
+    signals:
+      - caregiver benefits
+      - care deserts
+    format: analysis
+    frequency: weekly
+  - id: policy
+    perspective: Policy should be judged by whether it reduces caregiver burden.
+    signals:
+      - paid leave
+      - Medicaid waivers
+    format: opinionated-take
+    frequency: weekly
 voice:
   tone: Warm, direct, specific.
   style: Human, plainspoken.
@@ -170,6 +185,31 @@ describe('runtime workflows', () => {
     ])
   })
 
+  test('includes the selected brand pillar in the brief', async () => {
+    const root = createWorkspace()
+    const runtime = createRuntime({ root })
+    suppressImageApiKeys()
+
+    const run = await runtime.runWorkflow({
+      workflow: 'blog.post',
+      brand: 'givecare',
+      input: {
+        topic: 'why caregiver benefits fail',
+        pillar: 'policy',
+      },
+    })
+
+    const details = runtime.inspectRun(run.id)
+    const brief = details.artifacts.find((artifact) => artifact.type === 'brief')
+
+    expect(brief?.data).toMatchObject({
+      pillar: 'policy',
+      format: 'opinionated-take',
+      perspective: 'Policy should be judged by whether it reduces caregiver burden.',
+      signals: ['paid leave', 'Medicaid waivers'],
+    })
+  })
+
   test('approves, publishes through the social publisher, and retries a run with lineage intact', async () => {
     const root = createWorkspace()
     setEnv('TWITTER_GIVECARE_API_KEY', 'api-key')
@@ -214,7 +254,7 @@ describe('runtime workflows', () => {
     const published = await runtime.publishRun(run.id)
     expect(published.status).toBe('published')
     expect(publishCalls).toHaveLength(1)
-    expect(publishCalls[0].platforms).toEqual(['twitter', 'linkedin', 'facebook', 'instagram', 'threads'])
+    expect(publishCalls[0].platforms).toEqual(['twitter', 'linkedin', 'facebook'])
     expect(publishCalls[0].text).toContain('caregiver burnout is operational, not personal failure')
     expect(publishCalls[0].text).toContain('GiveCare')
     expect(Object.keys(publishCalls[0].platformAssets)).toEqual(['facebook', 'instagram', 'linkedin', 'threads', 'twitter'])
@@ -231,14 +271,19 @@ describe('runtime workflows', () => {
     setEnv('TWITTER_GIVECARE_API_SECRET', 'api-secret')
     setEnv('TWITTER_GIVECARE_ACCESS_TOKEN', 'access-token')
     setEnv('TWITTER_GIVECARE_ACCESS_SECRET', 'access-secret')
+    setEnv('INSTAGRAM_GIVECARE_ACCESS_TOKEN', 'instagram-token')
+    setEnv('INSTAGRAM_GIVECARE_USER_ID', 'ig-user')
 
     const report = getSocialAuthReport('givecare')
     const twitter = report.platforms.find((platform) => platform.platform === 'twitter')
     const linkedin = report.platforms.find((platform) => platform.platform === 'linkedin')
+    const instagram = report.platforms.find((platform) => platform.platform === 'instagram')
 
     expect(twitter).toMatchObject({ configured: true, supported: true })
     expect(linkedin?.configured).toBe(false)
     expect(linkedin?.missing.length).toBeGreaterThan(0)
+    expect(instagram?.configured).toBe(false)
+    expect(instagram?.missing).toContain('R2_CONFIG')
   })
 
   test('dry-run social publish does not mark the run as published', async () => {

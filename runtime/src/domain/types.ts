@@ -1,15 +1,8 @@
-export type WorkflowName =
-  | 'social.post'
-  | 'blog.post'
-  | 'outreach.touch'
-  | 'respond.reply'
+export const WORKFLOW_NAMES = ['social.post', 'blog.post', 'outreach.touch', 'respond.reply'] as const
+export type WorkflowName = typeof WORKFLOW_NAMES[number]
 
-export type SocialPlatform =
-  | 'twitter'
-  | 'linkedin'
-  | 'facebook'
-  | 'instagram'
-  | 'threads'
+export const SOCIAL_PLATFORMS = ['twitter', 'linkedin', 'facebook', 'instagram', 'threads'] as const
+export type SocialPlatform = typeof SOCIAL_PLATFORMS[number]
 
 export type RunStatus =
   | 'in_review'
@@ -30,16 +23,18 @@ export type ArtifactType =
   | 'approval'
   | 'delivery'
 
-export type StepName =
-  | 'signal'
-  | 'brief'
-  | 'draft'
-  | 'explore'
-  | 'image'
-  | 'render'
-  | 'outline'
-  | 'publish'
-  | 'review'
+export const STEP_NAMES = [
+  'signal',
+  'brief',
+  'draft',
+  'explore',
+  'image',
+  'render',
+  'outline',
+  'publish',
+  'review',
+] as const
+export type StepName = typeof STEP_NAMES[number]
 
 export interface BrandAudience {
   id: string
@@ -64,6 +59,14 @@ export interface BrandContentType {
   camera?: string
 }
 
+export interface BrandPillar {
+  id: string
+  perspective: string
+  signals: string[]
+  format: string
+  frequency: string
+}
+
 export interface BrandFoundation {
   id: string
   name: string
@@ -71,6 +74,7 @@ export interface BrandFoundation {
   audiences: BrandAudience[]
   offers: BrandOffer[]
   proofPoints: string[]
+  pillars: BrandPillar[]
   voice: {
     tone: string
     style: string
@@ -156,4 +160,16 @@ export interface RunWorkflowInput {
 export interface PublishInput {
   dryRun?: boolean
   platforms?: SocialPlatform[]
+}
+
+export function isWorkflowName(value: string): value is WorkflowName {
+  return WORKFLOW_NAMES.includes(value as WorkflowName)
+}
+
+export function isSocialPlatform(value: string): value is SocialPlatform {
+  return SOCIAL_PLATFORMS.includes(value as SocialPlatform)
+}
+
+export function isStepName(value: string): value is StepName {
+  return STEP_NAMES.includes(value as StepName)
 }

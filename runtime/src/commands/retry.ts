@@ -1,3 +1,4 @@
+import { isStepName } from '../domain/types'
 import { createRuntime } from '../runtime/runtime'
 
 export async function runRetryCommand(args: string[], root?: string): Promise<unknown> {
@@ -8,9 +9,11 @@ export async function runRetryCommand(args: string[], root?: string): Promise<un
 
   const fromIndex = rest.findIndex((arg) => arg === '--from')
   const fromStep = fromIndex > -1 ? rest[fromIndex + 1] : 'draft'
+  if (!isStepName(fromStep)) {
+    throw new Error(`Invalid step: ${fromStep}. Expected one of: signal, brief, draft, explore, image, render, outline, publish, review`)
+  }
+
   const runtime = createRuntime({ root })
-  return await runtime.retryRun(runId, {
-    fromStep: fromStep as Parameters<typeof runtime.retryRun>[1]['fromStep'],
-  })
+  return await runtime.retryRun(runId, { fromStep })
 }
 

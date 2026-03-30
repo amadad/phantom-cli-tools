@@ -26,6 +26,14 @@ offers:
     summary: Benchmarking and care tooling.
 proof_points:
   - 63 million Americans are caregivers.
+pillars:
+  - id: care-economy
+    perspective: Caregiving is infrastructure and should be discussed as such.
+    signals:
+      - caregiver benefits
+      - care deserts
+    format: analysis
+    frequency: weekly
 voice:
   tone: Warm, direct, specific.
   style: Human, plainspoken.
@@ -77,6 +85,15 @@ describe('loadBrandFoundation', () => {
     expect(brand.channels.blog.objective).toContain('longform')
     expect(brand.responsePlaybooks).toHaveLength(1)
     expect(brand.visual.palette.accent).toBe('#FF9F00')
+    expect(brand.pillars).toEqual([
+      {
+        id: 'care-economy',
+        perspective: 'Caregiving is infrastructure and should be discussed as such.',
+        signals: ['caregiver benefits', 'care deserts'],
+        format: 'analysis',
+        frequency: 'weekly',
+      },
+    ])
   })
 
   test('resolves the workspace root when invoked from the agent directory', () => {

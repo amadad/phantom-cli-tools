@@ -46,9 +46,9 @@ runtime/
     cli/         command dispatch
     commands/    public command handlers
     domain/      workflow/run/artifact types
-    generate/    copy drafts, explore grid, source image (fal.ai Flux / Gemini)
+    generate/    copy drafts, explore grid, source image
     publish/     social platform adapters (Twitter, LinkedIn, Meta, Threads)
-    render/      canvas-based typographic compositing per platform
+    render/      Gemini- or canvas-based per-platform social asset rendering
     runtime/     SQLite-backed run engine + step definitions
 
 brands/
@@ -62,17 +62,17 @@ archive/        archived legacy implementation
 
 The `social.post` workflow includes AI-powered image generation:
 
-- **Explore step**: generates a 3x3 visual direction grid via fal.ai Flux Pro 1.1
-- **Image step**: generates a full-res source image via API (canvas fallback when no key)
-- **Render step**: composites headline, body, brand name onto source image per platform
+- **Explore step**: generates a 3x3 visual direction grid with Gemini
+- **Image step**: writes an image brief and only generates a source image when the canvas fallback path is needed
+- **Render step**: generates per-platform social assets with Gemini or falls back to deterministic canvas rendering
 
-Requires `GEMINI_API_KEY` or `GOOGLE_API_KEY` (either works). Preferred model: `gemini-3.1-flash-image-preview`. Without keys, image falls back to deterministic canvas art.
+Requires `GEMINI_API_KEY` or `GOOGLE_API_KEY` (either works). Preferred model: `gemini-3.1-flash-image-preview`. Without keys, the runtime falls back to deterministic canvas art.
 
 Each brand.yml includes an `image_prompt` field with a complete generation directive and `[SUBJECT]` slot. SCTY uses a damaged-reproduction process system. GiveCare uses a grounded-fragment with single-intervention system.
 
 ## Content Pillars
 
-Each brand defines 3 content pillars in `brand.yml` with `perspective`, `signals`, `format`, and `frequency` fields. The `signals` array connects to external signal sources (e.g. last30days) for topical content routing.
+Each brand defines content pillars in `brand.yml` with `perspective`, `signals`, `format`, and `frequency` fields. The runtime loads those pillars into the brand foundation, includes the selected pillar in the brief, and accepts `--pillar <id>` as workflow input when you want to force a specific angle.
 
 ## Verification
 

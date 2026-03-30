@@ -1,4 +1,4 @@
-import type { PublishInput, SocialPlatform } from '../domain/types'
+import { SOCIAL_PLATFORMS, type PublishInput, type SocialPlatform } from '../domain/types'
 import { isR2Configured } from '../core/r2'
 import { postToFacebook } from './facebook-direct'
 import { postToLinkedIn } from './linkedin-direct'
@@ -47,7 +47,7 @@ const PLATFORM_REQUIREMENTS: Record<SocialPlatform, string[]> = {
   threads: ['ACCESS_TOKEN', 'USER_ID'],
 }
 
-export const ALL_SOCIAL_PLATFORMS: SocialPlatform[] = ['twitter', 'linkedin', 'facebook', 'instagram', 'threads']
+export const ALL_SOCIAL_PLATFORMS: SocialPlatform[] = [...SOCIAL_PLATFORMS]
 
 function resolveValue(platform: SocialPlatform, brand: string, suffix: string): string | undefined {
   const upper = brand.toUpperCase()
@@ -60,8 +60,13 @@ function resolveValue(platform: SocialPlatform, brand: string, suffix: string): 
 }
 
 export function getSocialAuthReport(brand: string): SocialAuthReport {
+  const r2Configured = isR2Configured()
   const platforms = ALL_SOCIAL_PLATFORMS.map((platform) => {
     const missing = PLATFORM_REQUIREMENTS[platform].filter((suffix) => !resolveValue(platform, brand, suffix))
+    if ((platform === 'instagram' || platform === 'threads') && !r2Configured) {
+      missing.push('R2_CONFIG')
+    }
+
     return {
       platform,
       supported: true,
@@ -74,7 +79,7 @@ export function getSocialAuthReport(brand: string): SocialAuthReport {
     brand,
     available: platforms.filter((platform) => platform.configured).map((platform) => platform.platform),
     platforms,
-    r2Configured: isR2Configured(),
+    r2Configured,
   }
 }
 

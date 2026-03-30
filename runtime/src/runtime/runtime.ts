@@ -90,6 +90,16 @@ export class Runtime {
     const run = this.getRun(runId)
     const status: RunStatus = input.decision === 'approve' ? 'approved' : 'rejected'
 
+    if (input.selectedVariantId) {
+      const artifacts = this.listArtifacts(runId)
+      const draft = findArtifact(artifacts, 'draft_set')
+      const variants = Array.isArray(draft?.data.variants) ? draft.data.variants as Array<Record<string, unknown>> : []
+      const hasSelectedVariant = variants.some((variant) => variant.id === input.selectedVariantId)
+      if (!hasSelectedVariant) {
+        throw new Error(`Variant not found for run ${runId}: ${input.selectedVariantId}`)
+      }
+    }
+
     this.writeArtifact(runId, 'approval', 'review', {
       decision: input.decision,
       note: input.note ?? null,
@@ -129,8 +139,13 @@ export class Runtime {
       const selectedVariantId = typeof approval?.data.selectedVariantId === 'string'
         ? approval.data.selectedVariantId
         : undefined
-      const selectedVariant = variants.find((variant) => variant.id === selectedVariantId) ?? variants[0]
+      const selectedVariant = selectedVariantId
+        ? variants.find((variant) => variant.id === selectedVariantId)
+        : variants[0]
       if (!selectedVariant) {
+        if (selectedVariantId) {
+          throw new Error(`Run ${runId} selected variant is missing from draft set: ${selectedVariantId}`)
+        }
         throw new Error(`Run ${runId} has no social draft variant to publish`)
       }
 

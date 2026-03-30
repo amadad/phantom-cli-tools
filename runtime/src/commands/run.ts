@@ -1,3 +1,4 @@
+import { isWorkflowName } from '../domain/types'
 import { createRuntime } from '../runtime/runtime'
 
 function parseWorkflowInput(args: string[]): Record<string, unknown> {
@@ -28,19 +29,23 @@ function parseWorkflowInput(args: string[]): Record<string, unknown> {
 export async function runWorkflowCommand(args: string[], root?: string): Promise<unknown> {
   const [workflow, ...rest] = args
   if (!workflow) {
-    throw new Error('Usage: run <workflow> --brand <id> [--topic "..."]')
+    throw new Error('Usage: run <workflow> --brand <id> [--pillar <id>] [--topic "..."]')
+  }
+
+  if (!isWorkflowName(workflow)) {
+    throw new Error(`Invalid workflow: ${workflow}. Expected one of: social.post, blog.post, outreach.touch, respond.reply`)
   }
 
   const input = parseWorkflowInput(rest)
   const brand = typeof input.brand === 'string' ? input.brand : undefined
   if (!brand) {
-    throw new Error('Usage: run <workflow> --brand <id> [--topic "..."]')
+    throw new Error('Usage: run <workflow> --brand <id> [--pillar <id>] [--topic "..."]')
   }
 
   delete input.brand
   const runtime = createRuntime({ root })
   return await runtime.runWorkflow({
-    workflow: workflow as Parameters<typeof runtime.runWorkflow>[0]['workflow'],
+    workflow,
     brand,
     input,
   })

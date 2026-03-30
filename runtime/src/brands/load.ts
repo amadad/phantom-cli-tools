@@ -65,6 +65,17 @@ export function loadBrandFoundation(id: string, options: LoadBrandOptions = {}):
     }
   }) ?? []
 
+  const pillars = (data.pillars as unknown[] | undefined)?.map((entry) => {
+    const item = expectRecord(entry, 'pillar')
+    return {
+      id: expectString(item.id, 'pillar.id'),
+      perspective: expectString(item.perspective, 'pillar.perspective'),
+      signals: expectStringArray(item.signals, 'pillar.signals'),
+      format: expectString(item.format, 'pillar.format'),
+      frequency: expectString(item.frequency, 'pillar.frequency'),
+    }
+  }) ?? []
+
   const responsePlaybooks = (data.response_playbooks as unknown[] | undefined)?.map((entry) => {
     const item = expectRecord(entry, 'response_playbook')
     return {
@@ -90,6 +101,7 @@ export function loadBrandFoundation(id: string, options: LoadBrandOptions = {}):
     audiences,
     offers,
     proofPoints: expectStringArray(data.proof_points, 'proof_points'),
+    pillars,
     voice: {
       tone: expectString(voice.tone, 'voice.tone'),
       style: expectString(voice.style, 'voice.style'),

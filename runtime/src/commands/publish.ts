@@ -1,5 +1,5 @@
 import { createRuntime } from '../runtime/runtime'
-import type { SocialPlatform } from '../domain/types'
+import { isSocialPlatform, type SocialPlatform } from '../domain/types'
 
 function parsePublishArgs(args: string[]): { runId?: string; dryRun?: boolean; platforms?: SocialPlatform[] } {
   const [runId, ...rest] = args
@@ -18,7 +18,12 @@ function parsePublishArgs(args: string[]): { runId?: string; dryRun?: boolean; p
       if (!value) {
         throw new Error('Usage: publish <run_id> [--platforms twitter,linkedin] [--dry-run]')
       }
-      platforms = value.split(',').map((item) => item.trim()).filter(Boolean) as SocialPlatform[]
+      const requested = value.split(',').map((item) => item.trim()).filter(Boolean)
+      const invalid = requested.filter((platform) => !isSocialPlatform(platform))
+      if (invalid.length > 0) {
+        throw new Error(`Invalid platform(s): ${invalid.join(', ')}. Expected one of: twitter, linkedin, facebook, instagram, threads`)
+      }
+      platforms = requested as SocialPlatform[]
       index += 1
     }
   }

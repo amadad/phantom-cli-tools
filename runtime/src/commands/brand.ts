@@ -14,6 +14,13 @@ offers:
     summary: Replace with the main offer.
 proof_points:
   - Replace with one concrete proof point.
+pillars:
+  - id: primary-theme
+    perspective: Replace with the recurring angle this brand should own.
+    signals:
+      - Replace with one signal to monitor.
+    format: opinionated-take
+    frequency: weekly
 voice:
   tone: Direct and specific.
   style: Plainspoken and credible.

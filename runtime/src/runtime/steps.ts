@@ -106,6 +106,14 @@ async function buildSignalArtifacts(context: WorkflowContext): Promise<StepOutpu
 async function buildBriefArtifacts(context: WorkflowContext): Promise<StepOutput[]> {
   const channel = workflowChannel(context.workflow)
   const primaryAudience = context.brand.audiences[0]?.id ?? 'general'
+  const requestedPillarId = typeof context.input.pillar === 'string' ? context.input.pillar : undefined
+  const selectedPillar = requestedPillarId
+    ? context.brand.pillars.find((pillar) => pillar.id === requestedPillarId)
+    : context.brand.pillars[0]
+
+  if (requestedPillarId && !selectedPillar) {
+    throw new Error(`Unknown pillar for brand ${context.brand.id}: ${requestedPillarId}`)
+  }
 
   return [
     {
@@ -119,6 +127,10 @@ async function buildBriefArtifacts(context: WorkflowContext): Promise<StepOutput
         positioning: context.brand.positioning,
         offer: context.brand.offers[0]?.id ?? null,
         proofPoints: context.brand.proofPoints.slice(0, 2),
+        pillar: selectedPillar?.id ?? null,
+        perspective: selectedPillar?.perspective ?? null,
+        format: selectedPillar?.format ?? null,
+        signals: selectedPillar?.signals ?? [],
         topic: context.input.topic ?? context.input.goal ?? context.input.source ?? 'Untitled',
       },
     },
