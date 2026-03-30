@@ -24,11 +24,14 @@ export function runOpsCommand(args: string[], root?: string): unknown {
   }
 
   if (subcommand === 'auth' && nested === 'refresh') {
-    return { auth: 'not_configured', note: 'Token refresh is not restored yet. Current runtime reads existing env credentials.' }
+    throw new Error('Auth refresh is not available in the active runtime. Update env credentials manually and rerun "loom ops auth check --brand <id>".')
   }
 
   if (subcommand === 'migrate') {
-    return runtime.health()
+    return {
+      migrated: true,
+      health: runtime.health(),
+    }
   }
 
   throw new Error('Usage: ops <health|auth check|auth refresh|migrate>')

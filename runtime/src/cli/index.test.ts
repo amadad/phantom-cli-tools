@@ -318,4 +318,22 @@ outreach_playbooks:
       },
     })
   })
+
+  test('returns an actionable error for unsupported auth refresh', async () => {
+    const root = createWorkspace()
+    process.env.LOOM_ROOT = root
+    process.env.HOME = root
+
+    const { result, stdout } = await captureStdout(() =>
+      runCli(['ops', 'auth', 'refresh', '--json']),
+    )
+
+    expect(result).toBe(1)
+    expect(JSON.parse(stdout)).toEqual({
+      status: 'error',
+      error: {
+        message: 'Auth refresh is not available in the active runtime. Update env credentials manually and rerun "loom ops auth check --brand <id>".',
+      },
+    })
+  })
 })
