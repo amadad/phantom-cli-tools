@@ -241,6 +241,40 @@ describe('runtime workflows', () => {
     expect(row.current_step).toBe('brief')
     expect(row.error_message).toBe('Unknown pillar for brand givecare: missing-pillar')
     expect(runtime.health()).toMatchObject({ failedRuns: 1, totalRuns: 1 })
+    expect(() => runtime.reviewRun(String(row.id), { decision: 'approve' })).toThrow(
+      `Run ${String(row.id)} failed at step brief and cannot be reviewed. Retry the run first.`,
+    )
+  })
+
+  test('does not allow reviewing a published run again', async () => {
+    const root = createWorkspace()
+    setEnv('TWITTER_GIVECARE_API_KEY', 'api-key')
+    setEnv('TWITTER_GIVECARE_API_SECRET', 'api-secret')
+    setEnv('TWITTER_GIVECARE_ACCESS_TOKEN', 'access-token')
+    setEnv('TWITTER_GIVECARE_ACCESS_SECRET', 'access-secret')
+
+    const runtime = createRuntime({ root })
+    suppressImageApiKeys()
+    runtime.setSocialPublisher(async (request) =>
+      request.platforms.map((platform) => ({
+        platform,
+        success: true,
+        postId: `post-${platform}`,
+      })),
+    )
+
+    const run = await runtime.runWorkflow({
+      workflow: 'social.post',
+      brand: 'givecare',
+      input: { topic: 'caregiver systems' },
+    })
+
+    runtime.reviewRun(run.id, { decision: 'approve', selectedVariantId: 'social-main' })
+    await runtime.publishRun(run.id)
+
+    expect(() => runtime.reviewRun(run.id, { decision: 'reject', note: 'too late' })).toThrow(
+      `Run ${run.id} is already published and cannot be reviewed again`,
+    )
   })
 
   test('approves, publishes through the social publisher, and retries a run with lineage intact', async () => {

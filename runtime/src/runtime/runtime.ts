@@ -88,6 +88,13 @@ export class Runtime {
 
   reviewRun(runId: string, input: ReviewInput): RunRecord {
     const run = this.getRun(runId)
+    if (run.status === 'published') {
+      throw new Error(`Run ${runId} is already published and cannot be reviewed again`)
+    }
+    if (run.status === 'failed') {
+      throw new Error(`Run ${runId} failed at step ${run.currentStep} and cannot be reviewed. Retry the run first.`)
+    }
+
     const status: RunStatus = input.decision === 'approve' ? 'approved' : 'rejected'
 
     if (input.selectedVariantId) {
