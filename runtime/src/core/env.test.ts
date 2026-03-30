@@ -8,8 +8,7 @@ const tempPaths: string[] = []
 const managedKeys = [
   'GEMINI_API_KEY',
   'GOOGLE_API_KEY',
-  'FAL_KEY',
-  'REPLICATE_API_TOKEN',
+  'OPENAI_API_KEY',
 ]
 
 function makeTempDir(prefix: string): string {
@@ -43,20 +42,19 @@ describe('loadRuntimeEnv', () => {
     const home = makeTempDir('loom-env-home-')
 
     mkdirSync(root, { recursive: true })
-    writeFileSync(join(root, '.env'), 'REPLICATE_API_TOKEN=replicate-token\n', 'utf8')
+    writeFileSync(join(root, '.env'), 'OPENAI_API_KEY=openai-token\n', 'utf8')
     writeFileSync(
       join(home, '.bash_secrets'),
-      'export GOOGLE_API_KEY="google-key"\nexport FAL_KEY="fal-key"\n',
+      'export GOOGLE_API_KEY="google-key"\n',
       'utf8',
     )
 
     process.env.HOME = home
     loadRuntimeEnv(root)
 
-    expect(process.env.REPLICATE_API_TOKEN).toBe('replicate-token')
+    expect(process.env.OPENAI_API_KEY).toBe('openai-token')
     expect(process.env.GOOGLE_API_KEY).toBe('google-key')
     expect(process.env.GEMINI_API_KEY).toBe('google-key')
-    expect(process.env.FAL_KEY).toBe('fal-key')
   })
 
   test('does not override GEMINI_API_KEY already loaded from .env', () => {

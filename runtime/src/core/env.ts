@@ -6,8 +6,6 @@ const loadedRoots = new Set<string>()
 const SHELL_SECRET_KEYS = new Set([
   'GEMINI_API_KEY',
   'GOOGLE_API_KEY',
-  'REPLICATE_API_TOKEN',
-  'FAL_KEY',
   'OPENAI_API_KEY',
   'ANTHROPIC_API_KEY',
 ])

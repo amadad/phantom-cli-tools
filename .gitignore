@@ -39,6 +39,8 @@ archive/
 # Output
 output/
 state/
+runtime/coverage/
+runtime/tmp/
 
 # Private notes
 private/

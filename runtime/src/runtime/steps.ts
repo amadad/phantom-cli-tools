@@ -149,14 +149,14 @@ async function buildExploreArtifacts(context: WorkflowContext): Promise<StepOutp
     ? draft.data.imageDirection
     : `${context.brand.name} visual direction for ${topic}`
 
-  const hasImageApi = Boolean(process.env.FAL_KEY || process.env.GEMINI_API_KEY)
+  const hasImageApi = Boolean(process.env.GEMINI_API_KEY)
   if (!hasImageApi) {
     return [
       {
         type: 'explore_grid' as const,
         data: {
           skipped: true,
-          reason: 'No image generation API configured (FAL_KEY or GEMINI_API_KEY)',
+          reason: 'No image generation API configured (GEMINI_API_KEY)',
           topic,
           headline,
           imageDirection,
@@ -204,6 +204,26 @@ async function buildImageArtifacts(context: WorkflowContext): Promise<StepOutput
     headline,
     imageDirection,
   })
+
+  // When Gemini is available, the render step generates finished platform assets directly.
+  // Source image is only needed as a canvas fallback when no API key is set.
+  if (process.env.GEMINI_API_KEY) {
+    return [
+      {
+        type: 'image_brief' as const,
+        data: imageBrief,
+      },
+      {
+        type: 'source_image' as const,
+        data: {
+          channel: 'social',
+          skipped: true,
+          reason: 'Render step generates finished assets via Gemini directly',
+        },
+      },
+    ]
+  }
+
   const sourceImage = await generateSourceImage({
     brand: context.brand,
     paths: context.paths,
@@ -235,12 +255,9 @@ async function buildAssetArtifacts(context: WorkflowContext): Promise<StepOutput
     ? draft.data.headline
     : String(mainVariant?.hook ?? context.input.topic ?? 'Untitled')
   const body = String(mainVariant?.body ?? context.brand.positioning)
-  const sourceImagePath = typeof sourceImage?.data.imagePath === 'string' ? sourceImage.data.imagePath : undefined
-  if (!sourceImagePath) {
-    throw new Error(`Run ${context.runId} missing source image before render`)
-  }
+  const sourceImagePath = typeof sourceImage?.data.imagePath === 'string' ? sourceImage.data.imagePath : ''
 
-  const platformAssets = renderSocialAssets({
+  const platformAssets = await renderSocialAssets({
     brand: context.brand,
     paths: context.paths,
     runId: context.runId,
@@ -259,7 +276,7 @@ async function buildAssetArtifacts(context: WorkflowContext): Promise<StepOutput
         palette: context.brand.visual.palette,
         imagePath: platformAssets.twitter,
         platformAssets,
-        sourceImagePath,
+        sourceImagePath: sourceImagePath || null,
         headline,
         body,
       },

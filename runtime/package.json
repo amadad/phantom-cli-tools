@@ -16,7 +16,6 @@
     "canvas": "^3.2.1",
     "dotenv": "^16.4.7",
     "js-yaml": "^4.1.0",
-    "replicate": "^1.4.0",
     "sharp": "^0.34.5"
   },
   "devDependencies": {

@@ -8,7 +8,7 @@ import { getSocialAuthReport, type SocialPublishRequest } from '../publish/socia
 const roots: string[] = []
 const envKeys = new Set<string>()
 const savedImageApiKeys: Record<string, string | undefined> = {}
-const IMAGE_API_KEYS = ['FAL_KEY', 'GEMINI_API_KEY', 'GOOGLE_API_KEY']
+const IMAGE_API_KEYS = ['GEMINI_API_KEY', 'GOOGLE_API_KEY']
 
 function suppressImageApiKeys(): void {
   for (const key of IMAGE_API_KEYS) {
