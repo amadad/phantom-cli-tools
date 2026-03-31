@@ -11,6 +11,7 @@ import {
   cloneArtifactData,
   findArtifact,
   formatSocialPostText,
+  resolveFormat,
   selectStepIndex,
   workflowChannel,
   type WorkflowContext,
@@ -53,15 +54,19 @@ export class Runtime {
 
   async runWorkflow(input: RunWorkflowInput): Promise<RunRecord> {
     const brand = loadBrandFoundation(input.brand, { root: this.paths.root })
+    const format = resolveFormat(brand, input.input)
     const runId = createId('run')
     const createdAt = nowIso()
     const steps = WORKFLOWS[input.workflow]
+    const enrichedInput = format !== 'standard'
+      ? { ...input.input, format }
+      : input.input
     const run: RunRecord = {
       id: runId,
       workflow: input.workflow,
       brand: input.brand,
       status: 'in_review',
-      input: input.input,
+      input: enrichedInput,
       currentStep: steps[0].name,
       createdAt,
       updatedAt: createdAt,

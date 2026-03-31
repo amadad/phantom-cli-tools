@@ -13,9 +13,11 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1017.0",
     "@google/genai": "^0.14.0",
+    "@resvg/resvg-js": "^2.6.2",
     "canvas": "^3.2.1",
     "dotenv": "^16.4.7",
     "js-yaml": "^4.1.0",
+    "satori": "^0.26.0",
     "sharp": "^0.34.5"
   },
   "devDependencies": {

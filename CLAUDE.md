@@ -21,6 +21,8 @@ npx tsx src/cli.ts help
 npx tsx src/cli.ts ops health --json
 npx tsx src/cli.ts brand validate givecare --json
 npx tsx src/cli.ts run social.post --brand givecare --topic "caregiver benefits gap" --json
+npx tsx src/cli.ts run social.post --brand givecare --format infographic --topic "caregiver workforce" --json
+npx tsx src/cli.ts run social.post --brand givecare --pillar care-economy --topic "$470B unpaid care labor" --json
 npx tsx src/cli.ts run blog.post --brand givecare --pillar policy --topic "paid leave" --json
 npx tsx src/cli.ts review list --json
 npx tsx src/cli.ts review approve <run_id> --variant social-main --json
@@ -76,6 +78,23 @@ Each brand.yml includes an `image_prompt` field with a complete generation direc
 ## Content Pillars
 
 Each brand defines content pillars in `brand.yml` with `perspective`, `signals`, `format`, and `frequency` fields. The runtime loads those pillars into the brand foundation, includes the selected pillar in the brief, uses that perspective in social/blog draft generation, and accepts `--pillar <id>` as workflow input when you want to force a specific angle.
+
+## Output Formats
+
+Workflows support per-brand output formats via `--format <id>`. Format resolution:
+
+1. Explicit `--format infographic` flag
+2. Selected pillar's `default_format` (e.g., care-economy defaults to infographic)
+3. `standard` (existing behavior)
+
+Each brand defines available formats in `brand.yml` under `formats:`. Format changes which steps run — an infographic skips explore/image and uses a data-extraction draft + infographic renderer.
+
+| Brand | Formats |
+| --- | --- |
+| GiveCare | `standard`, `infographic`, `quote-card` |
+| SCTY | `standard`, `signal-card`, `primer` |
+
+Infographic renderer lives in `runtime/src/render/infographic.ts` with Gemini + canvas fallback.
 
 ## Runtime Safety
 

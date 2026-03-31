@@ -376,4 +376,79 @@ describe('runtime workflows', () => {
     const result = await runtime.publishRun(run.id, { dryRun: true })
     expect(result.status).toBe('approved')
   })
+
+  test('enriches input with format from pillar default_format', async () => {
+    const root = createWorkspace()
+
+    writeFileSync(
+      join(root, 'brands', 'givecare', 'brand.yml'),
+      `
+id: givecare
+name: GiveCare
+positioning: Care as infrastructure.
+audiences:
+  - id: caregivers
+    summary: Family caregivers balancing work and care.
+offers:
+  - id: invisiblebench
+    summary: Benchmarking and care tooling.
+proof_points:
+  - 63 million Americans are caregivers.
+pillars:
+  - id: care-economy
+    perspective: Caregiving is infrastructure.
+    signals:
+      - caregiver benefits
+    format: data-driven
+    frequency: weekly
+    default_format: infographic
+  - id: policy
+    perspective: Policy should reduce caregiver burden.
+    signals:
+      - paid leave
+    format: opinionated-take
+    frequency: weekly
+voice:
+  tone: Warm, direct, specific.
+  style: Human, plainspoken.
+  do:
+    - Name the problem directly.
+  dont:
+    - Use therapeutic cliches.
+channels:
+  social:
+    objective: Build signal and authority.
+  blog:
+    objective: Publish durable longform thinking.
+  outreach:
+    objective: Start useful conversations.
+  respond:
+    objective: Reply with clarity and care.
+visual:
+  palette:
+    background: "#FDF9EC"
+    primary: "#3D1600"
+    accent: "#FF9F00"
+`.trim(),
+    )
+
+    const runtime = createRuntime({ root })
+    suppressImageApiKeys()
+
+    // care-economy pillar auto-resolves format to infographic
+    const run = await runtime.runWorkflow({
+      workflow: 'social.post',
+      brand: 'givecare',
+      input: { topic: 'unpaid care labor', pillar: 'care-economy' },
+    })
+    expect(run.input).toMatchObject({ format: 'infographic' })
+
+    // policy pillar has no default_format — stays standard
+    const run2 = await runtime.runWorkflow({
+      workflow: 'social.post',
+      brand: 'givecare',
+      input: { topic: 'paid leave', pillar: 'policy' },
+    })
+    expect(run2.input).not.toHaveProperty('format')
+  })
 })

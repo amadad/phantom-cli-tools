@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'fs'
 import yaml from 'js-yaml'
 import { join } from 'path'
 import { resolveRuntimePaths } from '../core/paths'
-import { isSocialPlatform, type BrandFoundation } from '../domain/types'
+import { isSocialPlatform, type BrandFoundation, type BrandFormat } from '../domain/types'
 
 interface LoadBrandOptions {
   root?: string
@@ -73,6 +73,7 @@ export function loadBrandFoundation(id: string, options: LoadBrandOptions = {}):
       signals: expectStringArray(item.signals, 'pillar.signals'),
       format: expectString(item.format, 'pillar.format'),
       frequency: expectString(item.frequency, 'pillar.frequency'),
+      defaultFormat: optionalString(item.default_format),
     }
   }) ?? []
 
@@ -84,6 +85,17 @@ export function loadBrandFoundation(id: string, options: LoadBrandOptions = {}):
       approach: expectString(item.approach, 'response_playbook.approach'),
     }
   }) ?? []
+
+  const formats: BrandFormat[] = Array.isArray(data.formats)
+    ? (data.formats as unknown[]).map((entry) => {
+        const item = expectRecord(entry, 'format')
+        return {
+          id: expectString(item.id, 'format.id'),
+          description: expectString(item.description, 'format.description'),
+          promptOverlay: optionalString(item.prompt_overlay),
+        }
+      })
+    : []
 
   const outreachPlaybooks = (data.outreach_playbooks as unknown[] | undefined)?.map((entry) => {
     const item = expectRecord(entry, 'outreach_playbook')
@@ -162,6 +174,7 @@ export function loadBrandFoundation(id: string, options: LoadBrandOptions = {}):
       imagePrompt: optionalString(visual.image_prompt),
       layout: optionalString(visual.layout),
     },
+    formats: formats.length > 0 ? formats : undefined,
     responsePlaybooks,
     outreachPlaybooks,
   }

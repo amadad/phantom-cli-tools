@@ -33,7 +33,7 @@ function helpText(): string {
     '',
     'Commands:',
     '  brand <init|show|validate> ...',
-    '  run <workflow> --brand <id> [--pillar <id>] ...',
+    '  run <workflow> --brand <id> [--pillar <id>] [--format <id>] ...',
     '  review <list|show|approve|reject> ...',
     '  publish <run_id> [--platforms twitter,linkedin] [--dry-run]',
     '  inspect <run|artifact> ...',
@@ -49,6 +49,8 @@ function helpText(): string {
     'Examples:',
     '  loom ops auth check --brand givecare',
     '  loom run social.post --brand givecare --topic "caregiver benefits gap"',
+    '  loom run social.post --brand givecare --pillar care-economy --topic "$470B unpaid care labor"',
+    '  loom run social.post --brand givecare --format infographic --topic "caregiver workforce"',
     '  loom run blog.post --brand givecare --pillar policy --topic "paid leave"',
     '  loom publish run_123 --platforms twitter,linkedin --dry-run',
   ].join('\n')

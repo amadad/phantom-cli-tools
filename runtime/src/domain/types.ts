@@ -66,6 +66,13 @@ export interface BrandPillar {
   signals: string[]
   format: string
   frequency: string
+  defaultFormat?: string
+}
+
+export interface BrandFormat {
+  id: string
+  description: string
+  promptOverlay?: string
 }
 
 export interface BrandFoundation {
@@ -111,6 +118,7 @@ export interface BrandFoundation {
     imagePrompt?: string
     layout?: string
   }
+  formats?: BrandFormat[]
   responsePlaybooks: BrandPlaybook[]
   outreachPlaybooks: BrandPlaybook[]
 }

@@ -57,6 +57,23 @@ export const WORKFLOWS: Record<WorkflowName, StepDefinition[]> = {
   ],
 }
 
+/**
+ * Resolve the effective format for a run. Priority:
+ * 1. Explicit input.format
+ * 2. Selected pillar's defaultFormat
+ * 3. 'standard' (default behavior)
+ */
+export function resolveFormat(brand: BrandFoundation, input: Record<string, unknown>): string {
+  if (typeof input.format === 'string' && input.format.trim().length > 0) {
+    return input.format.trim()
+  }
+  if (typeof input.pillar === 'string') {
+    const pillar = brand.pillars.find((p) => p.id === input.pillar)
+    if (pillar?.defaultFormat) return pillar.defaultFormat
+  }
+  return 'standard'
+}
+
 export function workflowChannel(workflow: WorkflowName): 'social' | 'blog' | 'outreach' | 'respond' {
   if (workflow === 'social.post') return 'social'
   if (workflow === 'blog.post') return 'blog'
@@ -398,3 +415,4 @@ async function buildArticleDraftArtifacts(context: WorkflowContext): Promise<Ste
     },
   ]
 }
+
