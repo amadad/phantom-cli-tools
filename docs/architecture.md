@@ -53,10 +53,29 @@ Workflow steps are defined in `runtime/src/runtime/steps.ts`. All steps are asyn
 - Blog publishes export Markdown to `state/exports/`.
 - `state/` is runtime-generated and not meant to be committed.
 
+## Output Formats
+
+Each brand can define `formats` in brand.yml and `default_format` on pillars. `resolveFormat()` in steps.ts resolves the effective format: explicit `--format` flag > pillar default > `standard`. The format is stored in `run.input.format` for inspection and retry.
+
+## Card Generation Pipeline
+
+Brand social cards use a separate pipeline outside the step engine:
+
+```
+brand.yml + learnings.json + content + logo.png
+  → claude --print --model sonnet (writes Gemini prompt)
+  → Gemini gemini-3.1-flash-image-preview (renders PNG)
+  → claude --print --model sonnet (evaluates against brand spec)
+  → retry with feedback if score < 7 (max 3x)
+  → final PNG + learnings saved to learnings.json
+```
+
+`generate-card.sh` in `runtime/src/render/` orchestrates this. Card types (hero-stat, fact-list, quote, bold-statement, photo-dominant, photo-text) and volume levels (quiet, warm, grounded) are defined per brand in `brands/<name>/learnings.json`.
+
 ## Public Commands
 
 - `brand` — init, show, validate
-- `run` — workflow execution with optional `--pillar`
+- `run` — workflow execution with optional `--pillar` and `--format`
 - `review` — list, show, approve, reject
 - `publish` — dry-run or publish to configured platforms
 - `inspect` — run details or stored artifacts under `state/artifacts/`

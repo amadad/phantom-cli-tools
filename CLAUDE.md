@@ -53,11 +53,12 @@ runtime/
     domain/      workflow/run/artifact types
     generate/    copy drafts, explore grid, source image
     publish/     social platform adapters (Twitter, LinkedIn, Meta, Threads)
-    render/      Gemini- or canvas-based per-platform social asset rendering
+    render/      social asset rendering + generate-card.sh (Claude→Gemini pipeline)
     runtime/     SQLite-backed run engine + step definitions
 
 brands/
-  <name>/brand.yml    pillars, voice, visual system, image_prompt, playbooks
+  <name>/brand.yml         pillars, voice, visual system, image_prompt, playbooks
+  <name>/learnings.json    card vocabulary, visual system learnings, prompt history
 
 state/          generated at runtime, gitignored
 archive/        archived legacy implementation
@@ -87,14 +88,22 @@ Workflows support per-brand output formats via `--format <id>`. Format resolutio
 2. Selected pillar's `default_format` (e.g., care-economy defaults to infographic)
 3. `standard` (existing behavior)
 
-Each brand defines available formats in `brand.yml` under `formats:`. Format changes which steps run — an infographic skips explore/image and uses a data-extraction draft + infographic renderer.
+Each brand defines available formats in `brand.yml` under `formats:`.
 
-| Brand | Formats |
-| --- | --- |
-| GiveCare | `standard`, `infographic`, `quote-card` |
-| SCTY | `standard`, `signal-card`, `primer` |
+## Card Generation Pipeline
 
-Infographic renderer lives in `runtime/src/render/infographic.ts` with Gemini + canvas fallback.
+Brand social cards (infographics, stat cards, quote cards) use a separate pipeline from the step-based workflow:
+
+```bash
+runtime/src/render/generate-card.sh \
+  --brand givecare --type hero-stat --volume quiet \
+  --eyebrow "WEEK IN REVIEW" --content "..."
+```
+
+Pipeline: Claude CLI writes a hyper-specific Gemini image prompt from `brand.yml` + `learnings.json`, Gemini renders the PNG directly. Eval loop scores the output against the brand spec and retries with feedback (max 3x). Results accumulate in `brands/<name>/learnings.json`.
+
+Card types: `hero-stat`, `fact-list`, `quote`, `bold-statement`, `photo-dominant`, `photo-text`
+Volume levels: `quiet` (cream bg), `warm` (sandstone bg), `grounded` (dark brown bg)
 
 ## Runtime Safety
 
