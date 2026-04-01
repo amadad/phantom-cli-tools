@@ -15,6 +15,7 @@ import type { BrandFoundation, SocialPlatform } from '../domain/types'
 import { ensureParentDir, type RuntimePaths } from '../core/paths'
 import { muted } from './colors'
 import { ensureFontsRegistered } from './fonts'
+import { generateImage } from './gemini'
 
 ensureFontsRegistered()
 
@@ -98,26 +99,6 @@ function buildArtPrompt(
   if (brand.visual.negative?.length) lines.push(`Avoid: ${brand.visual.negative.join('. ')}.`)
   lines.push('IMPORTANT: No text, no words, no letters, no logos, no brand names. Background visual only.')
   return lines.join('\n')
-}
-
-async function generateArtImage(prompt: string): Promise<Buffer> {
-  const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
-  if (!key) throw new Error('GEMINI_API_KEY not set')
-
-  const { GoogleGenAI } = await import('@google/genai')
-  const client = new GoogleGenAI({ apiKey: key })
-
-  const response = await client.models.generateContent({
-    model: 'gemini-3.1-flash-image-preview',
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    config: { responseModalities: ['IMAGE', 'TEXT'] },
-  })
-
-  const parts = response.candidates?.[0]?.content?.parts ?? []
-  const imagePart = parts.find((p) => p.inlineData?.mimeType?.startsWith('image/'))
-  if (!imagePart?.inlineData?.data) throw new Error('Gemini returned no image')
-
-  return Buffer.from(imagePart.inlineData.data, 'base64')
 }
 
 // ── Phase 2: Canvas composites text + logo on top ──
@@ -264,21 +245,20 @@ export async function renderSocialAssets(options: RenderSocialAssetsOptions): Pr
   const hasApiKey = !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)
   const logoPath = resolveLogoPath(options.brand, join(options.paths.root, 'brands'))
 
-  // Generate one art image (or none if no API key)
+  // Generate art image (or use source image fallback)
   let artImage: Image | undefined
   if (hasApiKey) {
-    // Use square aspect for source art — we'll crop per-platform
     const artPrompt = buildArtPrompt(
       { platform: 'linkedin', width: 1200, height: 1200, aspect: '1:1', layout: 'square' },
       options.brand,
       options.headline,
     )
-    const artBytes = await generateArtImage(artPrompt)
-    artImage = new Image()
-    artImage.src = artBytes
+    const artBytes = await generateImage(artPrompt)
+    if (artBytes) {
+      artImage = new Image()
+      artImage.src = artBytes
+    }
   }
-
-  // Load source image as fallback art if available and no Gemini art
   if (!artImage && options.sourceImagePath && existsSync(options.sourceImagePath)) {
     artImage = new Image()
     artImage.src = readFileSync(options.sourceImagePath)

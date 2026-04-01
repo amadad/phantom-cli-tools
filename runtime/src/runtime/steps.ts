@@ -173,27 +173,10 @@ async function buildSocialDraftArtifacts(context: WorkflowContext): Promise<Step
 }
 
 async function buildExploreArtifacts(context: WorkflowContext): Promise<StepOutput[]> {
-  const draft = findArtifact(context.priorArtifacts, 'draft_set')
-  const topic = String(context.input.topic ?? draft?.data.headline ?? 'Untitled')
-  const headline = typeof draft?.data.headline === 'string' ? draft.data.headline : topic
-  const imageDirection = typeof draft?.data.imageDirection === 'string'
-    ? draft.data.imageDirection
-    : `${context.brand.name} visual direction for ${topic}`
+  const topic = String(context.input.topic ?? 'Untitled')
 
-  const hasImageApi = Boolean(process.env.GEMINI_API_KEY)
-  if (!hasImageApi) {
-    return [
-      {
-        type: 'explore_grid' as const,
-        data: {
-          skipped: true,
-          reason: 'No image generation API configured (GEMINI_API_KEY)',
-          topic,
-          headline,
-          imageDirection,
-        },
-      },
-    ]
+  if (!process.env.GEMINI_API_KEY && !process.env.GOOGLE_API_KEY) {
+    return [{ type: 'explore_grid' as const, data: { skipped: true } }]
   }
 
   const result = await generateExploreGrid({
@@ -201,23 +184,12 @@ async function buildExploreArtifacts(context: WorkflowContext): Promise<StepOutp
     paths: context.paths,
     runId: context.runId,
     topic,
-    headline,
-    imageDirection,
   })
 
   return [
     {
       type: 'explore_grid' as const,
-      data: {
-        gridImagePath: result.gridImagePath,
-        prompt: result.prompt,
-        provider: result.provider,
-        width: result.width,
-        height: result.height,
-        topic,
-        headline,
-        imageDirection,
-      },
+      data: { gridImagePath: result.gridImagePath, prompt: result.prompt, provider: result.provider },
     },
   ]
 }
