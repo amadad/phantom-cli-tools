@@ -286,6 +286,7 @@ async function buildAssetArtifacts(context: WorkflowContext): Promise<StepOutput
     ? draft.data.headline
     : String(mainVariant?.hook ?? context.input.topic ?? 'Untitled')
   const body = String(mainVariant?.body ?? context.brand.positioning)
+  const cta = typeof mainVariant?.cta === 'string' ? mainVariant.cta : undefined
   const sourceImagePath = typeof sourceImage?.data.imagePath === 'string' ? sourceImage.data.imagePath : ''
 
   const platformAssets = await renderSocialAssets({
@@ -294,6 +295,7 @@ async function buildAssetArtifacts(context: WorkflowContext): Promise<StepOutput
     runId: context.runId,
     headline,
     body,
+    cta,
     sourceImagePath,
   })
 

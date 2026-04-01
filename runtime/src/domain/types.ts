@@ -45,6 +45,8 @@ export interface BrandAudience {
 export interface BrandOffer {
   id: string
   summary: string
+  url?: string
+  cta?: string
 }
 
 export interface BrandPlaybook {
@@ -53,11 +55,10 @@ export interface BrandPlaybook {
   approach: string
 }
 
-export interface BrandContentType {
-  id: string
-  description: string
-  elements: string
-  camera?: string
+export interface BrandChannel {
+  objective: string
+  platforms?: string[]
+  defaultOffer?: string
 }
 
 export interface BrandPillar {
@@ -90,10 +91,10 @@ export interface BrandFoundation {
     dont: string[]
   }
   channels: {
-    social: { objective: string }
-    blog: { objective: string }
-    outreach: { objective: string }
-    respond: { objective: string }
+    social: BrandChannel
+    blog: BrandChannel
+    outreach: BrandChannel
+    respond: BrandChannel
   }
   handles?: Partial<Record<SocialPlatform, string>>
   visual: {
@@ -111,7 +112,6 @@ export interface BrandFoundation {
     style?: string
     composition?: string[]
     texture?: string[]
-    contentTypes?: BrandContentType[]
     negative?: string[]
     motif?: string
     imageStyle?: string

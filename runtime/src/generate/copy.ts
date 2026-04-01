@@ -54,15 +54,23 @@ function firstSentence(value: string): string {
   return match ? match[1] : normalized
 }
 
+function resolveCtaFromBrand(brand: BrandFoundation): string {
+  const offerId = brand.channels.social.defaultOffer
+  if (offerId) {
+    const offer = brand.offers.find(o => o.id === offerId)
+    if (offer?.cta) return offer.cta
+  }
+  return brand.channels.social.objective
+}
+
 export function generateSocialDraftSet(options: SocialDraftOptions): SocialDraftSet {
   const { brand } = options
   const topic = cleanTopic(options.topic)
   const audience = brand.audiences[0]?.summary ?? 'the audience'
-  const objective = brand.channels.social.objective
   const evidence = buildEvidenceLine(brand)
   const dont = brand.voice.dont[0] ?? 'generic language'
-  const doRule = brand.voice.do[0] ?? 'say the real thing plainly'
   const angle = options.perspective ? firstSentence(options.perspective) : brand.positioning
+  const cta = resolveCtaFromBrand(brand)
 
   return {
     channel: 'social',
@@ -73,13 +81,13 @@ export function generateSocialDraftSet(options: SocialDraftOptions): SocialDraft
         id: 'social-main',
         hook: `${sentenceCase(topic)} is usually treated like a personal problem. It is not.`,
         body: compact(`${brand.name} frames it as a systems issue for ${audience}. ${angle} ${evidence}`),
-        cta: compact(`${doRule}. ${objective}`),
+        cta,
       },
       {
         id: 'social-alt',
         hook: `The usual story about ${topic} hides the real failure.`,
         body: compact(`Most takes fall into ${dont}. ${brand.name} starts with this angle: ${angle}. Then it names one concrete consequence.`),
-        cta: compact(`Start with the system. Then make one useful change.`),
+        cta,
       },
     ],
   }

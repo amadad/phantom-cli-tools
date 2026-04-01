@@ -5,29 +5,14 @@
  * Sizes from √2 modular scale. Margins from Renner ratios (2:3:4:6).
  */
 
-import { createCanvas, registerFont, Image, type CanvasRenderingContext2D } from 'canvas'
+import { createCanvas, Image, type CanvasRenderingContext2D } from 'canvas'
 import { writeFileSync, existsSync, readFileSync } from 'fs'
-import { resolve, join, dirname } from 'path'
-import { fileURLToPath } from 'url'
 import { ensureParentDir } from '../core/paths'
 import { ditherCanvas, drawSubject, IMAGE_SUBJECTS, type ImageSubject } from './dither'
+import { hexToRgb, muted } from './colors'
+import { ensureFontsRegistered } from './fonts'
 
-// ── Bundled font registration ──
-
-const fontsDir = resolve(dirname(fileURLToPath(import.meta.url)), '../../fonts')
-
-for (const [file, family, weight, style] of [
-  ['Alegreya-Regular.ttf', 'Alegreya', '400', undefined],
-  ['Alegreya-Bold.ttf', 'Alegreya', '700', undefined],
-  ['Alegreya-Italic.ttf', 'Alegreya', '400', 'italic'],
-  ['Inter-Regular.ttf', 'Inter', '400', undefined],
-  ['Inter-Bold.ttf', 'Inter', '700', undefined],
-  ['JetBrainsMono-Regular.ttf', 'JetBrains Mono', '400', undefined],
-  ['JetBrainsMono-Medium.ttf', 'JetBrains Mono', '500', undefined],
-] as const) {
-  const p = join(fontsDir, file)
-  if (existsSync(p)) registerFont(p, { family, weight, style })
-}
+ensureFontsRegistered()
 
 // ── Types ──
 
@@ -114,18 +99,6 @@ function seededRng(seed: string): () => number {
   return () => { v += 0x6D2B79F5; let t = v; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296 }
 }
 
-function hexToRgb(hex: string): [number, number, number] {
-  const h = hex.replace('#', '')
-  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
-}
-
-function muted(fg: string, bg: string, t: number): string {
-  const [r1, g1, b1] = hexToRgb(fg)
-  const [r2, g2, b2] = hexToRgb(bg)
-  const mix = (a: number, b: number) => Math.round(a * t + b * (1 - t))
-  return `rgb(${mix(r1, r2)}, ${mix(g1, g2)}, ${mix(b1, b2)})`
-}
-
 function splitBullets(text: string): string[] {
   return (text.includes('|') ? text.split('|') : text.split(/\n+/)).map(s => s.trim()).filter(Boolean)
 }
@@ -144,7 +117,7 @@ function drawSpaced(ctx: CanvasRenderingContext2D, text: string, x: number, y: n
 }
 
 function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
-  const words = text.split(/\s+/)
+  const words = text.split(/\s+/).filter(Boolean)
   const lines: string[] = []
   let current = ''
   for (const word of words) {

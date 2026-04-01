@@ -41,6 +41,15 @@ export function loadBrandFoundation(id: string, options: LoadBrandOptions = {}):
     throw new Error(`Brand foundation not found: ${brandPath}`)
   }
 
+  function loadChannel(raw: unknown, label: string) {
+    const ch = expectRecord(raw, label)
+    return {
+      objective: expectString(ch.objective, `${label}.objective`),
+      platforms: Array.isArray(ch.platforms) ? ch.platforms.map(String) : undefined,
+      defaultOffer: optionalString(ch.default_offer),
+    }
+  }
+
   const raw = yaml.load(readFileSync(brandPath, 'utf8'))
   const data = expectRecord(raw, 'brand')
   const voice = expectRecord(data.voice, 'voice')
@@ -62,6 +71,8 @@ export function loadBrandFoundation(id: string, options: LoadBrandOptions = {}):
     return {
       id: expectString(item.id, 'offer.id'),
       summary: expectString(item.summary, 'offer.summary'),
+      url: optionalString(item.url),
+      cta: optionalString(item.cta),
     }
   }) ?? []
 
@@ -121,10 +132,10 @@ export function loadBrandFoundation(id: string, options: LoadBrandOptions = {}):
       dont: expectStringArray(voice.dont, 'voice.dont'),
     },
     channels: {
-      social: { objective: expectString(expectRecord(channels.social, 'channels.social').objective, 'channels.social.objective') },
-      blog: { objective: expectString(expectRecord(channels.blog, 'channels.blog').objective, 'channels.blog.objective') },
-      outreach: { objective: expectString(expectRecord(channels.outreach, 'channels.outreach').objective, 'channels.outreach.objective') },
-      respond: { objective: expectString(expectRecord(channels.respond, 'channels.respond').objective, 'channels.respond.objective') },
+      social: loadChannel(channels.social, 'channels.social'),
+      blog: loadChannel(channels.blog, 'channels.blog'),
+      outreach: loadChannel(channels.outreach, 'channels.outreach'),
+      respond: loadChannel(channels.respond, 'channels.respond'),
     },
     handles: handlesRaw
       ? Object.fromEntries(
@@ -155,17 +166,6 @@ export function loadBrandFoundation(id: string, options: LoadBrandOptions = {}):
       style: optionalString(visual.style),
       composition: Array.isArray(visual.composition) ? (visual.composition as string[]) : undefined,
       texture: Array.isArray(visual.texture) ? (visual.texture as string[]) : undefined,
-      contentTypes: Array.isArray(visual.content_types)
-        ? (visual.content_types as unknown[]).map((entry) => {
-            const item = expectRecord(entry, 'content_type')
-            return {
-              id: expectString(item.id, 'content_type.id'),
-              description: expectString(item.description, 'content_type.description'),
-              elements: expectString(item.elements, 'content_type.elements'),
-              camera: optionalString(item.camera),
-            }
-          })
-        : undefined,
       negative: Array.isArray(visual.negative)
         ? (visual.negative as string[])
         : undefined,

@@ -1,6 +1,6 @@
 # Loom Runtime
 
-Brand communications runtime for agent-friendly workflows.
+Autonomous brand communications agent. brand.yml is the operating spec — pillars are lenses for evaluating signals, voice constrains copy, visual drives rendering, offers define CTAs. The runtime executes the spec.
 
 ## Active Surface
 
@@ -34,7 +34,7 @@ npx tsx src/cli.ts lab render --brand givecare --figure statement --gravity high
 
 ## CLI Rules
 
-This repo is being rebuilt around an agentic CLI contract:
+Agentic CLI contract:
 
 - non-interactive by default
 - all inputs available via flags
@@ -51,77 +51,79 @@ runtime/
     brands/      brand foundation loader
     cli/         command dispatch
     commands/    public command handlers
+    core/        paths, env helpers
     domain/      workflow/run/artifact types
     generate/    copy drafts, explore grid, source image
     publish/     social platform adapters (Twitter, LinkedIn, Meta, Threads)
-    render/      social asset rendering + card.ts (proportional card renderer) + generate-card.sh (Claude→Gemini pipeline)
+    render/
+      card.ts      deterministic proportional card renderer (lab)
+      social.ts    two-phase social renderer (Gemini art + canvas text)
+      dither.ts    procedural art subjects + Bayer 4×4 dithering
+      colors.ts    shared color math (hexToRgb, muted)
+      fonts.ts     shared font registration (idempotent)
     runtime/     SQLite-backed run engine + step definitions
 
 brands/
-  <name>/brand.yml         pillars, voice, visual system, image_prompt, playbooks
-  <name>/learnings.json    card vocabulary, visual system learnings, prompt history
+  <name>/brand.yml         agent operating spec (see below)
+  <name>/learnings.json    card vocabulary, visual system learnings
 
 state/          generated at runtime, gitignored
-archive/        archived legacy implementation
+archive/        archived legacy + generate-card.sh
 ```
 
-## Image Generation
+## Brand Spec (brand.yml)
 
-The `social.post` workflow includes AI-powered image generation:
+brand.yml is the agent's operating instructions:
 
-- **Explore step**: generates a 3x3 visual direction grid with Gemini
-- **Image step**: writes an image brief and only generates a source image when the canvas fallback path is needed
-- **Render step**: generates per-platform social assets with Gemini or falls back to deterministic canvas rendering
+- **pillars** — what the agent talks about + from what angle (lenses, not calendar)
+- **voice** — tone, style, do/don't rules for copy generation
+- **visual** — palette, typography, image_prompt (Agnes Martin for GiveCare), style
+- **offers** — products with `url` and `cta` (e.g., "Sign up at pulse.givecareapp.com")
+- **channels** — where content goes, `platforms` list, `default_offer` for CTA resolution
 
-Requires `GEMINI_API_KEY` or `GOOGLE_API_KEY` (either works). Preferred model: `gemini-3.1-flash-image-preview`. Without keys, the runtime falls back to deterministic canvas art.
+CTA resolution: `channels.social.default_offer` → matches `offers[].id` → uses that offer's `cta` field. No hallucinated CTAs.
 
-Each brand.yml includes an `image_prompt` field with a complete generation directive and `[SUBJECT]` slot. SCTY uses a damaged-reproduction process system. GiveCare uses a grounded-fragment with single-intervention system.
+## Social Post Pipeline
 
-## Content Pillars
+Two-phase rendering (social.ts):
 
-Each brand defines content pillars in `brand.yml` with `perspective`, `signals`, `format`, and `frequency` fields. The runtime loads those pillars into the brand foundation, includes the selected pillar in the brief, uses that perspective in social/blog draft generation, and accepts `--pillar <id>` as workflow input when you want to force a specific angle.
+1. **Gemini generates art-only image** — uses `brand.visual.image_prompt` with `[SUBJECT]` slot. No text, no logos, no brand names in generated image.
+2. **Canvas composites text + logo on top** — deterministic typography, hard split layout, brand logo from `brands/<name>/logo.png`.
 
-## Output Formats
+Pipeline steps: `signal → brief → draft → explore → image → render`
 
-Workflows support per-brand output formats via `--format <id>`. Format resolution:
+Requires `GEMINI_API_KEY` or `GOOGLE_API_KEY`. Without keys, falls back to solid-color canvas with text overlay.
 
-1. Explicit `--format infographic` flag
-2. Selected pillar's `default_format` (e.g., care-economy defaults to infographic)
-3. `standard` (existing behavior)
+## Card Renderer (lab render)
 
-Each brand defines available formats in `brand.yml` under `formats:`.
-
-## Card Generation
-
-Two card pipelines:
-
-### Deterministic renderer (`lab render`)
-
-Proportional typographic system inspired by Hochuli/Kinross. Three inputs → PNG:
+Proportional typographic system for the interactive card lab. Three inputs → PNG:
 
 - **Figure**: `statement` (headline), `stat` (big number), `passage` (quote), `index` (stacked list)
-- **Gravity**: `high`, `center`, `low` — shifts content within Renner margin ratios (2:3:3:6)
-- **Ground**: 12 options (cream, warm, slate, sage, grounded, mute, ink, dusk, dawn, ember, fog, storm)
+- **Gravity**: `high`, `center`, `low` — shifts content within Renner margin ratios (2:3:4:6)
+- **Ground**: 12 color schemes (cream, warm, slate, sage, grounded, mute, ink, dusk, dawn, ember, fog, storm)
 
-All sizes from a √2 modular scale. Includes Bayer 4×4 ordered-dithered abstract imagery (topography, watershed, strata, grid-erosion, root-system, threshold). Outputs to `state/cards/`.
+All sizes from √2 modular scale. Dithered abstract imagery (topography, watershed, strata, grid-erosion, root-system, threshold) on right side, non-overlapping with text. Outputs to `state/cards/`.
 
 ```bash
 npx tsx src/cli.ts lab render --brand givecare --figure stat --gravity center --ground grounded --platform linkedin --stat-num '$1T' --stat-label 'unpaid care labor' --image strata --json
 ```
 
-### Gemini pipeline (`generate-card.sh`)
+## Content Pillars
 
-Claude CLI writes a hyper-specific Gemini image prompt from `brand.yml` + `learnings.json`, Gemini renders the PNG directly. Eval loop scores the output against the brand spec and retries with feedback (max 3x). Results accumulate in `brands/<name>/learnings.json`.
+Each brand defines pillars with `perspective`, `signals`, `format`, and `frequency`. The runtime uses these as lenses — matching signals to pillars, injecting perspective into copy, and accepting `--pillar <id>` to force an angle.
 
-Card types: `hero-stat`, `fact-list`, `quote`, `bold-statement`, `photo-dominant`, `photo-text`
-Volume levels: `quiet` (cream bg), `warm` (sandstone bg), `grounded` (dark brown bg)
+## Output Formats
+
+Per-brand formats via `--format <id>`. Resolution: explicit flag → pillar's `default_format` → `standard`.
+
+Each format can define `prompt_overlay` for copy generation variation (e.g., infographic format extracts stats).
 
 ## Runtime Safety
 
-- failed runs are persisted with the failing step and error message
+- failed runs persisted with step and error message
 - published runs cannot be reviewed again
-- explicit publish targets must already be configured for the brand
-- `inspect artifact` is limited to files under `state/artifacts/`
+- explicit publish targets must be configured for the brand
+- `inspect artifact` limited to files under `state/artifacts/`
 
 ## Verification
 
@@ -133,4 +135,4 @@ npx tsc --noEmit
 
 ## Archive
 
-The old content-pipeline implementation is preserved in `archive/legacy-20260325/`.
+Legacy content-pipeline: `archive/legacy-20260325/`. Standalone generate-card.sh: `archive/generate-card.sh`.

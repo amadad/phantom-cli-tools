@@ -38,20 +38,10 @@ function buildExplorePrompt(options: ExploreGridOptions): string {
   }
 
   // Fallback: construct from visual fields
-  const contentTypes = brand.visual.contentTypes ?? []
   const lines: string[] = []
 
   lines.push(`A 3x3 mood board grid (3:4 aspect ratio) exploring visual directions for "${topic}" by ${brand.name}.`)
   lines.push('Nine panels separated by clean visible grid lines. Each panel is a distinct composition.')
-
-  if (contentTypes.length > 0) {
-    lines.push('')
-    lines.push('Panel concepts:')
-    for (let i = 0; i < 9; i += 1) {
-      const ct = contentTypes[i % contentTypes.length]
-      lines.push(`${i + 1}. ${ct.id}: ${ct.description}. ${ct.elements}.`)
-    }
-  }
 
   if (brand.visual.style) {
     lines.push('')
