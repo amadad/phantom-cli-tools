@@ -140,16 +140,9 @@ describe('runtime workflows', () => {
       'brief',
       'draft_set',
       'explore_grid',
-      'image_brief',
       'source_image',
       'asset_set',
     ])
-
-    const imageBrief = details.artifacts.find((artifact) => artifact.type === 'image_brief')
-    expect(imageBrief?.data).toMatchObject({
-      channel: 'social',
-      brand: 'givecare',
-    })
 
     const draftSet = details.artifacts.find((artifact) => artifact.type === 'draft_set')
     const socialMain = Array.isArray(draftSet?.data.variants)
@@ -158,8 +151,7 @@ describe('runtime workflows', () => {
     expect(String(socialMain?.body)).toContain('Caregiving is infrastructure and should be discussed as such.')
 
     const sourceImage = details.artifacts.find((artifact) => artifact.type === 'source_image')
-    expect(typeof sourceImage?.data.imagePath).toBe('string')
-    expect(existsSync(String(sourceImage?.data.imagePath))).toBe(true)
+    expect(sourceImage?.data).toMatchObject({ channel: 'social', skipped: true })
 
     const asset = details.artifacts.find((artifact) => artifact.type === 'asset_set')
     const platformAssets = asset?.data.platformAssets as Record<string, string> | undefined

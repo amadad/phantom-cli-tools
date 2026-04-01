@@ -16,7 +16,6 @@ export type ArtifactType =
   | 'brief'
   | 'draft_set'
   | 'explore_grid'
-  | 'image_brief'
   | 'source_image'
   | 'asset_set'
   | 'outline'

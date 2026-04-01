@@ -7,7 +7,7 @@ import type {
 } from '../domain/types'
 import { generateSocialDraftSet } from '../generate/copy'
 import { generateExploreGrid } from '../generate/explore'
-import { buildSocialImageBrief, generateSourceImage } from '../generate/image'
+import { generateSourceImage } from '../generate/image'
 import { renderSocialAssets } from '../render/social'
 import type { RuntimePaths } from '../core/paths'
 
@@ -223,57 +223,21 @@ async function buildExploreArtifacts(context: WorkflowContext): Promise<StepOutp
 }
 
 async function buildImageArtifacts(context: WorkflowContext): Promise<StepOutput[]> {
-  const draft = findArtifact(context.priorArtifacts, 'draft_set')
-  const topic = String(context.input.topic ?? draft?.data.headline ?? 'Untitled')
-  const headline = typeof draft?.data.headline === 'string' ? draft.data.headline : topic
-  const imageDirection = typeof draft?.data.imageDirection === 'string'
-    ? draft.data.imageDirection
-    : `${context.brand.name} visual direction for ${topic}`
-  const imageBrief = buildSocialImageBrief({
-    brand: context.brand,
-    topic,
-    headline,
-    imageDirection,
-  })
-
-  // When Gemini is available, the render step generates finished platform assets directly.
-  // Source image is only needed as a canvas fallback when no API key is set.
-  if (process.env.GEMINI_API_KEY) {
-    return [
-      {
-        type: 'image_brief' as const,
-        data: imageBrief,
-      },
-      {
-        type: 'source_image' as const,
-        data: {
-          channel: 'social',
-          skipped: true,
-          reason: 'Render step generates finished assets via Gemini directly',
-        },
-      },
-    ]
-  }
+  const topic = String(context.input.topic ?? 'Untitled')
 
   const sourceImage = await generateSourceImage({
     brand: context.brand,
     paths: context.paths,
     runId: context.runId,
     topic,
-    headline,
   })
 
   return [
     {
-      type: 'image_brief' as const,
-      data: imageBrief,
-    },
-    {
       type: 'source_image' as const,
-      data: {
-        channel: 'social',
-        ...sourceImage,
-      },
+      data: sourceImage
+        ? { channel: 'social', ...sourceImage }
+        : { channel: 'social', skipped: true },
     },
   ]
 }
