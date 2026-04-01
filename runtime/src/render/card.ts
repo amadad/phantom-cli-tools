@@ -8,10 +8,32 @@
  * Dithered abstract imagery via Bayer 4×4 ordered dithering.
  */
 
-import { createCanvas, registerFont, type CanvasRenderingContext2D } from 'canvas'
-import { writeFileSync } from 'fs'
-import { resolve } from 'path'
+import { createCanvas, registerFont, Image, type CanvasRenderingContext2D } from 'canvas'
+import { writeFileSync, existsSync, readFileSync } from 'fs'
+import { resolve, join, dirname } from 'path'
+import { fileURLToPath } from 'url'
 import { ensureParentDir } from '../core/paths'
+
+// ── Register bundled fonts (critical for Linux/Hetzner where system fonts are absent) ──
+const __dirname_card = dirname(fileURLToPath(import.meta.url))
+const fontsDir = resolve(__dirname_card, '../../fonts')
+
+const fontManifest: Array<{ file: string; family: string; weight?: string; style?: string }> = [
+  { file: 'Alegreya-Regular.ttf', family: 'Alegreya', weight: '400' },
+  { file: 'Alegreya-Bold.ttf', family: 'Alegreya', weight: '700' },
+  { file: 'Alegreya-Italic.ttf', family: 'Alegreya', weight: '400', style: 'italic' },
+  { file: 'Inter-Regular.ttf', family: 'Inter', weight: '400' },
+  { file: 'Inter-Bold.ttf', family: 'Inter', weight: '700' },
+  { file: 'JetBrainsMono-Regular.ttf', family: 'JetBrains Mono', weight: '400' },
+  { file: 'JetBrainsMono-Medium.ttf', family: 'JetBrains Mono', weight: '500' },
+]
+
+for (const f of fontManifest) {
+  const p = join(fontsDir, f.file)
+  if (existsSync(p)) {
+    registerFont(p, { family: f.family, weight: f.weight, style: f.style })
+  }
+}
 
 // ── Types ──
 
@@ -378,9 +400,19 @@ export function renderCard(input: CardInput, platform: PlatformSpec, seed: strin
 
   // ── Brand mark ──
   const markY = height - mBottom * 0.4
-  ctx.font = `500 ${s(0)}px "JetBrains Mono", monospace`
-  ctx.fillStyle = muted(g.fg, g.bg, 0.45)
-  drawSpaced(ctx, input.brandName.toUpperCase(), contentX, markY, s(0) * 0.14)
+  if (input.logoPath && existsSync(input.logoPath)) {
+    const img = new Image()
+    img.src = readFileSync(input.logoPath)
+    const logoH = s(1) * 1.4
+    const logoW = (img.width / img.height) * logoH
+    ctx.globalAlpha = 0.45
+    ctx.drawImage(img, contentX, markY - logoH, logoW, logoH)
+    ctx.globalAlpha = 1
+  } else {
+    ctx.font = `500 ${s(0)}px "JetBrains Mono", monospace`
+    ctx.fillStyle = muted(g.fg, g.bg, 0.45)
+    drawSpaced(ctx, input.brandName.toUpperCase(), contentX, markY, s(0) * 0.14)
+  }
 
   return canvas.toBuffer('image/png')
 }
@@ -399,6 +431,7 @@ export interface RenderCardOptions {
   statLabel?: string
   image?: string
   brandName?: string
+  logoPath?: string
   seed?: string
   out: string
 }
@@ -418,6 +451,7 @@ export function renderCardToFile(opts: RenderCardOptions): { path: string } {
     stat: opts.statNum ? { num: opts.statNum, label: opts.statLabel || '' } : undefined,
     image: opts.image,
     brandName: opts.brandName || 'GiveCare',
+    logoPath: opts.logoPath,
   }
 
   const png = renderCard(input, platform, seed)

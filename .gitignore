@@ -48,5 +48,4 @@ private/
 # Brand ephemeral data (track configs + assets, ignore runtime state)
 brands/*/queue.json
 brands/*/intel/
-runtime/fonts/*.ttf
 runtime/fonts/*.woff2

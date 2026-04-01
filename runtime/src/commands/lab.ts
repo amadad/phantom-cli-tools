@@ -186,7 +186,11 @@ function runLabRender(args: string[], root?: string): unknown {
   const paths = resolveRuntimePaths(root)
 
   // Load brand for defaults if provided
-  const brandName = parsed.brand ? loadBrandFoundation(parsed.brand, { root: paths.root }).name : 'GiveCare'
+  const brand = parsed.brand ? loadBrandFoundation(parsed.brand, { root: paths.root }) : undefined
+  const brandName = brand?.name || 'GiveCare'
+  const logoPath = brand?.visual.logo
+    ? join(paths.root, 'brands', brand.id, brand.visual.logo)
+    : undefined
 
   const headline = parsed.headline || 'Care is infrastructure'
   const body = parsed.body || 'The care economy is valued at $1 trillion in unpaid labor annually.'
@@ -209,6 +213,7 @@ function runLabRender(args: string[], root?: string): unknown {
     statLabel: parsed['stat-label'],
     image,
     brandName,
+    logoPath,
     seed,
     out: outPath,
   })
