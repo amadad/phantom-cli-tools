@@ -1,5 +1,5 @@
-import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'fs'
-import { dirname, join, resolve } from 'path'
+import { writeFileSync } from 'fs'
+import { join, resolve } from 'path'
 import { loadBrandFoundation } from '../brands/load'
 import { ensureParentDir, resolveRuntimePaths } from '../core/paths'
 import { buildCardLabHtml, CARD_LAB_TYPES, type CardLabType } from '../lab/build'
@@ -88,38 +88,6 @@ function normalizeInput(args: string[]): LabInput {
   }
 }
 
-function resolveGivecareFontsDir(): string | undefined {
-  const candidates = [
-    resolve(process.cwd(), '..', '..', 'givecare', 'apps', 'web-site', 'public', 'fonts'),
-    resolve(process.cwd(), '..', 'givecare', 'apps', 'web-site', 'public', 'fonts'),
-    resolve('/Users/amadad/projects/givecare/apps/web-site/public/fonts'),
-  ]
-
-  return candidates.find((candidate) => existsSync(join(candidate, 'alegreya-400.woff2')))
-}
-
-function ensureLabFonts(outputPath: string): void {
-  const sourceDir = resolveGivecareFontsDir()
-  if (!sourceDir) {
-    return
-  }
-
-  const fontsDir = join(dirname(outputPath), 'fonts')
-  if (!existsSync(fontsDir)) {
-    mkdirSync(fontsDir, { recursive: true })
-  }
-
-  const fontFiles = [
-    'alegreya-400.woff2',
-    'alegreya-latin-wght-normal.woff2',
-    'gabarito-latin-400-normal.woff2',
-  ]
-
-  for (const file of fontFiles) {
-    copyFileSync(join(sourceDir, file), join(fontsDir, file))
-  }
-}
-
 export function runLabCommand(args: string[], root?: string): unknown {
   const [subcommand, ...rest] = args
 
@@ -143,7 +111,6 @@ export function runLabCommand(args: string[], root?: string): unknown {
     : join(paths.stateDir, 'lab', `${brand.id}-${input.type}.html`)
 
   ensureParentDir(outputPath)
-  ensureLabFonts(outputPath)
 
   const html = buildCardLabHtml({
     brand,
