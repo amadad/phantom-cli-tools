@@ -29,6 +29,7 @@ npx tsx src/cli.ts review approve <run_id> --variant social-main --json
 npx tsx src/cli.ts publish <run_id> --platforms twitter,linkedin --dry-run --json
 npx tsx src/cli.ts inspect run <run_id> --json
 npx tsx src/cli.ts retry <run_id> --from draft --json
+npx tsx src/cli.ts lab render --brand givecare --figure statement --gravity high --ground cream --platform linkedin --headline "Care is infrastructure" --body "63M provide unpaid care." --image watershed --json
 ```
 
 ## CLI Rules
@@ -53,7 +54,7 @@ runtime/
     domain/      workflow/run/artifact types
     generate/    copy drafts, explore grid, source image
     publish/     social platform adapters (Twitter, LinkedIn, Meta, Threads)
-    render/      social asset rendering + generate-card.sh (Claude→Gemini pipeline)
+    render/      social asset rendering + card.ts (proportional card renderer) + generate-card.sh (Claude→Gemini pipeline)
     runtime/     SQLite-backed run engine + step definitions
 
 brands/
@@ -90,17 +91,27 @@ Workflows support per-brand output formats via `--format <id>`. Format resolutio
 
 Each brand defines available formats in `brand.yml` under `formats:`.
 
-## Card Generation Pipeline
+## Card Generation
 
-Brand social cards (infographics, stat cards, quote cards) use a separate pipeline from the step-based workflow:
+Two card pipelines:
+
+### Deterministic renderer (`lab render`)
+
+Proportional typographic system inspired by Hochuli/Kinross. Three inputs → PNG:
+
+- **Figure**: `statement` (headline), `stat` (big number), `passage` (quote), `index` (stacked list)
+- **Gravity**: `high`, `center`, `low` — shifts content within Renner margin ratios (2:3:3:6)
+- **Ground**: 12 options (cream, warm, slate, sage, grounded, mute, ink, dusk, dawn, ember, fog, storm)
+
+All sizes from a √2 modular scale. Includes Bayer 4×4 ordered-dithered abstract imagery (topography, watershed, strata, grid-erosion, root-system, threshold). Outputs to `state/cards/`.
 
 ```bash
-runtime/src/render/generate-card.sh \
-  --brand givecare --type hero-stat --volume quiet \
-  --eyebrow "WEEK IN REVIEW" --content "..."
+npx tsx src/cli.ts lab render --brand givecare --figure stat --gravity center --ground grounded --platform linkedin --stat-num '$1T' --stat-label 'unpaid care labor' --image strata --json
 ```
 
-Pipeline: Claude CLI writes a hyper-specific Gemini image prompt from `brand.yml` + `learnings.json`, Gemini renders the PNG directly. Eval loop scores the output against the brand spec and retries with feedback (max 3x). Results accumulate in `brands/<name>/learnings.json`.
+### Gemini pipeline (`generate-card.sh`)
+
+Claude CLI writes a hyper-specific Gemini image prompt from `brand.yml` + `learnings.json`, Gemini renders the PNG directly. Eval loop scores the output against the brand spec and retries with feedback (max 3x). Results accumulate in `brands/<name>/learnings.json`.
 
 Card types: `hero-stat`, `fact-list`, `quote`, `bold-statement`, `photo-dominant`, `photo-text`
 Volume levels: `quiet` (cream bg), `warm` (sandstone bg), `grounded` (dark brown bg)

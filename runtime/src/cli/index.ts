@@ -1,5 +1,6 @@
 import { runBrandCommand } from '../commands/brand'
 import { runInspectCommand } from '../commands/inspect'
+import { runLabCommand } from '../commands/lab'
 import { runOpsCommand } from '../commands/ops'
 import { runPublishCommand } from '../commands/publish'
 import { runRetryCommand } from '../commands/retry'
@@ -38,6 +39,7 @@ function helpText(): string {
     '  publish <run_id> [--platforms twitter,linkedin] [--dry-run]',
     '  inspect <run|artifact> ...',
     '  retry <run_id> [--from <step>]',
+    '  lab card --brand <id> [--type quote] [--headline "..."]',
     '  ops <health|auth check --brand <id>|auth refresh|migrate>',
     '',
     'Workflows:',
@@ -52,6 +54,7 @@ function helpText(): string {
     '  loom run social.post --brand givecare --pillar care-economy --topic "$470B unpaid care labor"',
     '  loom run social.post --brand givecare --format infographic --topic "caregiver workforce"',
     '  loom run blog.post --brand givecare --pillar policy --topic "paid leave"',
+    '  loom lab card --brand givecare --type quote --headline "Care is infrastructure"',
     '  loom publish run_123 --platforms twitter,linkedin --dry-run',
   ].join('\n')
 }
@@ -93,6 +96,9 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<nu
         break
       case 'ops':
         data = await runOpsCommand(args)
+        break
+      case 'lab':
+        data = await runLabCommand(args)
         break
       default:
         throw new Error(`Unknown command: ${command}`)

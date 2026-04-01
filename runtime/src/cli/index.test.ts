@@ -1,4 +1,4 @@
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'fs'
+import { existsSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import { afterEach, describe, expect, test, vi } from 'vitest'
@@ -317,6 +317,46 @@ outreach_playbooks:
         message: expect.stringContaining(join(root, 'brands', 'broken', 'missing-logo.png')),
       },
     })
+  })
+
+  test('builds a browser card lab for a brand', async () => {
+    const root = createWorkspace()
+    process.env.LOOM_ROOT = root
+    process.env.HOME = root
+
+    const { result, stdout } = await captureStdout(() =>
+      runCli([
+        'lab',
+        'card',
+        '--brand',
+        'givecare',
+        '--series',
+        'weekly-recap',
+        '--type',
+        'quote',
+        '--headline',
+        'Care is infrastructure',
+        '--body',
+        'Make invisible work visible.',
+        '--json',
+      ]),
+    )
+
+    expect(result).toBe(0)
+    const response = JSON.parse(stdout)
+    expect(response).toMatchObject({
+      status: 'ok',
+      command: 'lab',
+      data: {
+        brand: 'givecare',
+        type: 'quote',
+        series: 'weekly-recap',
+      },
+    })
+
+    const htmlPath = String(response.data.path)
+    expect(htmlPath).toContain(join(root, 'state', 'lab'))
+    expect(existsSync(htmlPath)).toBe(true)
   })
 
   test('returns an actionable error for unsupported auth refresh', async () => {

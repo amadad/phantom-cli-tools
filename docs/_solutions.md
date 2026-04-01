@@ -1,5 +1,10 @@
 # Solutions Log
 
+## 2026-03-31 — Card lab body text missing letter "s"
+- Problem: Body text on social cards was rendering with the letter "s" completely missing. Appeared to be a font subsetting issue — the symptom (missing glyphs) pointed at the woff2 font file.
+- Root cause: `truncateWords()` in the card lab HTML had `/s+/` instead of `/\s+/` as the regex for `String.split()`. The literal letter "s" was being used as a word delimiter, stripping every "s" from the output.
+- Fix: Added the missing backslash: `.split(/\s+/)`. The font file was fine all along.
+
 ## 2026-03-30 — CLI failures now stay machine-readable
 - Problem: CLI commands could return plain stderr text on failure even when `--json` was requested, which broke agent workflows and made invalid input harder to recover from automatically.
 - Fix: centralized CLI error handling now returns JSON error envelopes, and command boundaries validate workflows, steps, variants, artifact paths, and requested publish platforms before side effects begin.
