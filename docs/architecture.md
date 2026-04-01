@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Loom is a brand communications runtime. It turns brand foundations and workflow input into reviewable communication artifacts.
+Loom is an autonomous brand communications runtime. brand.yml is the agent's operating spec — pillars are lenses for evaluating signals, voice constrains copy, visual drives rendering, offers define CTAs. The runtime executes the spec.
 
 ## Workflows
 
@@ -16,12 +16,11 @@ Loom is a brand communications runtime. It turns brand foundations and workflow 
 Every workflow emits typed artifacts:
 
 - `signal_packet` — workflow context and topic signal
-- `brief` — brand-grounded creative brief
-- `draft_set` — copy variants with headline, body, CTA
-- `explore_grid` — 3x3 visual direction grid generated with Gemini
-- `image_brief` — art direction for source image
-- `source_image` — full-res hero image when the canvas fallback path is used
-- `asset_set` — per-platform rendered assets (Twitter, Instagram, LinkedIn, etc.)
+- `brief` — brand-grounded creative brief with pillar, perspective, audience
+- `draft_set` — copy variants with headline, body, CTA (CTA resolved from brand offers)
+- `explore_grid` — 3x3 visual direction grid (Gemini, skipped when no API key)
+- `source_image` — source art via Gemini (skipped when API key available, since render step generates its own)
+- `asset_set` — per-platform rendered assets (Twitter, Instagram, LinkedIn, Facebook, Threads)
 - `outline` — blog post structure (blog.post only)
 - `article_draft` — longform markdown (blog.post only)
 - `approval` — review decision with selected variant
@@ -30,47 +29,58 @@ Every workflow emits typed artifacts:
 ### social.post pipeline
 
 ```
-signal → brief → draft → explore (3x3 grid) → image brief / optional source image → render (per-platform)
+signal → brief → draft → explore → image → render
 ```
 
-The explore step uses Gemini when `GEMINI_API_KEY` or `GOOGLE_API_KEY` is set. The render step also uses Gemini to generate final per-platform assets directly. When Gemini is unavailable, the runtime falls back to deterministic canvas generation and uses `source_image` as the render input. Both `buildExplorePrompt()` and `buildSourceImagePrompt()` read `brand.visual.imagePrompt` from brand.yml and fill the `[SUBJECT]` slot with the topic. If no `imagePrompt` is set, they fall back to generic prompts constructed from visual fields.
+### Two-phase rendering (social.ts)
 
-Each brand.yml includes an `image_prompt` field containing a complete generation directive with a `[SUBJECT]` slot that the pipeline fills per post. Brand-specific image prompts define the visual grammar (SCTY: damaged-reproduction process; GiveCare: grounded-fragment with single intervention).
+1. **Gemini generates art-only image** — uses `brand.visual.image_prompt` with `[SUBJECT]` slot. No text, no logos, no brand names.
+2. **Canvas composites text + logo on top** — deterministic typography (Alegreya headline, Inter body, JetBrains Mono eyebrow), hard split layout, brand logo from `brands/<name>/logo.png`.
 
-### Brand pillars
+When no API key is set, falls back to solid-color canvas with text overlay.
 
-Each brand defines content pillars in `brand.yml` with `perspective`, `signals`, `format`, and `frequency`. The loader preserves those pillars in the brand foundation, the brief step includes the selected pillar, and social/blog drafting uses that perspective so downstream content stays aligned with the intended angle.
+### Brand spec drives everything
+
+- `brand.visual.imagePrompt` with `[SUBJECT]` slot → Gemini art prompt
+- `brand.visual.palette` → all colors in rendered assets
+- `brand.offers[channels.social.default_offer].cta` → CTA text (no hallucinated CTAs)
+- `brand.voice` → copy generation constraints
+- `brand.pillars` → lenses for signal evaluation and perspective injection
+
+### Content pillars
+
+Each brand defines pillars with `perspective`, `signals`, `format`, and `frequency`. The brief step includes the selected pillar, and draft generation uses that perspective. `--pillar <id>` forces a specific angle.
 
 ### Step definitions
 
 Workflow steps are defined in `runtime/src/runtime/steps.ts`. All steps are async. The `Runtime` class in `runtime.ts` orchestrates execution, artifact storage, and state transitions.
 
+## Render Modules
+
+```
+render/
+  gemini.ts   — shared Gemini image API call (one function, used by all pipelines)
+  colors.ts   — hexToRgb, muted (shared color math)
+  fonts.ts    — idempotent font registration for node-canvas
+  dither.ts   — procedural art subjects + Bayer 4×4 ordered dithering
+  card.ts     — deterministic proportional card renderer (lab only)
+  social.ts   — two-phase social renderer (Gemini art + canvas text composite)
+```
+
+### Card renderer (lab only)
+
+Proportional typographic system. Three inputs → PNG: figure (statement/stat/passage/index), gravity (high/center/low), ground (12 color schemes). √2 modular scale, Renner margin ratios (2:3:4:6). Dithered abstract imagery on right side, non-overlapping with text.
+
 ## State
 
 - SQLite stores runs and artifact indexes.
-- Runs can end in `failed`; the database stores the failing step and `error_message` for retry/debug flows.
-- Artifact payloads are written to `state/artifacts/`.
-- Blog publishes export Markdown to `state/exports/`.
-- `state/` is runtime-generated and not meant to be committed.
+- Failed runs store the failing step and `error_message` for retry/debug.
+- Artifact payloads in `state/artifacts/`.
+- `state/` is runtime-generated, not committed.
 
 ## Output Formats
 
-Each brand can define `formats` in brand.yml and `default_format` on pillars. `resolveFormat()` in steps.ts resolves the effective format: explicit `--format` flag > pillar default > `standard`. The format is stored in `run.input.format` for inspection and retry.
-
-## Card Generation Pipeline
-
-Brand social cards use a separate pipeline outside the step engine:
-
-```
-brand.yml + learnings.json + content + logo.png
-  → claude --print --model sonnet (writes Gemini prompt)
-  → Gemini gemini-3.1-flash-image-preview (renders PNG)
-  → claude --print --model sonnet (evaluates against brand spec)
-  → retry with feedback if score < 7 (max 3x)
-  → final PNG + learnings saved to learnings.json
-```
-
-`generate-card.sh` in `runtime/src/render/` orchestrates this. Card types (hero-stat, fact-list, quote, bold-statement, photo-dominant, photo-text) and volume levels (quiet, warm, grounded) are defined per brand in `brands/<name>/learnings.json`.
+Each brand defines `formats` in brand.yml with optional `promptOverlay`. `resolveFormat()` resolves: explicit `--format` flag → pillar `defaultFormat` → `standard`.
 
 ## Public Commands
 
@@ -78,6 +88,7 @@ brand.yml + learnings.json + content + logo.png
 - `run` — workflow execution with optional `--pillar` and `--format`
 - `review` — list, show, approve, reject
 - `publish` — dry-run or publish to configured platforms
-- `inspect` — run details or stored artifacts under `state/artifacts/`
+- `inspect` — run details or stored artifacts
 - `retry` — resume from an explicit step
-- `ops` — health, auth checks, migration status
+- `ops` — health, auth checks
+- `lab` — card lab (render, card)

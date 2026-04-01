@@ -1,5 +1,21 @@
 # Solutions Log
 
+## 2026-04-01 — Fonts not rendering on Linux/Hetzner
+- Problem: Card renderer used system fonts (Alegreya, Inter, JetBrains Mono) that exist on macOS but not on Linux servers. `registerFont` was imported but never called. JetBrains Mono wasn't bundled at all.
+- Fix: Bundle all TTFs in `runtime/fonts/`, call `registerFont()` at startup via shared `render/fonts.ts`. Un-ignore TTFs in `.gitignore` so they deploy.
+
+## 2026-04-01 — Logo not rendering on deterministic cards
+- Problem: `CardInput.logoPath` field existed but `renderCard()` never drew it — brand mark was always letter-spaced text.
+- Fix: Draw logo PNG at brand mark position when `logoPath` is provided, fall back to text. Wire `logoPath` through `lab.ts` → `renderCardToFile`.
+
+## 2026-04-01 — Gemini rendering text and logos in social assets
+- Problem: social.ts prompt asked Gemini to render headline text, brand name, AND incorporate logo PNG. Results: misspellings ("Patcchwork"), wrong fonts, triple branding, illustrative clipart.
+- Fix: Two-phase pipeline — Gemini generates art-only image (no text/logos), canvas composites typography + logo on top deterministically. One Gemini call instead of five.
+
+## 2026-04-01 — Render pipeline duplication and dead code
+- Problem: Three independent renderers (card.ts, social.ts, generate-card.sh) with duplicated helpers (hexToRgb ×3, muted ×2, font registration ×2, Gemini call ×3). Dead features (contentTypes, image_brief artifact, canvas motifs).
+- Fix: Extract shared modules (colors.ts, fonts.ts, gemini.ts). Archive generate-card.sh. Remove contentTypes and image_brief. Net -680 lines.
+
 ## 2026-03-31 — Card lab body text missing letter "s"
 - Problem: Body text on social cards was rendering with the letter "s" completely missing. Appeared to be a font subsetting issue — the symptom (missing glyphs) pointed at the woff2 font file.
 - Root cause: `truncateWords()` in the card lab HTML had `/s+/` instead of `/\s+/` as the regex for `String.split()`. The literal letter "s" was being used as a word delimiter, stripping every "s" from the output.
