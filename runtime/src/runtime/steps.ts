@@ -8,6 +8,7 @@ import type {
 import { generateSocialDraftSet } from '../generate/copy'
 import { generateExploreGrid } from '../generate/explore'
 import { generateSourceImage } from '../generate/image'
+import { generateText } from '../render/gemini'
 import { renderSocialAssets } from '../render/social'
 import type { RuntimePaths } from '../core/paths'
 
@@ -103,14 +104,38 @@ export function cloneArtifactData(data: Record<string, unknown>): Record<string,
 
 // --- Step implementations ---
 
+async function discoverTopic(brand: BrandFoundation): Promise<string | null> {
+  const pillar = brand.pillars[Math.floor(Math.random() * brand.pillars.length)]
+  if (!pillar) return null
+
+  const prompt = [
+    `You track signals for ${brand.name}: ${brand.positioning}`,
+    `Pillar: ${pillar.id} — ${pillar.perspective}`,
+    `Signal areas: ${pillar.signals.join(', ')}`,
+    '',
+    'Generate ONE specific, timely social post topic. Return only the topic as a short phrase (5-12 words). No quotes, no explanation.',
+  ].join('\n')
+
+  const topic = await generateText(prompt)
+  return topic || null
+}
+
 async function buildSignalArtifacts(context: WorkflowContext): Promise<StepOutput[]> {
+  let topic = context.input.topic as string | null ?? null
+
+  if (!topic) {
+    topic = await discoverTopic(context.brand)
+    if (!topic) throw new Error('No --topic provided and signal discovery failed (no API key?)')
+  }
+
   return [
     {
       type: 'signal_packet' as const,
       data: {
         workflow: context.workflow,
         channel: workflowChannel(context.workflow),
-        topic: context.input.topic ?? null,
+        topic,
+        discovered: !context.input.topic,
         source: context.input.source ?? null,
         sources: context.input.sources ?? [],
         account: context.input.account ?? null,
@@ -118,6 +143,13 @@ async function buildSignalArtifacts(context: WorkflowContext): Promise<StepOutpu
       },
     },
   ]
+}
+
+function resolveTopicFromContext(context: WorkflowContext): string {
+  const signal = findArtifact(context.priorArtifacts, 'signal_packet')
+  return String(
+    signal?.data.topic ?? context.input.topic ?? context.input.goal ?? context.input.source ?? 'Untitled',
+  )
 }
 
 async function buildBriefArtifacts(context: WorkflowContext): Promise<StepOutput[]> {
@@ -148,7 +180,7 @@ async function buildBriefArtifacts(context: WorkflowContext): Promise<StepOutput
         perspective: selectedPillar?.perspective ?? null,
         format: selectedPillar?.format ?? null,
         signals: selectedPillar?.signals ?? [],
-        topic: context.input.topic ?? context.input.goal ?? context.input.source ?? 'Untitled',
+        topic: resolveTopicFromContext(context),
       },
     },
   ]
@@ -158,7 +190,7 @@ async function buildSocialDraftArtifacts(context: WorkflowContext): Promise<Step
   const brief = findArtifact(context.priorArtifacts, 'brief')
   const topic = String(brief?.data.topic ?? context.input.topic ?? 'Untitled')
   const perspective = typeof brief?.data.perspective === 'string' ? brief.data.perspective : undefined
-  const draftSet = generateSocialDraftSet({
+  const draftSet = await generateSocialDraftSet({
     brand: context.brand,
     topic,
     perspective,
@@ -173,7 +205,7 @@ async function buildSocialDraftArtifacts(context: WorkflowContext): Promise<Step
 }
 
 async function buildExploreArtifacts(context: WorkflowContext): Promise<StepOutput[]> {
-  const topic = String(context.input.topic ?? 'Untitled')
+  const topic = resolveTopicFromContext(context)
 
   if (!process.env.GEMINI_API_KEY && !process.env.GOOGLE_API_KEY) {
     return [{ type: 'explore_grid' as const, data: { skipped: true } }]
@@ -195,7 +227,7 @@ async function buildExploreArtifacts(context: WorkflowContext): Promise<StepOutp
 }
 
 async function buildImageArtifacts(context: WorkflowContext): Promise<StepOutput[]> {
-  const topic = String(context.input.topic ?? 'Untitled')
+  const topic = resolveTopicFromContext(context)
 
   const sourceImage = await generateSourceImage({
     brand: context.brand,
@@ -240,6 +272,7 @@ async function buildAssetArtifacts(context: WorkflowContext): Promise<StepOutput
       type: 'asset_set' as const,
       data: {
         channel: 'social',
+        topic: resolveTopicFromContext(context),
         visualIntent: typeof draft?.data.imageDirection === 'string' ? draft.data.imageDirection : null,
         suggestedHeadline: headline,
         palette: context.brand.visual.palette,
@@ -294,7 +327,7 @@ async function buildResponseDraftArtifacts(context: WorkflowContext): Promise<St
 }
 
 async function buildOutlineArtifacts(context: WorkflowContext): Promise<StepOutput[]> {
-  const topic = String(context.input.topic ?? 'Untitled')
+  const topic = resolveTopicFromContext(context)
 
   return [
     {
@@ -316,7 +349,7 @@ async function buildArticleDraftArtifacts(context: WorkflowContext): Promise<Ste
   const outline = findArtifact(context.priorArtifacts, 'outline')
   const brief = findArtifact(context.priorArtifacts, 'brief')
   const sections = Array.isArray(outline?.data.sections) ? outline?.data.sections : []
-  const title = String(outline?.data.title ?? context.input.topic ?? 'Untitled')
+  const title = String(outline?.data.title ?? resolveTopicFromContext(context))
   const perspective = typeof brief?.data.perspective === 'string'
     ? brief.data.perspective
     : `${context.brand.name} treats this as an operational problem, not a branding problem.`

@@ -1,4 +1,19 @@
-/** Shared Gemini image generation. One function, used by all pipelines. */
+/** Shared Gemini generation. Text + image, used by all pipelines. */
+
+export async function generateText(prompt: string): Promise<string | null> {
+  const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
+  if (!key) return null
+
+  const { GoogleGenAI } = await import('@google/genai')
+  const client = new GoogleGenAI({ apiKey: key })
+
+  const response = await client.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+  })
+
+  return response.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? null
+}
 
 export async function generateImage(prompt: string): Promise<Buffer | null> {
   const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY

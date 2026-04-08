@@ -20,7 +20,10 @@ cd runtime
 npx tsx src/cli.ts help
 npx tsx src/cli.ts ops health --json
 npx tsx src/cli.ts brand validate givecare --json
+npx tsx src/cli.ts auto --brand givecare --json
+npx tsx src/cli.ts auto --brand scty --topic "AI adoption gap" --dry-run --json
 npx tsx src/cli.ts run social.post --brand givecare --topic "caregiver benefits gap" --json
+npx tsx src/cli.ts run social.post --brand givecare --auto-approve --json
 npx tsx src/cli.ts run social.post --brand givecare --format infographic --topic "caregiver workforce" --json
 npx tsx src/cli.ts run social.post --brand givecare --pillar care-economy --topic "$470B unpaid care labor" --json
 npx tsx src/cli.ts run blog.post --brand givecare --pillar policy --topic "paid leave" --json
@@ -53,9 +56,10 @@ runtime/
     commands/    public command handlers
     core/        paths, env helpers
     domain/      workflow/run/artifact types
-    generate/    copy drafts, explore grid, source image
+    generate/    LLM copy drafts (Gemini), explore grid, source image
     publish/     social platform adapters (Twitter, LinkedIn, Meta, Threads)
     render/
+      gemini.ts    shared Gemini API (generateText + generateImage)
       card.ts      deterministic proportional card renderer (lab)
       social.ts    two-phase social renderer (Gemini art + canvas text)
       dither.ts    procedural art subjects + Bayer 4×4 dithering
@@ -85,14 +89,18 @@ CTA resolution: `channels.social.default_offer` → matches `offers[].id` → us
 
 ## Social Post Pipeline
 
-Two-phase rendering (social.ts):
+Two modes:
 
-1. **Gemini generates art-only image** — uses `brand.visual.image_prompt` with `[SUBJECT]` slot. No text, no logos, no brand names in generated image.
-2. **Canvas composites text + logo on top** — deterministic typography, hard split layout, brand logo from `brands/<name>/logo.png`.
+- **`auto`** — signal-to-publish in one shot (auto-approve + publish). Cron entry point.
+- **`run`** — generates content, lands in `in_review`. Use `--auto-approve` to skip review gate.
 
 Pipeline steps: `signal → brief → draft → explore → image → render`
 
-Requires `GEMINI_API_KEY` or `GOOGLE_API_KEY`. Without keys, falls back to solid-color canvas with text overlay.
+1. **Signal** — topic from `--topic` flag, or auto-discovered via Gemini from brand pillar signals when omitted.
+2. **Draft** — LLM-generated copy via Gemini using brand voice rules as prompt constraints. Falls back to templates without API key.
+3. **Render** — two-phase: Gemini generates art-only image (no text/logos via `image_prompt` with `[SUBJECT]` slot), canvas composites typography + logo on top. Per-platform assets (Twitter 16:9, LinkedIn 1:1, Facebook 1:1, Instagram 4:5, Threads 4:5).
+
+Requires `GEMINI_API_KEY` or `GOOGLE_API_KEY`. Without keys, copy falls back to templates, images fall back to solid-color canvas.
 
 ## Card Renderer (lab render)
 

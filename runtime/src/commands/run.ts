@@ -42,12 +42,15 @@ export async function runWorkflowCommand(args: string[], root?: string): Promise
     throw new Error('Usage: run <workflow> --brand <id> [--pillar <id>] [--topic "..."]')
   }
 
+  const autoApprove = input['auto-approve'] === true
   delete input.brand
+  delete input['auto-approve']
   const runtime = createRuntime({ root })
   return await runtime.runWorkflow({
     workflow,
     brand,
     input,
+    autoApprove,
   })
 }
 

@@ -164,6 +164,7 @@ export interface RunWorkflowInput {
   workflow: WorkflowName
   brand: string
   input: Record<string, unknown>
+  autoApprove?: boolean
 }
 
 export interface PublishInput {

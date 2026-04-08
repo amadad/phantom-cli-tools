@@ -61,11 +61,12 @@ export class Runtime {
     const enrichedInput = format !== 'standard'
       ? { ...input.input, format }
       : input.input
+    const finalStatus: RunStatus = input.autoApprove ? 'approved' : 'in_review'
     const run: RunRecord = {
       id: runId,
       workflow: input.workflow,
       brand: input.brand,
-      status: 'in_review',
+      status: finalStatus,
       input: enrichedInput,
       currentStep: steps[0].name,
       createdAt,
@@ -74,6 +75,16 @@ export class Runtime {
 
     this.insertRun(run)
     await this.executeWorkflow(run, brand, [], 0)
+
+    if (input.autoApprove) {
+      this.writeArtifact(runId, 'approval', 'review', {
+        decision: 'approve',
+        note: 'auto-approved',
+        selectedVariantId: null,
+      })
+      this.updateRun(runId, 'approved', 'review')
+    }
+
     return this.getRun(runId)
   }
 

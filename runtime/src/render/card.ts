@@ -2,14 +2,21 @@
  * Card renderer — proportional typographic system.
  *
  * Three decisions: figure, gravity, ground → PNG.
- * Sizes from √2 modular scale. Margins from Renner ratios (2:3:4:6).
+ *
+ * Typography: √2 modular scale from base unit (1% of width).
+ * Margins: Renner ratios 2:3:4:6 (inner:top:outer:bottom).
+ * Text area: 5/8 of canvas width (Hochuli/Kinross).
+ * Optical center: content anchor sits above mathematical center.
+ * Leading: 1.2× for display, 1.5× for body (Hochuli optimal).
+ * Capitals: always letterspaced (Hochuli rule).
+ * Dither image: fills right margin zone, clipped to available space.
  */
 
 import { createCanvas, Image, type CanvasRenderingContext2D } from 'canvas'
 import { writeFileSync, existsSync, readFileSync } from 'fs'
 import { ensureParentDir } from '../core/paths'
 import { ditherCanvas, drawSubject, IMAGE_SUBJECTS, type ImageSubject } from './dither'
-import { hexToRgb, muted } from './colors'
+import { muted } from './colors'
 import { ensureFontsRegistered } from './fonts'
 
 ensureFontsRegistered()
@@ -68,7 +75,7 @@ export const GROUNDS: Ground[] = [
   { id: 'storm', bg: '#1C1C1C', fg: '#E8E6E1', dark: true, gradient: { from: '#1C1C1C', to: '#2A2A30', angle: 160 } },
 ]
 
-// ── Typography map ──
+// ── Typography ──
 
 const TYPE: Record<string, { family: string; weight: number; style?: string }> = {
   eyebrow:  { family: '"JetBrains Mono", monospace', weight: 500 },
@@ -85,12 +92,12 @@ function font(role: string, sizePx: number): string {
   return `${t.style || ''} ${t.weight} ${sizePx}px ${t.family}`.trimStart()
 }
 
-// ── Primitives ──
+// ── Scale + primitives ──
 
-const SCALE = Math.SQRT2
+const SQRT2 = Math.SQRT2
 
-function scale(base: number, step: number): number {
-  return Math.round(base * Math.pow(SCALE, step))
+function s(base: number, step: number): number {
+  return Math.round(base * Math.pow(SQRT2, step))
 }
 
 function seededRng(seed: string): () => number {
@@ -101,11 +108,6 @@ function seededRng(seed: string): () => number {
 
 function splitBullets(text: string): string[] {
   return (text.includes('|') ? text.split('|') : text.split(/\n+/)).map(s => s.trim()).filter(Boolean)
-}
-
-function truncate(text: string, max: number): string {
-  const words = text.split(/\s+/).filter(Boolean)
-  return words.length <= max ? words.join(' ') : words.slice(0, max).join(' ') + '\u2026'
 }
 
 function drawSpaced(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, spacing: number): void {
@@ -133,45 +135,6 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
   return lines
 }
 
-// ── Layout system ──
-// Renner margin ratios: top:side:side:bottom = 2:3:3:6 (base).
-// Gravity shifts content within those ratios.
-// Content and image boxes are non-overlapping halves.
-
-interface Layout {
-  mTop: number
-  mBottom: number
-  mSide: number
-  contentW: number       // text column width
-  imgX: number           // dither image x
-  imgY: number           // dither image y
-  imgW: number           // dither image width
-  imgH: number           // dither image height
-}
-
-function computeLayout(width: number, height: number, gravity: Gravity, unit: number): Layout {
-  const mSide = unit * 3
-  const contentW = width * 0.52 - mSide  // text fills left ~52% minus margins
-
-  // Image occupies the right ~48%, non-overlapping with content
-  const imgX = width * 0.52
-
-  // Gravity shifts content vertically; image mirrors
-  let mTop: number, mBottom: number, imgY: number, imgH: number
-  if (gravity === 'high') {
-    mTop = unit * 2; mBottom = unit * 6
-    imgY = height * 0.4; imgH = height * 0.6
-  } else if (gravity === 'low') {
-    mTop = unit * 6; mBottom = unit * 2
-    imgY = 0; imgH = height * 0.6
-  } else {
-    mTop = unit * 3; mBottom = unit * 4
-    imgY = height * 0.05; imgH = height * 0.9
-  }
-
-  return { mTop, mBottom, mSide, contentW, imgX, imgY, imgW: width - imgX, imgH }
-}
-
 // ── Main render ──
 
 export function renderCard(input: CardInput, platform: PlatformSpec, seed: string): Buffer {
@@ -180,8 +143,29 @@ export function renderCard(input: CardInput, platform: PlatformSpec, seed: strin
   const ctx = canvas.getContext('2d')
   const g = input.ground
   const base = Math.round(width / 100)
-  const s = (step: number) => scale(base * 1.2, step)
-  const layout = computeLayout(width, height, input.gravity, base * 3)
+  const sz = (step: number) => s(base * 1.2, step)
+
+  // ── Margins (Renner 2:3:4:6) ──
+  const unit = base * 2
+  const mTop = unit * 3    // 3 parts
+  const mSide = unit * 3   // 3 parts (outer)
+  const mBottom = unit * 6  // 6 parts
+  // Text area = 5/8 of width (Hochuli)
+  const textW = Math.round(width * 5 / 8) - mSide
+  // Bottom limit — text must not cross this
+  const textFloor = height - mBottom
+
+  // Gravity: shift the content anchor vertically
+  // Optical center sits above mathematical center (Hochuli)
+  let anchorY: number
+  if (input.gravity === 'high') {
+    anchorY = mTop
+  } else if (input.gravity === 'low') {
+    anchorY = Math.round(height * 0.45)
+  } else {
+    // Optical center ≈ 3/8 from top (above mathematical 1/2)
+    anchorY = Math.round(height * 3 / 8) - sz(3)
+  }
 
   // ── Background ──
   ctx.fillStyle = g.bg
@@ -194,97 +178,153 @@ export function renderCard(input: CardInput, platform: PlatformSpec, seed: strin
     ctx.fillRect(0, 0, width, height)
   }
 
-  // ── Dithered image (right side, never overlaps text) ──
-  const ditherSize = Math.min(width, height)
-  const ditherCvs = createCanvas(ditherSize, ditherSize)
-  const ditherCtx = ditherCvs.getContext('2d')
-  ditherCtx.fillStyle = '#fff'
-  ditherCtx.fillRect(0, 0, ditherSize, ditherSize)
-  drawSubject(input.image || 'topography')(ditherCtx, ditherSize, ditherSize, seededRng(seed + '|img'))
-  ditherCanvas(ditherCtx, ditherSize, ditherSize, g.dark)
+  // ── Dithered image ──
+  // Fills the right margin zone (outside text area) and extends down
+  const imgX = mSide + textW + unit * 2
+  const imgW = width - imgX
+  if (imgW > 0) {
+    const ditherSize = Math.max(imgW, height)
+    const ditherCvs = createCanvas(ditherSize, ditherSize)
+    const ditherCtx = ditherCvs.getContext('2d')
+    ditherCtx.fillStyle = '#fff'
+    ditherCtx.fillRect(0, 0, ditherSize, ditherSize)
+    drawSubject(input.image || 'topography')(ditherCtx, ditherSize, ditherSize, seededRng(seed + '|img'))
+    ditherCanvas(ditherCtx, ditherSize, ditherSize, g.dark)
 
-  ctx.globalAlpha = 0.4
-  ctx.drawImage(ditherCvs, 0, 0, ditherSize, ditherSize, layout.imgX, layout.imgY, layout.imgW, layout.imgH)
-  ctx.globalAlpha = 1
+    ctx.globalAlpha = 0.35
+    // Draw proportionally — image fills right zone, vertically centered
+    const srcAspect = imgW / height
+    const srcW = ditherSize * Math.min(1, srcAspect * 2)
+    const srcH = ditherSize
+    ctx.drawImage(ditherCvs, 0, 0, srcW, srcH, imgX, 0, imgW, height)
+    ctx.globalAlpha = 1
+  }
 
   // ── Text cursor ──
-  let cursorY = layout.mTop
+  let cursorY = anchorY
+  ctx.textBaseline = 'alphabetic'
 
-  // ── Eyebrow ──
-  ctx.font = font('eyebrow', s(0))
-  ctx.fillStyle = muted(g.fg, g.bg, 0.55)
-  drawSpaced(ctx, input.eyebrow.toUpperCase(), layout.mSide, cursorY + s(0), s(0) * 0.14)
-  cursorY += s(0) + s(2)
+  // ── Eyebrow (capitals, letterspaced per Hochuli) ──
+  const eyeSize = sz(0)
+  ctx.font = font('eyebrow', eyeSize)
+  ctx.fillStyle = muted(g.fg, g.bg, 0.5)
+  drawSpaced(ctx, input.eyebrow.toUpperCase(), mSide, cursorY, eyeSize * 0.15)
+  cursorY += eyeSize + sz(2)
 
   // ── Figure ──
   ctx.fillStyle = g.fg
 
   if (input.figure === 'statement') {
-    ctx.font = font('headline', s(5))
-    for (const line of wrapText(ctx, input.headline, layout.contentW)) {
-      ctx.fillText(line, layout.mSide, cursorY + s(5))
-      cursorY += s(5) * 1.1
+    const headSize = sz(5)
+    const headLead = headSize * 1.2
+    ctx.font = font('headline', headSize)
+    const lines = wrapText(ctx, input.headline, textW)
+    for (const line of lines) {
+      if (cursorY + headSize > textFloor) break
+      ctx.fillText(line, mSide, cursorY + headSize)
+      cursorY += headLead
     }
-    cursorY += s(1)
-    ctx.font = font('body', s(1))
-    ctx.fillStyle = muted(g.fg, g.bg, 0.7)
-    for (const line of wrapText(ctx, truncate(splitBullets(input.body).slice(0, 2).join(' '), 22), layout.contentW)) {
-      ctx.fillText(line, layout.mSide, cursorY + s(1))
-      cursorY += s(1) * 1.6
+    cursorY += sz(1)
+    // Body
+    const bodySize = sz(1)
+    const bodyLead = bodySize * 1.5
+    ctx.font = font('body', bodySize)
+    ctx.fillStyle = muted(g.fg, g.bg, 0.65)
+    const bodyText = splitBullets(input.body).slice(0, 3).join('. ')
+    for (const line of wrapText(ctx, bodyText, textW)) {
+      if (cursorY + bodySize > textFloor) break
+      ctx.fillText(line, mSide, cursorY + bodySize)
+      cursorY += bodyLead
     }
+
   } else if (input.figure === 'stat' && input.stat) {
-    ctx.font = font('stat', s(7))
-    ctx.fillText(input.stat.num, layout.mSide, cursorY + s(7))
-    cursorY += s(7) + s(-1)
-    ctx.font = font('label', s(0))
+    const numSize = sz(7)
+    ctx.font = font('stat', numSize)
+    if (cursorY + numSize <= textFloor) {
+      ctx.fillText(input.stat.num, mSide, cursorY + numSize)
+      cursorY += numSize + sz(0)
+    }
+    // Label (capitals, letterspaced)
+    const labelSize = sz(0)
+    ctx.font = font('label', labelSize)
     ctx.fillStyle = muted(g.fg, g.bg, 0.5)
-    drawSpaced(ctx, input.stat.label.toUpperCase(), layout.mSide, cursorY + s(0), s(0) * 0.1)
-    cursorY += s(0) + s(2)
-    ctx.font = font('body', s(1))
-    ctx.fillStyle = muted(g.fg, g.bg, 0.7)
-    for (const line of wrapText(ctx, input.body, layout.contentW)) {
-      ctx.fillText(line, layout.mSide, cursorY + s(1))
-      cursorY += s(1) * 1.6
+    if (cursorY + labelSize <= textFloor) {
+      drawSpaced(ctx, input.stat.label.toUpperCase(), mSide, cursorY + labelSize, labelSize * 0.1)
+      cursorY += labelSize + sz(2)
     }
+    // Context body
+    const bodySize = sz(1)
+    const bodyLead = bodySize * 1.5
+    ctx.font = font('body', bodySize)
+    ctx.fillStyle = muted(g.fg, g.bg, 0.65)
+    for (const line of wrapText(ctx, splitBullets(input.body).join('. '), textW)) {
+      if (cursorY + bodySize > textFloor) break
+      ctx.fillText(line, mSide, cursorY + bodySize)
+      cursorY += bodyLead
+    }
+
   } else if (input.figure === 'passage') {
-    ctx.font = font('headline', s(6))
-    ctx.fillStyle = '#FF9F00'
-    ctx.fillText('\u201C', layout.mSide, cursorY + s(5))
-    cursorY += s(4)
-    ctx.font = font('quote', s(3))
+    // Open quote mark
+    const quoteMarkSize = sz(5)
+    ctx.font = font('headline', quoteMarkSize)
+    ctx.fillStyle = muted(g.fg, g.bg, 0.25)
+    ctx.fillText('\u201C', mSide, cursorY + quoteMarkSize)
+    cursorY += quoteMarkSize * 0.6
+    // Quote body
+    const quoteSize = sz(3)
+    const quoteLead = quoteSize * 1.3
+    ctx.font = font('quote', quoteSize)
     ctx.fillStyle = g.fg
-    for (const line of wrapText(ctx, truncate(splitBullets(input.body)[0] || input.body, 24), layout.contentW)) {
-      ctx.fillText(line, layout.mSide, cursorY + s(3))
-      cursorY += s(3) * 1.45
+    const quoteText = splitBullets(input.body)[0] || input.body
+    for (const line of wrapText(ctx, quoteText, textW)) {
+      if (cursorY + quoteSize > textFloor) break
+      ctx.fillText(line, mSide, cursorY + quoteSize)
+      cursorY += quoteLead
     }
+
   } else if (input.figure === 'index') {
-    const items = splitBullets(input.body).slice(0, 4).map(b => truncate(b, 6))
+    const items = splitBullets(input.body).slice(0, 5)
+    const itemSize = sz(3)
+    const itemLead = itemSize * 1.4
     for (let i = 0; i < items.length; i++) {
-      ctx.strokeStyle = i === 0 ? '#FF9F00' : muted(g.fg, g.bg, 0.12)
+      if (cursorY + itemSize + sz(1) > textFloor) break
+      // Divider
+      ctx.strokeStyle = i === 0
+        ? muted(g.fg, g.bg, 0.3)
+        : muted(g.fg, g.bg, 0.1)
       ctx.lineWidth = i === 0 ? 2 : 1
-      ctx.beginPath(); ctx.moveTo(layout.mSide, cursorY); ctx.lineTo(layout.mSide + layout.contentW, cursorY); ctx.stroke()
-      cursorY += s(1)
-      ctx.font = font('headline', s(4))
+      ctx.beginPath()
+      ctx.moveTo(mSide, cursorY)
+      ctx.lineTo(mSide + textW, cursorY)
+      ctx.stroke()
+      cursorY += sz(1)
+      // Item text
+      ctx.font = font('headline', itemSize)
       ctx.fillStyle = g.fg
-      ctx.fillText(items[i], layout.mSide, cursorY + s(3))
-      cursorY += s(4) * 1.2
+      ctx.fillText(items[i], mSide, cursorY + itemSize)
+      cursorY += itemLead
     }
   }
 
   // ── Brand mark ──
-  const markY = height - layout.mBottom * 0.5
+  // Positioned at bottom margin, adapts opacity to ground contrast
+  const markY = height - Math.round(mBottom * 0.4)
+  const logoOpacity = g.dark ? 0.35 : 0.5
   if (input.logoPath && existsSync(input.logoPath)) {
-    const img = new Image()
-    img.src = readFileSync(input.logoPath)
-    const logoH = s(1) * 1.4
-    const logoW = (img.width / img.height) * logoH
-    ctx.globalAlpha = 0.45
-    ctx.drawImage(img, layout.mSide, markY - logoH, logoW, logoH)
-    ctx.globalAlpha = 1
+    try {
+      const img = new Image()
+      img.src = readFileSync(input.logoPath)
+      const logoH = sz(1) * 1.2
+      const logoW = (img.width / img.height) * logoH
+      ctx.globalAlpha = logoOpacity
+      ctx.drawImage(img, mSide, markY - logoH, logoW, logoH)
+    } finally {
+      ctx.globalAlpha = 1
+    }
   } else {
-    ctx.font = font('brand', s(0))
-    ctx.fillStyle = muted(g.fg, g.bg, 0.45)
-    drawSpaced(ctx, input.brandName.toUpperCase(), layout.mSide, markY, s(0) * 0.14)
+    ctx.font = font('brand', sz(0))
+    ctx.fillStyle = muted(g.fg, g.bg, logoOpacity)
+    drawSpaced(ctx, input.brandName.toUpperCase(), mSide, markY, sz(0) * 0.15)
   }
 
   return canvas.toBuffer('image/png')

@@ -9,10 +9,16 @@ audiences:
 offers:
   - id: corporate-ai
     summary: 10x internal workflows — readiness audits, workflow redesign, and AI-native process architecture.
+    url: https://cal.com/amadad/scty-15min
+    cta: "Let's talk → cal.com/amadad/scty-15min"
   - id: operational-ai
     summary: Reduce operational costs — agentic automation, pod-based execution, data unification.
+    url: https://cal.com/amadad/scty-15min
+    cta: "Let's talk → cal.com/amadad/scty-15min"
   - id: product-ai
     summary: New AI-native revenue — helping organizations build and sell AI-powered creative services.
+    url: https://cal.com/amadad/scty-15min
+    cta: "Let's talk → cal.com/amadad/scty-15min"
   - id: critbench
     summary: Benchmark for creative process quality. Scores LLM judgment, voice fidelity, and workflow coherence across multi-turn campaigns.
 proof_points:
@@ -48,9 +54,14 @@ voice:
     - Soften the claim with filler.
     - Hype a tool without saying who it's for and what it replaces.
     - Write like a vendor. Write like an operator.
+handles:
+  twitter: "@sctyinc"
+  linkedin: "scty"
 channels:
   social:
     objective: Build authority around AI transformation in creative and marketing organizations.
+    platforms: [twitter, linkedin, facebook, instagram, threads]
+    default_offer: corporate-ai
   blog:
     objective: Publish durable essays and operator thinking on the execution gap.
   outreach:
@@ -58,10 +69,43 @@ channels:
   respond:
     objective: Answer clearly without hedging or hype.
 visual:
+  logo: scty.png
   palette:
     background: "#FAFAFA"
     primary: "#111111"
     accent: "#FF3300"
+  typography:
+    headline: "JetBrains Mono, monospace, bold"
+    body: "Inter, sans-serif, regular"
+    accent: "Space Grotesk, sans-serif, bold, uppercase wide tracking"
+  style: >
+    Damaged reproduction. Xerox degradation, risograph misregistration, harsh
+    threshold processing. Not designed, not composed — simulated print failure.
+    High contrast black and off-white with rare red punctuation. Material,
+    accidental, physically real.
+  composition:
+    - randomized fragment placement, not centered
+    - extreme scale variation between elements
+    - awkward spacing, collisions, dead zones
+    - no focal point, no visual hierarchy
+    - 1-2 large disruptive bars or smears obscuring content
+  texture:
+    - heavy ink bleed and uneven coverage
+    - misregistered black and red layers
+    - halftone patches mixed with solid areas
+    - xerox grain, dust, scratches
+    - banding and scan streaks
+    - hard threshold destroying midtones
+  negative:
+    - clean, balanced, or centered compositions
+    - photography or photorealism
+    - illustration, figurative imagery, or clipart
+    - smooth gradients or polished surfaces
+    - decorative geometry or perfect grids
+    - poster-like or stylistically cool layouts
+    - neon, pastel, or saturated color
+    - text, words, letters, logos, brand names
+    - stock imagery or CGI
   motif: Signal grids, system diagrams, and hard geometric interruption.
   image_style: Damaged reproduction process, not designed composition.
   layout: signal-grid
@@ -98,6 +142,28 @@ visual:
     - id: type-forward
       description: oversized bold typography as the primary visual element
       elements: large text as primary visual, contrasting background, minimal decoration, strong weight
+formats:
+  - id: standard
+    description: opinionated take with hook/body/cta and damaged-artifact image
+  - id: primer
+    description: bold term or concept with sharp one-line explanation for quick scanning
+    prompt_overlay: |
+      Identify the single key term or concept.
+      Lead with the term as a large headline.
+      One sentence of sharp, operator-level explanation.
+      No context, no hedging — just the definition that matters.
+  - id: case-study
+    description: operator case study with specific outcome data and workflow detail
+    prompt_overlay: |
+      Extract the specific workflow change and measurable outcome.
+      Lead with the outcome number. Name the org type, not the org.
+      What changed, what it replaced, what broke in transition.
+  - id: signal-card
+    description: data point or market signal with opinionated one-line framing
+    prompt_overlay: |
+      Extract the single most important statistic or signal.
+      Render as a large number or short quote.
+      One line of sharp editorial framing beneath.
 response_playbooks:
   - id: technical-pushback
     trigger: disagreement

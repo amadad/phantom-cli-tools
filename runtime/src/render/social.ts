@@ -13,7 +13,6 @@ import { join } from 'path'
 import { createCanvas, Image, type CanvasRenderingContext2D } from 'canvas'
 import type { BrandFoundation, SocialPlatform } from '../domain/types'
 import { ensureParentDir, type RuntimePaths } from '../core/paths'
-import { muted } from './colors'
 import { ensureFontsRegistered } from './fonts'
 import { generateImage } from './gemini'
 
@@ -50,11 +49,6 @@ const PLATFORM_SPECS: PlatformSpec[] = [
 
 // ── Helpers ──
 
-function resolveLogoPath(brand: BrandFoundation, brandsDir: string): string | undefined {
-  if (!brand.visual.logo) return undefined
-  const p = join(brandsDir, brand.id, brand.visual.logo)
-  return existsSync(p) ? p : undefined
-}
 
 function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
   const words = text.split(/\s+/).filter(Boolean)
@@ -108,128 +102,40 @@ function compositeAsset(
   spec: PlatformSpec,
   brand: BrandFoundation,
   headline: string,
-  body: string,
-  cta: string | undefined,
-  logoPath: string | undefined,
 ): Buffer {
   const { width, height } = spec
   const canvas = createCanvas(width, height)
   const ctx = canvas.getContext('2d')
   const palette = brand.visual.palette
+  const margin = Math.round(width * 0.06)
 
-  // Background
+  // Full-bleed background
   ctx.fillStyle = palette.background
   ctx.fillRect(0, 0, width, height)
 
-  // Art image — hard split, no gradient fade
+  // Full-bleed art image
   if (artImage) {
     const imgScale = Math.max(width / artImage.width, height / artImage.height)
     const dw = artImage.width * imgScale
     const dh = artImage.height * imgScale
-
-    if (spec.layout === 'wide') {
-      // Image on right half, text gets solid left
-      ctx.save()
-      ctx.beginPath()
-      ctx.rect(width * 0.48, 0, width * 0.52, height)
-      ctx.clip()
-      ctx.drawImage(artImage, (width - dw) / 2, (height - dh) / 2, dw, dh)
-      ctx.restore()
-    } else if (spec.layout === 'tall') {
-      // Image on top half, text gets solid bottom
-      ctx.save()
-      ctx.beginPath()
-      ctx.rect(0, 0, width, height * 0.48)
-      ctx.clip()
-      ctx.drawImage(artImage, (width - dw) / 2, (height * 0.48 - dh) / 2, dw, dh)
-      ctx.restore()
-    } else {
-      // Square: image on right
-      ctx.save()
-      ctx.beginPath()
-      ctx.rect(width * 0.45, 0, width * 0.55, height)
-      ctx.clip()
-      ctx.drawImage(artImage, (width - dw) / 2, (height - dh) / 2, dw, dh)
-      ctx.restore()
-    }
+    ctx.drawImage(artImage, (width - dw) / 2, (height - dh) / 2, dw, dh)
   }
 
-  // Text zone dimensions
-  const margin = Math.round(width * 0.06)
-  const textW = spec.layout === 'wide'
-    ? width * 0.40
-    : spec.layout === 'square'
-      ? width * 0.38
-      : width - margin * 2
-  const textX = margin
-  const textY = spec.layout === 'tall' ? height * 0.54 : margin
-
-  // Accent bar
-  ctx.fillStyle = palette.accent
-  if (spec.layout === 'wide') {
-    ctx.fillRect(textX, textY, 4, height - margin * 2)
-  } else if (spec.layout === 'tall') {
-    ctx.fillRect(textX, textY - 16, textW, 4)
-  } else {
-    ctx.fillRect(textX, textY + 8, 4, height * 0.5)
-  }
-
-  const headlineX = spec.layout === 'tall' ? textX : textX + 20
-
-  // Eyebrow (brand name)
-  ctx.font = '500 18px "JetBrains Mono", monospace'
-  ctx.fillStyle = palette.accent
+  // Headline — bottom-left, on the image
   ctx.textBaseline = 'top'
-  let cursorY = textY + (spec.layout === 'tall' ? 0 : 8)
-  ctx.fillText(brand.name.toUpperCase(), headlineX, cursorY)
-  cursorY += 40
-
-  // Headline
-  const headSize = spec.layout === 'wide' ? 56 : spec.layout === 'square' ? 60 : 64
-  ctx.font = `700 ${headSize}px "Alegreya", Georgia, serif`
+  const headSize = spec.layout === 'wide'
+    ? Math.round(height * 0.09)
+    : Math.round(width * 0.07)
+  ctx.font = `400 ${headSize}px "Alegreya", Georgia, serif`
   ctx.fillStyle = palette.primary
-  const headlineLines = wrapText(ctx, headline, textW - 20).slice(0, 4)
-  for (const line of headlineLines) {
-    ctx.fillText(line, headlineX, cursorY)
-    cursorY += headSize * 1.15
-  }
-  cursorY += 16
+  const maxW = width - margin * 2
+  const lines = wrapText(ctx, headline, maxW).slice(0, 3)
+  const lineH = headSize * 1.05
+  const blockH = lines.length * lineH
+  const cursorY = height - margin - blockH
 
-  // Body
-  const bodySize = spec.layout === 'wide' ? 24 : 28
-  ctx.font = `400 ${bodySize}px Inter, sans-serif`
-  ctx.fillStyle = muted(palette.primary, palette.background, 0.7)
-  const bodyLines = wrapText(ctx, body, textW - 20).slice(0, 4)
-  for (const line of bodyLines) {
-    ctx.fillText(line, headlineX, cursorY)
-    cursorY += bodySize * 1.5
-  }
-
-  // CTA
-  if (cta) {
-    cursorY += 8
-    ctx.font = `500 ${bodySize - 4}px Inter, sans-serif`
-    ctx.fillStyle = palette.accent
-    ctx.fillText(cta, headlineX, cursorY)
-  }
-
-  // Logo or brand text at bottom
-  const logoY = height - margin
-  if (logoPath && existsSync(logoPath)) {
-    try {
-      const img = new Image()
-      img.src = readFileSync(logoPath)
-      const logoH = 28
-      const logoW = (img.width / img.height) * logoH
-      ctx.globalAlpha = 0.5
-      ctx.drawImage(img, headlineX, logoY - logoH, logoW, logoH)
-    } finally {
-      ctx.globalAlpha = 1
-    }
-  } else {
-    ctx.font = '500 16px "JetBrains Mono", monospace'
-    ctx.fillStyle = muted(palette.primary, palette.background, 0.4)
-    ctx.fillText(brand.name.toUpperCase(), headlineX, logoY - 16)
+  for (let i = 0; i < lines.length; i++) {
+    ctx.fillText(lines[i], margin, cursorY + i * lineH)
   }
 
   return canvas.toBuffer('image/png')
@@ -243,7 +149,6 @@ function outputPath(paths: RuntimePaths, runId: string, platform: SocialPlatform
 
 export async function renderSocialAssets(options: RenderSocialAssetsOptions): Promise<Record<SocialPlatform, string>> {
   const hasApiKey = !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)
-  const logoPath = resolveLogoPath(options.brand, join(options.paths.root, 'brands'))
 
   // Generate art image (or use source image fallback)
   let artImage: Image | undefined
@@ -267,7 +172,7 @@ export async function renderSocialAssets(options: RenderSocialAssetsOptions): Pr
   const assets = {} as Record<SocialPlatform, string>
 
   for (const spec of PLATFORM_SPECS) {
-    const png = compositeAsset(artImage, spec, options.brand, options.headline, options.body, options.cta, logoPath)
+    const png = compositeAsset(artImage, spec, options.brand, options.headline)
     const path = outputPath(options.paths, options.runId, spec.platform)
     ensureParentDir(path)
     writeFileSync(path, png)

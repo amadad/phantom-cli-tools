@@ -1,3 +1,4 @@
+import { runAutoCommand } from '../commands/auto'
 import { runBrandCommand } from '../commands/brand'
 import { runInspectCommand } from '../commands/inspect'
 import { runLabCommand } from '../commands/lab'
@@ -33,6 +34,7 @@ function helpText(): string {
     '  loom <command> [options]',
     '',
     'Commands:',
+    '  auto --brand <id> [--workflow social.post] [--topic "..."] [--dry-run]',
     '  brand <init|show|validate> ...',
     '  run <workflow> --brand <id> [--pillar <id>] [--format <id>] ...',
     '  review <list|show|approve|reject> ...',
@@ -49,6 +51,8 @@ function helpText(): string {
     '  respond.reply',
     '',
     'Examples:',
+    '  loom auto --brand givecare',
+    '  loom auto --brand scty --topic "AI adoption gap" --dry-run',
     '  loom ops auth check --brand givecare',
     '  loom run social.post --brand givecare --topic "caregiver benefits gap"',
     '  loom run social.post --brand givecare --pillar care-economy --topic "$470B unpaid care labor"',
@@ -76,6 +80,9 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<nu
 
     let data: unknown
     switch (command) {
+      case 'auto':
+        data = await runAutoCommand(args)
+        break
       case 'brand':
         data = await runBrandCommand(args)
         break
