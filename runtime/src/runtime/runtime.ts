@@ -95,10 +95,12 @@ export class Runtime {
     }
   }
 
-  listReviewRuns(): RunRecord[] {
+  listReviewRuns(options: { limit?: number; offset?: number } = {}): RunRecord[] {
+    const limit = Math.max(1, Math.min(options.limit ?? 25, 500))
+    const offset = Math.max(0, options.offset ?? 0)
     const rows = this.db.prepare(
-      `SELECT * FROM runs WHERE status = 'in_review' ORDER BY created_at DESC`,
-    ).all() as Array<Record<string, unknown>>
+      `SELECT * FROM runs WHERE status = 'in_review' ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+    ).all(limit, offset) as Array<Record<string, unknown>>
     return rows.map((row) => this.rowToRun(row))
   }
 

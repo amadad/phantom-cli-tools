@@ -1,5 +1,6 @@
 import { runAutoCommand } from '../commands/auto'
 import { runBrandCommand } from '../commands/brand'
+import { runDoctorCommand } from '../commands/doctor'
 import { runInspectCommand } from '../commands/inspect'
 import { runLabCommand } from '../commands/lab'
 import { runOpsCommand } from '../commands/ops'
@@ -7,6 +8,7 @@ import { runPublishCommand } from '../commands/publish'
 import { runRetryCommand } from '../commands/retry'
 import { runReviewCommand } from '../commands/review'
 import { runWorkflowCommand } from '../commands/run'
+import { noColor } from '../lib/agent-cli'
 
 function print(data: unknown, json: boolean): void {
   if (json) {
@@ -34,15 +36,23 @@ function helpText(): string {
     '  loom <command> [options]',
     '',
     'Commands:',
+    '  doctor                                         precheck env + runtime health',
     '  auto --brand <id> [--workflow social.post] [--topic "..."] [--dry-run]',
     '  brand <init|show|validate> ...',
     '  run <workflow> --brand <id> [--pillar <id>] [--format <id>] ...',
-    '  review <list|show|approve|reject> ...',
+    '  review list [--limit N] [--offset M] [--full]  default limit 25, narrow fields',
+    '  review show <run_id>                           full run + artifacts',
+    '  review approve <run_id> [--variant <id>] [--note "..."] [--dry-run] [--yes]',
+    '  review reject  <run_id> [--reason "..."] [--dry-run] [--yes]',
     '  publish <run_id> [--platforms twitter,linkedin] [--dry-run]',
     '  inspect <run|artifact> ...',
     '  retry <run_id> [--from <step>]',
     '  lab card --brand <id> [--type quote] [--headline "..."]',
     '  ops <health|auth check --brand <id>|auth refresh|migrate>',
+    '',
+    'Global flags:',
+    '  --json          emit {status, command, data} envelope on stdout',
+    '  NO_COLOR=1 env  disable any color output (pipes also disable)',
     '',
     'Workflows:',
     '  social.post',
@@ -78,8 +88,15 @@ export async function runCli(argv: string[] = process.argv.slice(2)): Promise<nu
       return 0
     }
 
+    // NO_COLOR honored by `noColor()` helper; commands that add color must gate on it.
+    // Referenced here so bundlers keep the import and future color code picks it up.
+    void noColor
+
     let data: unknown
     switch (command) {
+      case 'doctor':
+        data = await runDoctorCommand(args)
+        break
       case 'auto':
         data = await runAutoCommand(args)
         break

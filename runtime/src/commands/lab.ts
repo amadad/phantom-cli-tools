@@ -4,6 +4,7 @@ import { loadBrandFoundation } from '../brands/load'
 import { ensureParentDir, resolveRuntimePaths } from '../core/paths'
 import { buildCardLabHtml, CARD_LAB_TYPES, type CardLabType } from '../lab/build'
 import { renderCardToFile, FIGURES, GRAVITIES, GROUNDS, IMAGE_SUBJECTS, PLATFORMS, type Figure, type Gravity } from '../render/card'
+import { emitPath } from '../lib/agent-cli'
 
 interface LabInput {
   brand?: string
@@ -126,6 +127,8 @@ export function runLabCommand(args: string[], root?: string): unknown {
   })
 
   writeFileSync(outputPath, html, 'utf8')
+  // Path also emitted to stderr so humans can see it even when stdout is piped to jq.
+  emitPath(outputPath, 'wrote lab html')
 
   return {
     brand: brand.id,
@@ -136,7 +139,7 @@ export function runLabCommand(args: string[], root?: string): unknown {
   }
 }
 
-function runLabRender(args: string[], root?: string): unknown {
+async function runLabRender(args: string[], root?: string): Promise<unknown> {
   const parsed = parseArgs(args)
 
   const figure = (parsed.figure || 'statement') as Figure
@@ -168,7 +171,7 @@ function runLabRender(args: string[], root?: string): unknown {
     ? resolve(paths.root, parsed.out)
     : join(paths.stateDir, 'cards', `${figure}-${gravity}-${groundId}-${platform}.png`)
 
-  const result = renderCardToFile({
+  const result = await renderCardToFile({
     figure,
     gravity,
     ground: groundId,
@@ -184,6 +187,9 @@ function runLabRender(args: string[], root?: string): unknown {
     seed,
     out: outPath,
   })
+
+  // Emit rendered path to stderr so the JSON envelope on stdout stays machine-clean.
+  emitPath(result.path, 'wrote card png')
 
   return {
     figure,

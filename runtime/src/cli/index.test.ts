@@ -143,7 +143,7 @@ describe.sequential('runCli', () => {
     })
 
     const { result, stdout } = await captureStdout(() =>
-      runCli(['review', 'approve', run.id, '--variant', 'missing-variant', '--json']),
+      runCli(['review', 'approve', run.id, '--variant', 'missing-variant', '--yes', '--json']),
     )
 
     expect(result).toBe(1)
