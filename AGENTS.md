@@ -4,7 +4,7 @@ Instructions for AI agents working on this codebase.
 
 ## Project
 
-Loom is a brand communications runtime. The active CLI lives at `runtime/src/cli.ts`.
+Loom is a brand communications runtime. The active CLI source lives at `runtime/src/cli.ts` and ships as an installable `loom` binary via the `bin` entry in `runtime/package.json` (esbuild bundle at `runtime/dist/cli.js`). Build with `npm run build` inside `runtime/`. Prefer invoking `loom <command>` in docs and examples; `npx tsx src/cli.ts` still works for source-mode development.
 
 Primary workflows:
 
@@ -48,6 +48,10 @@ This CLI is meant to work well for agents:
 - `--help` should stay example-heavy
 - failures should be actionable, immediate, and machine-readable under `--json`
 - side effects should be idempotent or explicitly resumable
+- destructive commands (`review approve`, `review reject`) gate on `--dry-run` / `--yes`
+- `loom doctor` precheck covers env vars, paths, and runtime health probe
+- list commands paginate with `--limit` / `--offset` and return narrow summaries by default; pass `--full` to include the entire run record
+- human-readable side-channel output (e.g. file paths written by `lab render` / `lab card`) goes to stderr so stdout stays a clean JSON envelope
 
 ## Conventions
 
@@ -75,16 +79,16 @@ npx tsc --noEmit
 
 ### Add a brand
 ```bash
-cd runtime
-npx tsx src/cli.ts brand init <name>
+loom brand init <name>
 ```
 
 Then edit `brands/<name>/brand.yml` and run:
 
 ```bash
-cd runtime
-npx tsx src/cli.ts brand validate <name> --json
+loom brand validate <name> --json
 ```
+
+(During source-mode development, `cd runtime && npx tsx src/cli.ts brand init <name>` still works.)
 
 ### Add a command
 1. Add a command handler in `runtime/src/commands/`

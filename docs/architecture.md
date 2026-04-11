@@ -84,11 +84,14 @@ Each brand defines `formats` in brand.yml with optional `promptOverlay`. `resolv
 
 ## Public Commands
 
+The CLI ships as an installable `loom` binary (`bin` entry in `runtime/package.json`, bundled to `runtime/dist/cli.js` via `npm run build`). Source-mode development still runs through `npx tsx src/cli.ts`.
+
+- `doctor` — precheck env (`GEMINI_API_KEY`/`GOOGLE_API_KEY`), runtime paths, sqlite state, and `runtime.health()`
 - `brand` — init, show, validate
 - `run` — workflow execution with optional `--pillar` and `--format`
-- `review` — list, show, approve, reject
+- `review` — list (`--limit`, `--offset`, `--full` — default returns narrow `{id, status, workflow, brand, createdAt}` summaries), show, approve / reject (both gated by `--dry-run` and `--yes`)
 - `publish` — dry-run or publish to configured platforms
 - `inspect` — run details or stored artifacts
 - `retry` — resume from an explicit step
-- `ops` — health, auth checks
-- `lab` — card lab (render, card)
+- `lab` — `card` / `render` writers; the output path is echoed to stderr so stdout stays a clean JSON envelope
+- `ops` — health, auth checks, migration status

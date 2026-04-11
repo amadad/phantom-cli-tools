@@ -21,18 +21,30 @@ Everything flows through the same primitives:
 
 ## Commands
 
+The runtime ships as a `loom` binary (esbuild bundle, `bin` entry in `runtime/package.json`). Build with `pnpm --filter loom-runtime build` (or `cd runtime && npm run build`), then invoke via `loom` once linked. Both forms are supported:
+
 ```bash
+# Installed binary
+loom help
+loom doctor --json                                     # precheck env + runtime health
+loom ops health --json
+loom brand validate givecare --json
+loom run social.post --brand givecare --topic "caregiver benefits gap" --json
+loom run blog.post --brand givecare --pillar policy --topic "paid leave" --json
+loom review list --limit 25 --offset 0 --json          # narrow {id, status, workflow, brand, createdAt}
+loom review list --full --json                         # include full run records
+loom review approve <run_id> --variant social-main --dry-run --json
+loom review approve <run_id> --variant social-main --yes --json
+loom review reject  <run_id> --reason "off-brand" --yes --json
+loom inspect run <run_id> --json
+loom publish <run_id> --platforms twitter,linkedin --dry-run --json
+
+# Or from source during development
 cd runtime
 npx tsx src/cli.ts help
-npx tsx src/cli.ts ops health --json
-npx tsx src/cli.ts brand validate givecare --json
-npx tsx src/cli.ts run social.post --brand givecare --topic "caregiver benefits gap" --json
-npx tsx src/cli.ts run blog.post --brand givecare --pillar policy --topic "paid leave" --json
-npx tsx src/cli.ts review list --json
-npx tsx src/cli.ts review approve <run_id> --variant social-main --json
-npx tsx src/cli.ts inspect run <run_id> --json
-npx tsx src/cli.ts publish <run_id> --platforms twitter,linkedin --dry-run --json
 ```
+
+`lab render` and `lab card` echo the written output path to stderr so the JSON envelope on stdout stays pipe-clean.
 
 ## Architecture
 
