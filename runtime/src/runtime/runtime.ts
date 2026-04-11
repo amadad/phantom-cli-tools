@@ -25,6 +25,7 @@ import type {
   ReviewInput,
   RunDetails,
   RunRecord,
+  RunSummary,
   RunWorkflowInput,
   RunStatus,
   SocialPlatform,
@@ -95,13 +96,29 @@ export class Runtime {
     }
   }
 
-  listReviewRuns(options: { limit?: number; offset?: number } = {}): RunRecord[] {
+  listReviewRuns(options: { limit?: number; offset?: number; full: true }): RunRecord[]
+  listReviewRuns(options?: { limit?: number; offset?: number; full?: false }): RunSummary[]
+  listReviewRuns(
+    options: { limit?: number; offset?: number; full?: boolean } = {},
+  ): RunRecord[] | RunSummary[] {
     const limit = Math.max(1, Math.min(options.limit ?? 25, 500))
     const offset = Math.max(0, options.offset ?? 0)
+    if (options.full) {
+      const rows = this.db.prepare(
+        `SELECT * FROM runs WHERE status = 'in_review' ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      ).all(limit, offset) as Array<Record<string, unknown>>
+      return rows.map((row) => this.rowToRun(row))
+    }
     const rows = this.db.prepare(
-      `SELECT * FROM runs WHERE status = 'in_review' ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      `SELECT id, status, workflow, brand, created_at FROM runs WHERE status = 'in_review' ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     ).all(limit, offset) as Array<Record<string, unknown>>
-    return rows.map((row) => this.rowToRun(row))
+    return rows.map((row) => ({
+      id: String(row.id),
+      status: row.status as RunRecord['status'],
+      workflow: row.workflow as RunRecord['workflow'],
+      brand: String(row.brand),
+      createdAt: String(row.created_at),
+    }))
   }
 
   reviewRun(runId: string, input: ReviewInput): RunRecord {

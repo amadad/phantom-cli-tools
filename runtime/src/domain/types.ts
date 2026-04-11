@@ -135,6 +135,8 @@ export interface RunRecord {
   errorMessage?: string
 }
 
+export type RunSummary = Pick<RunRecord, 'id' | 'status' | 'workflow' | 'brand' | 'createdAt'>
+
 export interface ArtifactRecord {
   id: string
   runId: string

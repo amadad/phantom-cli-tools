@@ -153,7 +153,7 @@ export type JsonEnvelope<T = unknown> = {
   status: "ok" | "error";
   command: string;
   data?: T;
-  error?: string;
+  error?: { message: string };
 };
 
 /**

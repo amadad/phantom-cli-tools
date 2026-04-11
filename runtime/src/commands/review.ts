@@ -1,8 +1,5 @@
 import { createRuntime } from '../runtime/runtime'
 import { confirmOrAbort } from '../lib/agent-cli'
-import type { RunRecord } from '../domain/types'
-
-type ReviewSummary = Pick<RunRecord, 'id' | 'status' | 'workflow' | 'brand' | 'createdAt'>
 
 function parseIntFlag(args: string[], name: string, fallback?: number): number | undefined {
   const index = args.indexOf(name)
@@ -22,16 +19,6 @@ function parseStringFlag(args: string[], name: string): string | undefined {
   return args[index + 1]
 }
 
-function toSummary(run: RunRecord): ReviewSummary {
-  return {
-    id: run.id,
-    status: run.status,
-    workflow: run.workflow,
-    brand: run.brand,
-    createdAt: run.createdAt,
-  }
-}
-
 export async function runReviewCommand(args: string[], root?: string): Promise<unknown> {
   const [subcommand, ...rest] = args
   const runtime = createRuntime({ root })
@@ -40,12 +27,13 @@ export async function runReviewCommand(args: string[], root?: string): Promise<u
     const limit = parseIntFlag(rest, '--limit', 25) as number
     const offset = parseIntFlag(rest, '--offset', 0) as number
     const full = rest.includes('--full')
-    const runs = runtime.listReviewRuns({ limit, offset })
     if (full) {
+      const runs = runtime.listReviewRuns({ limit, offset, full: true })
       return { runs, limit, offset, count: runs.length }
     }
+    const runs = runtime.listReviewRuns({ limit, offset })
     return {
-      runs: runs.map(toSummary),
+      runs,
       limit,
       offset,
       count: runs.length,
