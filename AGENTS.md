@@ -4,7 +4,7 @@ Instructions for AI agents working on this codebase.
 
 ## Project
 
-Loom is a brand communications runtime. The active CLI source lives at `runtime/src/cli.ts` and ships as an installable `loom` binary via the `bin` entry in `runtime/package.json` (esbuild bundle at `runtime/dist/cli.js`). Build with `npm run build` inside `runtime/`. Prefer invoking `loom <command>` in docs and examples; `npx tsx src/cli.ts` still works for source-mode development.
+Loom is a brand communications runtime. The active CLI lives at `runtime/src/cli.ts`.
 
 Primary workflows:
 
@@ -26,14 +26,12 @@ The previous content-pipeline implementation is archived under `archive/legacy-2
 - `runtime/src/cli/index.ts` — command dispatch and help output
 
 ### Brand Foundations
-- `brands/<name>/brand.yml` — positioning, audiences, offers, pillars, voice, handles, channel objectives, playbooks, image prompts, visual palette
-- `brand validate <name>` checks the foundation shape and referenced assets like logos
+- `brands/<name>/brand.yml` — positioning, audiences, offers, voice, channel objectives, playbooks, visual palette
 - do not recreate the old `*-brand.yml`, queue, rubric, or visual-pipeline structure in active code
 
 ### Runtime State
 - `state/` is generated at runtime
 - `state/loom.sqlite` stores runs and artifact indexes
-- runs can end in `failed` and store `error_message` for retry/debug flows
 - `state/artifacts/` stores artifact payloads
 - `state/exports/` stores publish/export outputs
 - do not check `state/` into git
@@ -46,12 +44,8 @@ This CLI is meant to work well for agents:
 - all meaningful inputs must be passable as flags
 - every command should support `--json`
 - `--help` should stay example-heavy
-- failures should be actionable, immediate, and machine-readable under `--json`
+- failures should be actionable and immediate
 - side effects should be idempotent or explicitly resumable
-- destructive commands (`review approve`, `review reject`) gate on `--dry-run` / `--yes`
-- `loom doctor` precheck covers env vars, paths, and runtime health probe
-- list commands paginate with `--limit` / `--offset` and return narrow summaries by default; pass `--full` to include the entire run record
-- human-readable side-channel output (e.g. file paths written by `lab render` / `lab card`) goes to stderr so stdout stays a clean JSON envelope
 
 ## Conventions
 
@@ -79,16 +73,11 @@ npx tsc --noEmit
 
 ### Add a brand
 ```bash
-loom brand init <name>
+cd runtime
+npx tsx src/cli.ts brand init <name>
 ```
 
-Then edit `brands/<name>/brand.yml` and run:
-
-```bash
-loom brand validate <name> --json
-```
-
-(During source-mode development, `cd runtime && npx tsx src/cli.ts brand init <name>` still works.)
+Then edit `brands/<name>/brand.yml`.
 
 ### Add a command
 1. Add a command handler in `runtime/src/commands/`

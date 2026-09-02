@@ -1,4 +1,4 @@
-import { SOCIAL_PLATFORMS, type PublishInput, type SocialPlatform } from '../domain/types'
+import type { PublishInput, SocialPlatform } from '../domain/types'
 import { isR2Configured } from '../core/r2'
 import { postToFacebook } from './facebook-direct'
 import { postToLinkedIn } from './linkedin-direct'
@@ -31,7 +31,7 @@ export interface SocialPostResult {
 export interface SocialPublishRequest {
   brand: string
   text: string
-  platformAssets: Record<SocialPlatform, string>
+  imagePath: string
   platforms: SocialPlatform[]
   dryRun?: boolean
   root?: string
@@ -47,7 +47,7 @@ const PLATFORM_REQUIREMENTS: Record<SocialPlatform, string[]> = {
   threads: ['ACCESS_TOKEN', 'USER_ID'],
 }
 
-export const ALL_SOCIAL_PLATFORMS: SocialPlatform[] = [...SOCIAL_PLATFORMS]
+export const ALL_SOCIAL_PLATFORMS: SocialPlatform[] = ['twitter', 'linkedin', 'facebook', 'instagram', 'threads']
 
 function resolveValue(platform: SocialPlatform, brand: string, suffix: string): string | undefined {
   const upper = brand.toUpperCase()
@@ -60,13 +60,8 @@ function resolveValue(platform: SocialPlatform, brand: string, suffix: string): 
 }
 
 export function getSocialAuthReport(brand: string): SocialAuthReport {
-  const r2Configured = isR2Configured()
   const platforms = ALL_SOCIAL_PLATFORMS.map((platform) => {
     const missing = PLATFORM_REQUIREMENTS[platform].filter((suffix) => !resolveValue(platform, brand, suffix))
-    if ((platform === 'instagram' || platform === 'threads') && !r2Configured) {
-      missing.push('R2_CONFIG')
-    }
-
     return {
       platform,
       supported: true,
@@ -79,16 +74,16 @@ export function getSocialAuthReport(brand: string): SocialAuthReport {
     brand,
     available: platforms.filter((platform) => platform.configured).map((platform) => platform.platform),
     platforms,
-    r2Configured,
+    r2Configured: isR2Configured(),
   }
 }
 
-function selectPlatforms(auth: SocialAuthReport, options: PublishInput = {}): SocialPlatform[] {
+function selectPlatforms(brand: string, options: PublishInput = {}): SocialPlatform[] {
   if (options.platforms && options.platforms.length > 0) {
     return options.platforms
   }
 
-  return auth.available
+  return getSocialAuthReport(brand).available
 }
 
 async function postToPlatform(platform: SocialPlatform, brand: string, text: string, imagePath: string, root?: string): Promise<SocialPostResult> {
@@ -131,26 +126,13 @@ export async function publishSocialPost(request: SocialPublishRequest): Promise<
 
   const results: SocialPostResult[] = []
   for (const platform of platforms) {
-    const imagePath = request.platformAssets[platform]
-    results.push(await postToPlatform(platform, request.brand, request.text, imagePath, request.root))
+    results.push(await postToPlatform(platform, request.brand, request.text, request.imagePath, request.root))
   }
   return results
 }
 
 export function buildSocialPublishPlan(brand: string, options: PublishInput = {}): { platforms: SocialPlatform[]; auth: SocialAuthReport } {
   const auth = getSocialAuthReport(brand)
-  const platforms = selectPlatforms(auth, options)
-
-  if (options.platforms && options.platforms.length > 0 && !options.dryRun) {
-    const unavailable = options.platforms.filter((platform) => !auth.available.includes(platform))
-    if (unavailable.length > 0) {
-      throw new Error(`Requested platforms not configured for ${brand}: ${unavailable.join(', ')}. Run "loom ops auth check --brand ${brand}" first.`)
-    }
-  }
-
-  if (platforms.length === 0) {
-    throw new Error(`No configured social platforms for ${brand}. Run "loom ops auth check --brand ${brand}" first.`)
-  }
-
+  const platforms = selectPlatforms(brand, options)
   return { platforms, auth }
 }

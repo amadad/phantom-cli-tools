@@ -1,14 +1,15 @@
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
-import { afterEach, beforeEach, describe, expect, test } from 'vitest'
+import { afterEach, describe, expect, test } from 'vitest'
 import { loadRuntimeEnv } from './env'
 
 const tempPaths: string[] = []
 const managedKeys = [
   'GEMINI_API_KEY',
   'GOOGLE_API_KEY',
-  'OPENAI_API_KEY',
+  'FAL_KEY',
+  'REPLICATE_API_TOKEN',
 ]
 
 function makeTempDir(prefix: string): string {
@@ -17,22 +18,15 @@ function makeTempDir(prefix: string): string {
   return path
 }
 
-function clearManagedKeys(): void {
-  for (const key of managedKeys) {
-    delete process.env[key]
-  }
-}
-
-beforeEach(() => {
-  clearManagedKeys()
-})
-
 afterEach(() => {
   while (tempPaths.length > 0) {
     rmSync(tempPaths.pop()!, { recursive: true, force: true })
   }
 
-  clearManagedKeys()
+  for (const key of managedKeys) {
+    delete process.env[key]
+  }
+
   delete process.env.HOME
 })
 
@@ -42,19 +36,20 @@ describe('loadRuntimeEnv', () => {
     const home = makeTempDir('loom-env-home-')
 
     mkdirSync(root, { recursive: true })
-    writeFileSync(join(root, '.env'), 'OPENAI_API_KEY=openai-token\n', 'utf8')
+    writeFileSync(join(root, '.env'), 'REPLICATE_API_TOKEN=replicate-token\n', 'utf8')
     writeFileSync(
       join(home, '.bash_secrets'),
-      'export GOOGLE_API_KEY="google-key"\n',
+      'export GOOGLE_API_KEY="google-key"\nexport FAL_KEY="fal-key"\n',
       'utf8',
     )
 
     process.env.HOME = home
     loadRuntimeEnv(root)
 
-    expect(process.env.OPENAI_API_KEY).toBe('openai-token')
+    expect(process.env.REPLICATE_API_TOKEN).toBe('replicate-token')
     expect(process.env.GOOGLE_API_KEY).toBe('google-key')
     expect(process.env.GEMINI_API_KEY).toBe('google-key')
+    expect(process.env.FAL_KEY).toBe('fal-key')
   })
 
   test('does not override GEMINI_API_KEY already loaded from .env', () => {

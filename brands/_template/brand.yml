@@ -30,9 +30,6 @@ visual:
     background: "#FFFFFF"
     primary: "#111111"
     accent: "#FF6600"
-  motif: Replace with the recurring visual pattern for the brand.
-  image_style: Replace with the visual treatment for generated images.
-  layout: Replace with the preferred social layout family.
 response_playbooks:
   - id: default-response
     trigger: inbound-question

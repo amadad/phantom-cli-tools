@@ -1,24 +1,8 @@
-/**
- * Social asset renderer.
- *
- * Two-phase pipeline:
- *   1. Gemini generates art-only image (no text, no logos)
- *   2. Canvas composites text + logo on top deterministically
- *
- * Falls back to solid-color canvas when no API key is set.
- */
-
-import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { writeFileSync } from 'fs'
 import { join } from 'path'
-import { createCanvas, Image, type CanvasRenderingContext2D } from 'canvas'
+import { createCanvas, loadImage, type CanvasRenderingContext2D } from 'canvas'
 import type { BrandFoundation, SocialPlatform } from '../domain/types'
 import { ensureParentDir, type RuntimePaths } from '../core/paths'
-import { ensureFontsRegistered } from './fonts'
-import { generateImage } from './gemini'
-
-ensureFontsRegistered()
-
-// ── Types ──
 
 interface RenderSocialAssetsOptions {
   brand: BrandFoundation
@@ -26,34 +10,22 @@ interface RenderSocialAssetsOptions {
   runId: string
   headline: string
   body: string
-  cta?: string
   sourceImagePath: string
-  contentType?: string
 }
 
-interface PlatformSpec {
-  platform: SocialPlatform
-  width: number
-  height: number
-  aspect: string
-  layout: 'wide' | 'square' | 'tall'
-}
-
-const PLATFORM_SPECS: PlatformSpec[] = [
-  { platform: 'facebook',  width: 1200, height: 1200, aspect: '1:1',  layout: 'square' },
-  { platform: 'instagram', width: 1080, height: 1350, aspect: '4:5',  layout: 'tall' },
-  { platform: 'linkedin',  width: 1200, height: 1200, aspect: '1:1',  layout: 'square' },
-  { platform: 'threads',   width: 1080, height: 1350, aspect: '4:5',  layout: 'tall' },
-  { platform: 'twitter',   width: 1600, height: 900,  aspect: '16:9', layout: 'wide' },
+const PLATFORM_SPECS: Array<{ platform: SocialPlatform; width: number; height: number; layout: 'wide' | 'square' | 'tall' }> = [
+  { platform: 'facebook', width: 1200, height: 1200, layout: 'square' },
+  { platform: 'instagram', width: 1080, height: 1350, layout: 'tall' },
+  { platform: 'linkedin', width: 1200, height: 1200, layout: 'square' },
+  { platform: 'threads', width: 1080, height: 1350, layout: 'tall' },
+  { platform: 'twitter', width: 1600, height: 900, layout: 'wide' },
 ]
-
-// ── Helpers ──
-
 
 function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
   const words = text.split(/\s+/).filter(Boolean)
   const lines: string[] = []
   let current = ''
+
   for (const word of words) {
     const candidate = current ? `${current} ${word}` : word
     if (ctx.measureText(candidate).width <= maxWidth) {
@@ -63,119 +35,111 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
       current = word
     }
   }
+
   if (current) lines.push(current)
   return lines
 }
 
-// ── Phase 1: Gemini generates art-only image ──
-
-function buildArtPrompt(
-  spec: PlatformSpec,
-  brand: BrandFoundation,
-  headline: string,
-): string {
-  // Prefer the brand's curated image_prompt over generic composition tokens
-  if (brand.visual.imagePrompt) {
-    const base = brand.visual.imagePrompt.replace(/\[SUBJECT\]/gi, headline)
-    // Override aspect ratio to match platform
-    return base
-      .replace(/1:1 square/gi, `${spec.aspect} at ${spec.width}x${spec.height}`)
-      + '\nIMPORTANT: No text, no words, no letters, no logos, no brand names. Background visual only.'
-  }
-
-  // Fallback: build from brand visual tokens
-  const lines: string[] = []
-  lines.push(`A ${spec.aspect} abstract visual at ${spec.width}x${spec.height} pixels.`)
-  if (brand.visual.style) lines.push(brand.visual.style)
-  if (brand.visual.composition?.length) lines.push(`Composition: ${brand.visual.composition.join(', ')}.`)
-  if (brand.visual.texture?.length) lines.push(`Texture: ${brand.visual.texture.join(', ')}.`)
-  lines.push(`Palette: background ${brand.visual.palette.background}, primary ${brand.visual.palette.primary}, accent ${brand.visual.palette.accent}.`)
-  if (brand.visual.negative?.length) lines.push(`Avoid: ${brand.visual.negative.join('. ')}.`)
-  lines.push('IMPORTANT: No text, no words, no letters, no logos, no brand names. Background visual only.')
-  return lines.join('\n')
+function drawSourceCover(
+  ctx: CanvasRenderingContext2D,
+  image: Awaited<ReturnType<typeof loadImage>>,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+): void {
+  const scale = Math.max(width / image.width, height / image.height)
+  const drawWidth = image.width * scale
+  const drawHeight = image.height * scale
+  const offsetX = x + (width - drawWidth) / 2
+  const offsetY = y + (height - drawHeight) / 2
+  ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight)
 }
 
-// ── Phase 2: Canvas composites text + logo on top ──
-
-function compositeAsset(
-  artImage: Image | undefined,
-  spec: PlatformSpec,
+function drawTextBlock(
+  ctx: CanvasRenderingContext2D,
   brand: BrandFoundation,
   headline: string,
-): Buffer {
-  const { width, height } = spec
-  const canvas = createCanvas(width, height)
-  const ctx = canvas.getContext('2d')
-  const palette = brand.visual.palette
-  const margin = Math.round(width * 0.06)
-
-  // Full-bleed background
-  ctx.fillStyle = palette.background
-  ctx.fillRect(0, 0, width, height)
-
-  // Full-bleed art image
-  if (artImage) {
-    const imgScale = Math.max(width / artImage.width, height / artImage.height)
-    const dw = artImage.width * imgScale
-    const dh = artImage.height * imgScale
-    ctx.drawImage(artImage, (width - dw) / 2, (height - dh) / 2, dw, dh)
-  }
-
-  // Headline — bottom-left, on the image
+  body: string,
+  x: number,
+  y: number,
+  width: number,
+  layout: 'wide' | 'square' | 'tall',
+): void {
+  ctx.fillStyle = brand.visual.palette.primary
   ctx.textBaseline = 'top'
-  const headSize = spec.layout === 'wide'
-    ? Math.round(height * 0.09)
-    : Math.round(width * 0.07)
-  ctx.font = `400 ${headSize}px "Alegreya", Georgia, serif`
-  ctx.fillStyle = palette.primary
-  const maxW = width - margin * 2
-  const lines = wrapText(ctx, headline, maxW).slice(0, 3)
-  const lineH = headSize * 1.05
-  const blockH = lines.length * lineH
-  const cursorY = height - margin - blockH
+  ctx.font = layout === 'wide' ? '700 68px sans-serif' : '700 72px sans-serif'
 
-  for (let i = 0; i < lines.length; i++) {
-    ctx.fillText(lines[i], margin, cursorY + i * lineH)
+  const headlineLines = wrapText(ctx, headline, width).slice(0, layout === 'wide' ? 3 : 4)
+  let currentY = y
+  for (const line of headlineLines) {
+    ctx.fillText(line, x, currentY)
+    currentY += layout === 'wide' ? 78 : 82
   }
 
-  return canvas.toBuffer('image/png')
-}
+  currentY += 24
+  ctx.globalAlpha = 0.86
+  ctx.font = layout === 'wide' ? '400 30px sans-serif' : '400 34px sans-serif'
+  const bodyLines = wrapText(ctx, body, width).slice(0, layout === 'wide' ? 4 : 5)
+  for (const line of bodyLines) {
+    ctx.fillText(line, x, currentY)
+    currentY += layout === 'wide' ? 42 : 48
+  }
+  ctx.globalAlpha = 1
 
-// ── Public API ──
+  ctx.fillStyle = brand.visual.palette.accent
+  ctx.font = '700 24px sans-serif'
+  ctx.fillText(brand.name.toUpperCase(), x, currentY + 24)
+}
 
 function outputPath(paths: RuntimePaths, runId: string, platform: SocialPlatform): string {
   return join(paths.artifactsDir, runId, `${platform}.png`)
 }
 
 export async function renderSocialAssets(options: RenderSocialAssetsOptions): Promise<Record<SocialPlatform, string>> {
-  const hasApiKey = !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)
-
-  // Generate art image (or use source image fallback)
-  let artImage: Image | undefined
-  if (hasApiKey) {
-    const artPrompt = buildArtPrompt(
-      { platform: 'linkedin', width: 1200, height: 1200, aspect: '1:1', layout: 'square' },
-      options.brand,
-      options.headline,
-    )
-    const artBytes = await generateImage(artPrompt)
-    if (artBytes) {
-      artImage = new Image()
-      artImage.src = artBytes
-    }
-  }
-  if (!artImage && options.sourceImagePath && existsSync(options.sourceImagePath)) {
-    artImage = new Image()
-    artImage.src = readFileSync(options.sourceImagePath)
-  }
-
+  const sourceImage = await loadImage(options.sourceImagePath)
   const assets = {} as Record<SocialPlatform, string>
 
   for (const spec of PLATFORM_SPECS) {
-    const png = compositeAsset(artImage, spec, options.brand, options.headline)
+    const canvas = createCanvas(spec.width, spec.height)
+    const ctx = canvas.getContext('2d')
+
+    ctx.fillStyle = options.brand.visual.palette.background
+    ctx.fillRect(0, 0, spec.width, spec.height)
+
+    if (spec.layout === 'wide') {
+      drawSourceCover(ctx, sourceImage, spec.width * 0.45, 0, spec.width * 0.55, spec.height)
+      ctx.fillStyle = options.brand.visual.palette.background
+      ctx.globalAlpha = 0.94
+      ctx.fillRect(0, 0, spec.width * 0.52, spec.height)
+      ctx.globalAlpha = 1
+      ctx.fillStyle = options.brand.visual.palette.accent
+      ctx.fillRect(64, 64, 14, spec.height - 128)
+      drawTextBlock(ctx, options.brand, options.headline, options.body, 116, 92, spec.width * 0.34, spec.layout)
+    } else if (spec.layout === 'tall') {
+      drawSourceCover(ctx, sourceImage, 0, 0, spec.width, spec.height * 0.5)
+      ctx.fillStyle = options.brand.visual.palette.background
+      ctx.fillRect(0, spec.height * 0.46, spec.width, spec.height * 0.54)
+      ctx.fillStyle = options.brand.visual.palette.accent
+      ctx.fillRect(72, spec.height * 0.5, spec.width - 144, 12)
+      drawTextBlock(ctx, options.brand, options.headline, options.body, 72, spec.height * 0.56, spec.width - 144, spec.layout)
+    } else {
+      drawSourceCover(ctx, sourceImage, 0, 0, spec.width, spec.height)
+      const overlay = ctx.createLinearGradient(0, spec.height * 0.34, 0, spec.height)
+      overlay.addColorStop(0, 'rgba(0,0,0,0)')
+      overlay.addColorStop(1, options.brand.visual.palette.background)
+      ctx.fillStyle = overlay
+      ctx.fillRect(0, 0, spec.width, spec.height)
+      ctx.fillStyle = options.brand.visual.palette.background
+      ctx.globalAlpha = 0.92
+      ctx.fillRect(0, spec.height * 0.54, spec.width, spec.height * 0.46)
+      ctx.globalAlpha = 1
+      drawTextBlock(ctx, options.brand, options.headline, options.body, 72, spec.height * 0.61, spec.width - 144, spec.layout)
+    }
+
     const path = outputPath(options.paths, options.runId, spec.platform)
     ensureParentDir(path)
-    writeFileSync(path, png)
+    writeFileSync(path, canvas.toBuffer('image/png'))
     assets[spec.platform] = path
   }
 
